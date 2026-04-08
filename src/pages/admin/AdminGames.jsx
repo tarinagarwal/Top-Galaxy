@@ -1,0 +1,249 @@
+import { useState, useEffect, useCallback } from 'react';
+import AdminLayout from '../../components/admin/AdminLayout';
+import api from '../../lib/axios';
+import { fmt } from '../../lib/format';
+
+const STATUS_STYLES = {
+  UPCOMING: { color: 'text-white/60 border-white/20 bg-white/5', label: 'UPCOMING' },
+  OPEN: { color: 'text-cyan border-cyan/30 bg-cyan/10', label: '⏱️ OPEN' },
+  CLOSED: { color: 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10', label: '🔒 CLOSED' },
+  RESULTED: { color: 'text-green border-green/30 bg-green/10', label: '✅ RESULTED' },
+};
+
+function todayString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default function AdminGames() {
+  const [date, setDate] = useState(todayString());
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [gamesRes, configRes] = await Promise.all([
+        api.get('/api/admin/games', { params: { date } }),
+        api.get('/api/admin/config'),
+      ]);
+      setGames(gamesRes.data.games || []);
+      // GAMES_PAUSED could be in any category — most likely "Game" or "Other"
+      const all = configRes.data.config || {};
+      let pausedVal = false;
+      for (const cat of Object.values(all)) {
+        if (typeof cat === 'object' && 'GAMES_PAUSED' in cat) {
+          pausedVal = !!cat.GAMES_PAUSED;
+          break;
+        }
+      }
+      setPaused(pausedVal);
+    } catch {}
+    setLoading(false);
+  }, [date]);
+
+  useEffect(() => {
+    refresh();
+    const id = setInterval(refresh, 15000);
+    return () => clearInterval(id);
+  }, [refresh]);
+
+  const togglePause = async () => {
+    setBusy(true);
+    setFeedback(null);
+    try {
+      const endpoint = paused ? '/api/admin/games/resume' : '/api/admin/games/pause';
+      await api.post(endpoint);
+      setPaused(!paused);
+      setFeedback({
+        type: 'success',
+        message: paused ? '✓ Game entries resumed' : '⏸️ Game entries paused',
+      });
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        message: err?.response?.data?.error || 'Action failed',
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Aggregate stats
+  const totals = games.reduce(
+    (acc, g) => ({
+      entries: acc.entries + (g.totalEntries || 0),
+      played: acc.played + (g.totalAmountPlayed || 0),
+      payout: acc.payout + (g.totalPayout || 0),
+      retained: acc.retained + (g.platformRetained || 0),
+    }),
+    { entries: 0, played: 0, payout: 0, retained: 0 }
+  );
+
+  return (
+    <AdminLayout>
+      {/* Header */}
+      <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+            🛡️ ADMIN
+          </div>
+          <h1 className="font-russo text-[2rem] text-gradient-gold">Games</h1>
+        </div>
+
+        <button
+          onClick={togglePause}
+          disabled={busy}
+          className={`px-5 py-2.5 rounded-xl font-orbitron text-[0.65rem] font-bold tracking-[0.12em] border transition-all disabled:opacity-50 ${
+            paused
+              ? 'bg-green/10 border-green/40 text-green hover:bg-green/20'
+              : 'bg-pink/10 border-pink/40 text-pink hover:bg-pink/20'
+          }`}
+        >
+          {busy ? '⏳ ...' : paused ? '▶️ RESUME GAME ENTRIES' : '⏸️ PAUSE GAME ENTRIES'}
+        </button>
+      </div>
+
+      {paused && (
+        <div className="card-glass rounded-2xl p-4 mb-4 border border-pink/30 bg-pink/5">
+          <div className="font-orbitron text-pink text-[0.7rem]">
+            ⚠️ GAMES PAUSED — New entries are blocked. Existing entries will still resolve normally.
+          </div>
+        </div>
+      )}
+
+      {feedback && (
+        <div
+          className={`card-glass rounded-2xl p-3 mb-4 border ${
+            feedback.type === 'success' ? 'border-green/30 bg-green/5 text-green' : 'border-pink/30 bg-pink/5 text-pink'
+          } text-[0.7rem]`}
+        >
+          {feedback.message}
+        </div>
+      )}
+
+      {/* Date selector */}
+      <div className="card-glass rounded-2xl p-4 mb-4 border border-white/10 flex items-center gap-3 flex-wrap">
+        <label className="font-orbitron text-[0.6rem] text-white/40 tracking-[0.1em]">DATE:</label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-gold/50"
+        />
+        <button
+          onClick={() => setDate(todayString())}
+          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem] hover:border-gold/30 hover:text-gold"
+        >
+          TODAY
+        </button>
+      </div>
+
+      {/* Aggregate stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <StatCard label="GAMES" value={games.length} color="cyan" type="count" />
+        <StatCard label="TOTAL ENTRIES" value={totals.entries} color="purple" type="count" />
+        <StatCard label="TOTAL PLAYED" value={totals.played} color="gold" />
+        <StatCard label="PLATFORM RETAINED" value={totals.retained} color="green" />
+      </div>
+
+      {/* Games table */}
+      <div className="card-glass rounded-2xl border border-white/10 overflow-hidden">
+        {loading ? (
+          <div className="text-center py-12 text-white/40 font-orbitron text-[0.7rem]">Loading...</div>
+        ) : games.length === 0 ? (
+          <div className="text-center py-12 text-white/30 font-orbitron text-[0.7rem]">
+            No games scheduled for {date}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[0.65rem]">
+              <thead className="bg-white/5 border-b border-white/10">
+                <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em]">
+                  <th className="py-3 px-3">#</th>
+                  <th className="py-3 px-3">SCHEDULED</th>
+                  <th className="py-3 px-3">STATUS</th>
+                  <th className="py-3 px-3 text-right">ENTRIES</th>
+                  <th className="py-3 px-3 text-right">PLAYED</th>
+                  <th className="py-3 px-3 text-right">WINNERS</th>
+                  <th className="py-3 px-3 text-right">PAYOUT</th>
+                  <th className="py-3 px-3 text-center">DIGIT</th>
+                  <th className="py-3 px-3 text-right">RETAINED</th>
+                </tr>
+              </thead>
+              <tbody>
+                {games.map((g) => {
+                  const style = STATUS_STYLES[g.status] || STATUS_STYLES.UPCOMING;
+                  return (
+                    <tr key={g._id} className="border-b border-white/5 hover:bg-white/3">
+                      <td className="py-2.5 px-3 font-orbitron text-white/70">#{g.gameNumber}</td>
+                      <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.55rem]">
+                        {g.scheduledAt
+                          ? new Date(g.scheduledAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : '—'}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.5rem] ${style.color}`}>
+                          {style.label}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-orbitron text-cyan text-right">
+                        {g.totalEntries || 0}
+                      </td>
+                      <td className="py-2.5 px-3 font-orbitron text-gold text-right">
+                        {fmt(g.totalAmountPlayed)}
+                      </td>
+                      <td className="py-2.5 px-3 font-orbitron text-purple text-right">
+                        {g.totalWinners || 0}
+                      </td>
+                      <td className="py-2.5 px-3 font-orbitron text-pink text-right">
+                        {fmt(g.totalPayout)}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {g.status === 'RESULTED' ? (
+                          <span className="font-russo text-[1.1rem] text-gold">
+                            {g.winningDigit}
+                          </span>
+                        ) : (
+                          <span className="text-white/20">—</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 font-orbitron text-green text-right">
+                        {fmt(g.platformRetained)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </AdminLayout>
+  );
+}
+
+function StatCard({ label, value, color, type = 'usdt' }) {
+  const colorClass = {
+    cyan: 'text-cyan border-cyan/20',
+    green: 'text-green border-green/20',
+    pink: 'text-pink border-pink/20',
+    gold: 'text-gold border-gold/20',
+    purple: 'text-purple border-purple/20',
+  }[color];
+  const display = type === 'count' ? value || 0 : fmt(value);
+  return (
+    <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
+      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">{label}</div>
+      <div className={`font-orbitron font-bold text-[1.3rem] ${colorClass.split(' ')[0]}`}>
+        {display}
+        {type !== 'count' && <span className="text-[0.55rem] text-white/30 ml-1">USDT</span>}
+      </div>
+    </div>
+  );
+}

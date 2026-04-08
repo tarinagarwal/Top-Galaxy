@@ -1,0 +1,522 @@
+import { useState, useEffect, useCallback } from 'react';
+import Navbar from '../components/Navbar';
+import StarfieldCanvas from '../components/StarfieldCanvas';
+import api from '../lib/axios';
+import { useSocket } from '../hooks/useSocket';
+import { fmt } from '../lib/format';
+
+const PRIZE_TIERS = [
+  { rank: '1st', goldenPrize: 10000, silverPrize: 1000, winners: 1 },
+  { rank: '2nd', goldenPrize: 5000, silverPrize: 500, winners: 1 },
+  { rank: '3rd', goldenPrize: 4000, silverPrize: 400, winners: 1 },
+  { rank: '4th–10th', goldenPrize: 1000, silverPrize: 100, winners: 7 },
+  { rank: '11th–50th', goldenPrize: 300, silverPrize: 30, winners: 40 },
+  { rank: '51st–100th', goldenPrize: 120, silverPrize: 12, winners: 50 },
+  { rank: '101st–500th', goldenPrize: 40, silverPrize: 4, winners: 400 },
+  { rank: '501st–1,000th', goldenPrize: 20, silverPrize: 2, winners: 500 },
+];
+
+export default function LuckyDraw() {
+  const [status, setStatus] = useState({ golden: null, silver: null });
+  const [myTickets, setMyTickets] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [winModal, setWinModal] = useState(null); // { type, prize, rank, ticketNumber }
+  const [showPrizes, setShowPrizes] = useState(false);
+  const [cashbackStats, setCashbackStats] = useState(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      const [s, t, h, c] = await Promise.all([
+        api.get('/api/luckydraw/status'),
+        api.get('/api/luckydraw/my-tickets'),
+        api.get('/api/luckydraw/history?pageSize=10'),
+        api.get('/api/cashback/status').catch(() => null), // optional
+      ]);
+      setStatus(s.data);
+      setMyTickets(t.data.tickets || []);
+      setHistory(h.data.draws || []);
+      setCashbackStats(c?.data || null);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    const id = setInterval(refresh, 10000); // poll every 10s as fallback
+    return () => clearInterval(id);
+  }, [refresh]);
+
+  // Live socket updates
+  useSocket({
+    'draw:ticket': () => refresh(),
+    'draw:triggered': () => refresh(),
+    'draw:winner': (data) => {
+      setWinModal(data);
+      refresh();
+    },
+  });
+
+  return (
+    <div>
+      <StarfieldCanvas />
+      <Navbar />
+
+      {/* Win celebration modal */}
+      {winModal && (
+        <div
+          className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setWinModal(null)}
+        >
+          <div
+            className="card-glass rounded-3xl p-10 border-2 border-gold/50 text-center max-w-[500px] animate-pulse"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-[5rem] mb-3">🏆</div>
+            <div className="font-russo text-[2.4rem] text-gradient-gold mb-2">
+              YOU WON!
+            </div>
+            <div className="font-orbitron text-[0.7rem] text-cyan tracking-[0.15em] mb-4">
+              {winModal.type} DRAW · #{winModal.drawNumber}
+            </div>
+            <div className="font-russo text-[3.5rem] text-gold leading-none mb-2">
+              {fmt(winModal.prize)}
+            </div>
+            <div className="font-orbitron text-[0.7rem] text-white/40 mb-4">USDT</div>
+            <div className="text-[0.7rem] text-white/50">
+              Rank #{winModal.rank} · Ticket #{winModal.ticketNumber}
+            </div>
+            <button
+              onClick={() => setWinModal(null)}
+              className="mt-6 px-8 py-3 rounded-full font-orbitron text-[0.7rem] font-bold tracking-[0.12em] bg-gradient-to-br from-gold to-gold2 text-black hover:shadow-[0_0_30px_rgba(255,215,0,0.5)]"
+            >
+              CLAIM ✦
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="relative z-10 min-h-screen pt-[100px] pb-12 px-6">
+        <div className="max-w-[1200px] mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="font-orbitron text-[0.6rem] tracking-[0.3em] text-gold uppercase mb-2">
+              🎰 JACKPOT GALAXY
+            </div>
+            <h1 className="font-russo text-[clamp(1.8rem,4vw,3rem)] text-gradient-gold">
+              Lucky Draw
+            </h1>
+            <p className="text-white/40 text-[0.75rem] mt-2 max-w-[600px]">
+              10,000 tickets per draw · 1,000 winners · 10% win odds. Auto-funded daily from your cashback.
+            </p>
+          </div>
+
+          {/* Two side-by-side draw cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <DrawCard
+              draw={status.golden}
+              type="GOLDEN"
+              icon="🏆"
+              accent="gold"
+              onPurchased={refresh}
+            />
+            <DrawCard
+              draw={status.silver}
+              type="SILVER"
+              icon="🥈"
+              accent="silver"
+              onPurchased={refresh}
+            />
+          </div>
+
+          {/* Auto-fund estimate (based on user's projected daily cashback) */}
+          <AutoFundEstimate cashbackStats={cashbackStats} />
+
+          {/* Prize tiers table */}
+          <div className="card-glass rounded-2xl p-6 mb-6 border border-gold/20">
+            <button
+              onClick={() => setShowPrizes((v) => !v)}
+              className="w-full flex items-center justify-between font-orbitron text-gold text-[0.75rem] font-bold"
+            >
+              <span>📊 PRIZE TIER TABLE</span>
+              <span className="text-[0.6rem]">{showPrizes ? '▲ HIDE' : '▼ SHOW'}</span>
+            </button>
+
+            {showPrizes && (
+              <div className="overflow-x-auto mt-4">
+                <table className="w-full text-[0.7rem]">
+                  <thead>
+                    <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] border-b border-white/10">
+                      <th className="py-2 px-2">RANK</th>
+                      <th className="py-2 px-2 text-right">GOLDEN PRIZE</th>
+                      <th className="py-2 px-2 text-right">SILVER PRIZE</th>
+                      <th className="py-2 px-2 text-right">WINNERS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {PRIZE_TIERS.map((t) => (
+                      <tr key={t.rank} className="border-b border-white/5 hover:bg-white/3">
+                        <td className="py-2 px-2 font-orbitron text-white/70">{t.rank}</td>
+                        <td className="py-2 px-2 font-orbitron text-gold text-right">
+                          {fmt(t.goldenPrize, 0)} USDT
+                        </td>
+                        <td className="py-2 px-2 font-orbitron text-silver text-right">
+                          {fmt(t.silverPrize, 0)} USDT
+                        </td>
+                        <td className="py-2 px-2 font-orbitron text-white/40 text-right">
+                          {t.winners}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gold/5">
+                      <td className="py-3 px-2 font-orbitron text-gold font-bold">TOTAL</td>
+                      <td className="py-3 px-2 font-orbitron text-gold text-right font-bold">
+                        70,000 USDT
+                      </td>
+                      <td className="py-3 px-2 font-orbitron text-silver text-right font-bold">
+                        7,000 USDT
+                      </td>
+                      <td className="py-3 px-2 font-orbitron text-white text-right font-bold">
+                        1,000
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* My tickets */}
+          <div className="card-glass rounded-2xl p-6 mb-6 border border-cyan/20">
+            <div className="font-orbitron text-cyan text-[0.75rem] font-bold mb-4">
+              🎟️ MY TICKETS ({myTickets.length})
+            </div>
+            {myTickets.length === 0 ? (
+              <div className="text-[0.7rem] text-white/30 text-center py-6">
+                You don't have any tickets yet. Buy some above or earn them via auto-fund from cashback.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                {myTickets.slice(0, 60).map((t) => (
+                  <div
+                    key={t._id}
+                    className={`p-2 rounded-lg border text-center ${
+                      t.drawId?.type === 'GOLDEN'
+                        ? 'bg-gold/5 border-gold/20'
+                        : 'bg-silver/5 border-silver/20'
+                    }`}
+                  >
+                    <div className="text-[0.5rem] font-orbitron text-white/30">
+                      {t.drawId?.type || '—'} #{t.drawId?.drawNumber || '—'}
+                    </div>
+                    <div className="font-orbitron text-[0.85rem] text-white">
+                      #{t.ticketNumber}
+                    </div>
+                    {t.purchaseType === 'AUTO_CASHBACK' && (
+                      <div className="text-[0.45rem] text-purple font-orbitron mt-0.5">AUTO</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {myTickets.length > 60 && (
+              <div className="text-[0.6rem] text-white/30 text-center mt-3">
+                + {myTickets.length - 60} more...
+              </div>
+            )}
+          </div>
+
+          {/* History */}
+          <div className="card-glass rounded-2xl p-6 border border-purple/20">
+            <div className="font-orbitron text-purple text-[0.75rem] font-bold mb-4">
+              📜 PAST DRAWS
+            </div>
+            {history.length === 0 ? (
+              <div className="text-[0.7rem] text-white/30 text-center py-6">
+                No completed draws yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-[0.7rem]">
+                  <thead>
+                    <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] border-b border-white/10">
+                      <th className="py-2 px-2">TYPE</th>
+                      <th className="py-2 px-2">DRAW #</th>
+                      <th className="py-2 px-2 text-right">TICKETS SOLD</th>
+                      <th className="py-2 px-2 text-right">TOTAL POOL</th>
+                      <th className="py-2 px-2 text-right">RESULTED AT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((d) => (
+                      <tr key={d._id} className="border-b border-white/5 hover:bg-white/3">
+                        <td className="py-2 px-2">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[0.55rem] font-orbitron ${
+                              d.type === 'GOLDEN'
+                                ? 'bg-gold/10 text-gold border border-gold/30'
+                                : 'bg-silver/10 text-silver border border-silver/30'
+                            }`}
+                          >
+                            {d.type}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 font-orbitron text-white/70">#{d.drawNumber}</td>
+                        <td className="py-2 px-2 font-orbitron text-cyan text-right">
+                          {d.ticketsSold}
+                        </td>
+                        <td className="py-2 px-2 font-orbitron text-gold text-right">
+                          {fmt(d.totalPool)} USDT
+                        </td>
+                        <td className="py-2 px-2 font-orbitron text-white/30 text-right text-[0.6rem]">
+                          {d.resultedAt ? new Date(d.resultedAt).toLocaleString() : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AutoFundEstimate({ cashbackStats }) {
+  // Auto-fund formula: 20% of daily cashback split equally to Golden + Silver wallets
+  const dailyCashback = cashbackStats?.estimatedDailyAmount || 0;
+  const totalAutoFund = dailyCashback * 0.2;
+  const halfFund = totalAutoFund / 2;
+  const eligible = cashbackStats?.eligible;
+
+  return (
+    <div className="card-glass rounded-2xl p-6 mb-6 border border-purple/20">
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div className="flex-1 min-w-[200px]">
+          <div className="font-orbitron text-purple text-[0.75rem] font-bold mb-1">
+            ⚡ AUTO-FUND STATUS
+          </div>
+          <div className="text-[0.65rem] text-white/40 leading-relaxed">
+            20% of your daily cashback is auto-credited equally to your Golden and Silver draw
+            wallets each day at 00:01. Tickets are purchased automatically when balances reach
+            the entry fee.
+          </div>
+          {!eligible && (
+            <div className="mt-2 text-[0.6rem] text-pink font-orbitron">
+              ⚠️ Auto-fund inactive — requires PRO activation + 100+ effective net loss
+            </div>
+          )}
+        </div>
+        <div className="flex gap-3">
+          <div className="text-center px-4 py-2 rounded-lg bg-gold/5 border border-gold/20 min-w-[100px]">
+            <div className="text-[0.5rem] font-orbitron text-white/30 tracking-[0.1em]">
+              GOLDEN/DAY
+            </div>
+            <div className="font-orbitron text-gold text-[0.95rem] font-bold">
+              +{fmt(halfFund, 4)}
+            </div>
+            <div className="text-[0.5rem] text-white/30">USDT</div>
+          </div>
+          <div className="text-center px-4 py-2 rounded-lg bg-silver/5 border border-silver/20 min-w-[100px]">
+            <div className="text-[0.5rem] font-orbitron text-white/30 tracking-[0.1em]">
+              SILVER/DAY
+            </div>
+            <div className="font-orbitron text-silver text-[0.95rem] font-bold">
+              +{fmt(halfFund, 4)}
+            </div>
+            <div className="text-[0.5rem] text-white/30">USDT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DrawCard({ draw, type, icon, accent, onPurchased }) {
+  const [quantity, setQuantity] = useState(1);
+  const [walletSource, setWalletSource] = useState('GAME_WALLET');
+  const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+
+  if (!draw) {
+    return (
+      <div className="card-glass rounded-2xl p-6 border border-white/10">
+        <div className="text-center text-white/30 font-orbitron text-[0.7rem] py-8">
+          Loading {type} draw...
+        </div>
+      </div>
+    );
+  }
+
+  const accentColors = {
+    gold: {
+      border: 'border-gold/40',
+      text: 'text-gold',
+      bg: 'bg-gold/5',
+      btn: 'bg-gradient-to-br from-gold to-gold2 text-black',
+      progress: 'bg-gradient-to-r from-gold to-gold2',
+    },
+    silver: {
+      border: 'border-silver/30',
+      text: 'text-silver',
+      bg: 'bg-silver/5',
+      btn: 'bg-gradient-to-br from-silver to-silver2 text-black',
+      progress: 'bg-gradient-to-r from-silver to-silver2',
+    },
+  }[accent];
+
+  const progressPct = draw.progressPercent || 0;
+  const totalCost = (draw.entryFee || 0) * quantity;
+
+  const drawWalletKey = type === 'GOLDEN' ? 'GOLDEN_DRAW_WALLET' : 'SILVER_DRAW_WALLET';
+
+  const handlePurchase = async (e) => {
+    e.preventDefault();
+    setFeedback(null);
+    if (quantity <= 0) {
+      setFeedback({ type: 'error', message: 'Quantity must be > 0' });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { data } = await api.post('/api/luckydraw/enter', {
+        type,
+        quantity,
+        walletSource,
+      });
+      setFeedback({
+        type: 'success',
+        message: `✓ Purchased ${data.purchased} ticket${data.purchased > 1 ? 's' : ''}`,
+      });
+      setQuantity(1);
+      if (onPurchased) onPurchased();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        message: err?.response?.data?.error || 'Purchase failed',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className={`card-glass rounded-3xl p-6 border-2 ${accentColors.border}`}>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <div className="text-[3rem] leading-none mb-1">{icon}</div>
+          <div className={`font-orbitron font-bold text-[1rem] ${accentColors.text}`}>
+            {type} DRAW
+          </div>
+          <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">
+            DRAW #{draw.drawNumber}
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">PRIZE POOL</div>
+          <div className={`font-russo text-[1.8rem] ${accentColors.text}`}>
+            {fmt(type === 'GOLDEN' ? 70000 : 7000, 0)}
+          </div>
+          <div className="text-[0.55rem] text-white/30">USDT</div>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between text-[0.6rem] font-orbitron mb-1.5">
+          <span className="text-white/40">TICKETS SOLD</span>
+          <span className={accentColors.text}>
+            {draw.ticketsSold} / {draw.totalTickets}
+          </span>
+        </div>
+        <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${accentColors.progress}`}
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <div className="text-[0.55rem] text-white/30 font-orbitron mt-1 text-right">
+          {fmt(progressPct, 1)}% filled
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+        <div className={`p-2 rounded-lg ${accentColors.bg}`}>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">ENTRY FEE</div>
+          <div className={`font-orbitron text-[0.85rem] ${accentColors.text}`}>
+            {fmt(draw.entryFee, 0)}
+          </div>
+        </div>
+        <div className={`p-2 rounded-lg ${accentColors.bg}`}>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">WIN ODDS</div>
+          <div className={`font-orbitron text-[0.85rem] ${accentColors.text}`}>10%</div>
+        </div>
+        <div className={`p-2 rounded-lg ${accentColors.bg}`}>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">REMAINING</div>
+          <div className={`font-orbitron text-[0.85rem] ${accentColors.text}`}>
+            {draw.remainingTickets}
+          </div>
+        </div>
+      </div>
+
+      {/* Purchase form */}
+      <form onSubmit={handlePurchase} className="space-y-3">
+        <div>
+          <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+            QUANTITY
+          </label>
+          <input
+            type="number"
+            min="1"
+            max={draw.remainingTickets}
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value || '1', 10))}
+            disabled={submitting}
+            className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron focus:outline-none focus:border-gold/50 disabled:opacity-50"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+            PAY FROM
+          </label>
+          <select
+            value={walletSource}
+            onChange={(e) => setWalletSource(e.target.value)}
+            disabled={submitting}
+            className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.7rem] focus:outline-none focus:border-gold/50 disabled:opacity-50"
+          >
+            <option value="GAME_WALLET">Game Wallet</option>
+            <option value={drawWalletKey}>{type} Draw Wallet (auto-funded)</option>
+          </select>
+        </div>
+
+        <div className="flex items-center justify-between text-[0.7rem] font-orbitron px-2">
+          <span className="text-white/40">TOTAL COST</span>
+          <span className={accentColors.text}>{fmt(totalCost)} USDT</span>
+        </div>
+
+        <button
+          type="submit"
+          disabled={submitting || quantity <= 0 || draw.remainingTickets <= 0}
+          className={`w-full py-3 rounded-xl font-orbitron text-[0.7rem] font-bold tracking-[0.12em] ${accentColors.btn} transition-all hover:-translate-y-[2px] disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0`}
+        >
+          {submitting ? '⏳ PROCESSING...' : draw.remainingTickets <= 0 ? '🔒 SOLD OUT' : `🎟️ BUY ${quantity} TICKET${quantity > 1 ? 'S' : ''}`}
+        </button>
+      </form>
+
+      {feedback && (
+        <div
+          className={`mt-3 p-2 rounded-lg text-[0.65rem] ${
+            feedback.type === 'success'
+              ? 'bg-green/5 border border-green/20 text-green'
+              : 'bg-pink/5 border border-pink/20 text-pink'
+          }`}
+        >
+          {feedback.message}
+        </div>
+      )}
+    </div>
+  );
+}
