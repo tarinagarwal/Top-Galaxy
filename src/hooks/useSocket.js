@@ -33,6 +33,12 @@ function getSocket() {
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      // Bypass ngrok free-tier browser warning page on the websocket handshake
+      // (sent on the polling fallback HTTP request socket.io makes first).
+      // Harmless when not behind ngrok.
+      extraHeaders: {
+        'ngrok-skip-browser-warning': 'true',
+      },
     });
     connectedToken = token;
 
