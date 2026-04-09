@@ -83,9 +83,8 @@ export default function PracticeGame() {
   const isPro = !!status?.conversionEligible;
 
   // Auto-conversion progress: total converted / (total converted + remaining)
-  // Only practiceWallet is shown — frozen referral balance is an internal concept
-  // that doesn't exist for the user. Conversion stats also show practice-only amounts.
-  const practiceRemaining = num(status?.practiceWallet);
+  // Combined pool (practice + frozen) shown as one "Practice Balance" to the user.
+  const practiceRemaining = num(status?.practiceWallet) + num(status?.practiceReferralBalance);
   const lifetimeConverted = num(status?.lifetimeAutoConvertedPractice);
   const totalEverPractice = practiceRemaining + lifetimeConverted;
   const practiceProgress = totalEverPractice > 0 ? (lifetimeConverted / totalEverPractice) * 100 : 0;
