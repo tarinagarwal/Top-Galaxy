@@ -154,7 +154,7 @@ export default function LuckyDraw() {
           </div>
 
           {/* Auto-fund estimate (based on user's projected daily cashback) */}
-          <AutoFundEstimate cashbackStats={cashbackStats} />
+          <AutoFundEstimate cashbackStats={cashbackStats} myStats={myStats} />
 
           {/* Prize tiers table */}
           <div className="card-glass rounded-2xl p-6 mb-6 border border-gold/20">
@@ -218,7 +218,7 @@ export default function LuckyDraw() {
   );
 }
 
-function AutoFundEstimate({ cashbackStats }) {
+function AutoFundEstimate({ cashbackStats, myStats }) {
   // Auto-fund formula: 20% of (daily cashback + ROI on ROI received) split equally to Golden + Silver wallets
   const dailyCashback = cashbackStats?.estimatedDailyAmount || 0;
   const totalAutoFund = dailyCashback * 0.2;
@@ -255,24 +255,42 @@ function AutoFundEstimate({ cashbackStats }) {
             </div>
           )}
         </div>
-        <div className="flex gap-3">
-          <div className="text-center px-4 py-2 rounded-lg bg-gold/5 border border-gold/20 min-w-[100px]">
-            <div className="text-[0.5rem] font-orbitron text-white/30 tracking-[0.1em]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="text-center px-3 py-2 rounded-lg bg-gold/5 border border-gold/20">
+            <div className="text-[0.45rem] font-orbitron text-white/30 tracking-[0.1em]">
               GOLDEN/DAY
             </div>
-            <div className="font-orbitron text-gold text-[0.95rem] font-bold">
+            <div className="font-orbitron text-gold text-[0.85rem] font-bold">
               +{fmt(halfFund, 4)}
             </div>
-            <div className="text-[0.5rem] text-white/30">USDT</div>
+            <div className="text-[0.45rem] text-white/30">from cashback+ROI</div>
           </div>
-          <div className="text-center px-4 py-2 rounded-lg bg-silver/5 border border-silver/20 min-w-[100px]">
-            <div className="text-[0.5rem] font-orbitron text-white/30 tracking-[0.1em]">
+          <div className="text-center px-3 py-2 rounded-lg bg-white/3 border border-white/10">
+            <div className="text-[0.45rem] font-orbitron text-white/30 tracking-[0.1em]">
               SILVER/DAY
             </div>
-            <div className="font-orbitron text-silver text-[0.95rem] font-bold">
+            <div className="font-orbitron text-white/60 text-[0.85rem] font-bold">
               +{fmt(halfFund, 4)}
             </div>
-            <div className="text-[0.5rem] text-white/30">USDT</div>
+            <div className="text-[0.45rem] text-white/30">from cashback+ROI</div>
+          </div>
+          <div className="text-center px-3 py-2 rounded-lg bg-gold/5 border border-gold/20">
+            <div className="text-[0.45rem] font-orbitron text-white/30 tracking-[0.1em]">
+              GOLDEN FROM DEPOSITS
+            </div>
+            <div className="font-orbitron text-gold text-[0.85rem] font-bold">
+              {fmt(myStats?.goldenFromDeposits || 0)}
+            </div>
+            <div className="text-[0.45rem] text-white/30">1% of your deposits</div>
+          </div>
+          <div className="text-center px-3 py-2 rounded-lg bg-white/3 border border-white/10">
+            <div className="text-[0.45rem] font-orbitron text-white/30 tracking-[0.1em]">
+              SILVER FROM DEPOSITS
+            </div>
+            <div className="font-orbitron text-white/60 text-[0.85rem] font-bold">
+              {fmt(myStats?.silverFromDeposits || 0)}
+            </div>
+            <div className="text-[0.45rem] text-white/30">1% of your deposits</div>
           </div>
         </div>
       </div>
