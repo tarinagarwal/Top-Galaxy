@@ -223,7 +223,7 @@ export default function Wallet() {
                       <div className="text-white/30 text-[0.55rem]">{hint}</div>
                     </div>
                     <div className="font-orbitron text-white text-[0.85rem]">
-                      {fmt(value)}
+                      {fmt(value, 3)}
                     </div>
                   </div>
                 ))}
@@ -250,7 +250,7 @@ export default function Wallet() {
                   >
                     <div className="font-orbitron text-[0.55rem] text-white/40">DIGIT</div>
                     <div className="font-russo text-[1.4rem] text-white">{i}</div>
-                    <div className="font-orbitron text-[0.6rem] text-purple">{fmt(slotValue)}</div>
+                    <div className="font-orbitron text-[0.6rem] text-purple">{fmt(slotValue, 3)}</div>
                   </div>
                 );
               })}

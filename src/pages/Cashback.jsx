@@ -215,7 +215,7 @@ export default function Cashback() {
 
           {/* Top stats grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <StatCard label="CASHBACK WALLET" value={s.cashbackWallet} color="green" highlight />
+            <StatCard label="CASHBACK WALLET" value={fmt(s.cashbackWallet, 3)} color="green" highlight />
             <StatCard label="EFFECTIVE NET LOSS" value={s.effectiveNetLoss} color="pink" />
             <StatCard label="DAILY RATE" value={fmt(num(s.rate) * 100, 2)} suffix="%" color="gold" unit="of effective net loss" />
             <StatCard label="EST. DAILY AMOUNT" value={fmt(s.estimatedDailyAmount, 3)} color="purple" />
