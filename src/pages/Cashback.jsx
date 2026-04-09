@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import StarfieldCanvas from '../components/StarfieldCanvas';
+import { useAuthStore } from '../store/authStore';
 import api from '../lib/axios';
 import { useSocket } from '../hooks/useSocket';
 import { fmt, num } from '../lib/format';
@@ -27,9 +28,12 @@ function useCountdownTo(isoTarget) {
 }
 
 export default function Cashback() {
+  const isAdmin = useAuthStore((s) => s.isOperationalAdmin || s.isSuperAdmin);
   const [status, setStatus] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [triggering, setTriggering] = useState(false);
+  const [triggerResult, setTriggerResult] = useState(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -159,7 +163,7 @@ export default function Cashback() {
                 </div>
                 {s.eligible ? (
                   <div className="text-white/50 text-[0.65rem] space-y-0.5">
-                    <div>You'll receive approximately <span className="text-green font-orbitron">{fmt(s.estimatedDailyAmount)} USDT</span> at next payout</div>
+                    <div>You'll receive approximately <span className="text-green font-orbitron">{fmt(s.estimatedDailyAmount, 3)} USDT</span> at next payout</div>
                     <div className="text-white/30">Rate: {fmt(num(s.rate) * 100, 2)}% of your effective net loss daily</div>
                   </div>
                 ) : (
@@ -177,9 +181,36 @@ export default function Cashback() {
                 <div className={`font-russo text-[1.8rem] leading-none ${s.eligible ? 'text-green' : 'text-white/20'}`}>
                   {nextPayout}
                 </div>
-                <div className="text-[0.45rem] text-white/20 mt-1">Daily at 00:01 server time</div>
+                <div className="text-[0.45rem] text-white/20 mt-1">Daily at 01:30 server time</div>
+                {isAdmin && (
+                  <button
+                    onClick={async () => {
+                      setTriggering(true);
+                      setTriggerResult(null);
+                      try {
+                        const { data } = await api.post('/api/admin/cron/cashback');
+                        setTriggerResult({ type: 'success', message: `Cashback processed: ${data.result?.processed || 0} users credited` });
+                        refresh();
+                      } catch (err) {
+                        setTriggerResult({ type: 'error', message: err?.response?.data?.error || 'Trigger failed' });
+                      }
+                      setTriggering(false);
+                    }}
+                    disabled={triggering}
+                    className="mt-2 px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20 disabled:opacity-40"
+                  >
+                    {triggering ? '...' : 'TRIGGER NOW'}
+                  </button>
+                )}
               </div>
             </div>
+            {triggerResult && (
+              <div className={`mt-3 p-2 rounded-lg text-[0.6rem] ${
+                triggerResult.type === 'success' ? 'bg-green/5 border border-green/20 text-green' : 'bg-pink/5 border border-pink/20 text-pink'
+              }`}>
+                {triggerResult.message}
+              </div>
+            )}
           </div>
 
           {/* Top stats grid */}
@@ -187,7 +218,7 @@ export default function Cashback() {
             <StatCard label="CASHBACK WALLET" value={s.cashbackWallet} color="green" highlight />
             <StatCard label="EFFECTIVE NET LOSS" value={s.effectiveNetLoss} color="pink" />
             <StatCard label="DAILY RATE" value={fmt(num(s.rate) * 100, 2)} suffix="%" color="gold" unit="of effective net loss" />
-            <StatCard label="EST. DAILY AMOUNT" value={s.estimatedDailyAmount} color="purple" />
+            <StatCard label="EST. DAILY AMOUNT" value={fmt(s.estimatedDailyAmount, 3)} color="purple" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -286,7 +317,7 @@ export default function Cashback() {
                   <div className="text-white/50">
                     Refer{' '}
                     <span className="text-gold font-orbitron">{nextTierInfo.needed} more</span>{' '}
-                    qualifying users (each with 100+ USDT volume) to unlock{' '}
+                    qualifying users (each with 100+ USDT deposited) to unlock{' '}
                     <span className="text-gold font-orbitron">{nextTierInfo.mult}× cap</span>
                   </div>
                 </div>
