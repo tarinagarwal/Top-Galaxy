@@ -115,7 +115,7 @@ export default function GameHistory() {
           {/* Stats cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             <StatCard label="TOTAL BETS" value={s.totalBets || 0} color="cyan" type="count" />
-            <StatCard label="WAGERED" value={s.totalWagered || 0} color="gold" />
+            <StatCard label="TOTAL PLAYED" value={s.totalWagered || 0} color="gold" />
             <StatCard label="WINS" value={s.wins || 0} color="green" type="count" />
             <StatCard label="LOSSES" value={s.losses || 0} color="pink" type="count" />
           </div>

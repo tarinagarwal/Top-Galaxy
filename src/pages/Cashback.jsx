@@ -6,6 +6,26 @@ import api from '../lib/axios';
 import { useSocket } from '../hooks/useSocket';
 import { fmt, num } from '../lib/format';
 
+function useCountdownTo(isoTarget) {
+  const [remaining, setRemaining] = useState('');
+  useEffect(() => {
+    if (!isoTarget) { setRemaining('--'); return; }
+    const target = new Date(isoTarget).getTime();
+    const tick = () => {
+      const diff = target - Date.now();
+      if (diff <= 0) { setRemaining('Processing soon...'); return; }
+      const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+      const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+      const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+      setRemaining(`${h}h ${m}m ${s}s`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [isoTarget]);
+  return remaining;
+}
+
 export default function Cashback() {
   const [status, setStatus] = useState(null);
   const [history, setHistory] = useState([]);
@@ -47,6 +67,7 @@ export default function Cashback() {
 
   const s = status || {};
   const r = s.requirements || {};
+  const nextPayout = useCountdownTo(s.nextPayoutAt);
 
   // Coerce all numeric fields to safe numbers up-front
   const effectiveCap = num(s.effectiveCap ?? s.capLimit);
@@ -128,10 +149,42 @@ export default function Cashback() {
             </div>
           )}
 
+          {/* Eligibility + Next Payout */}
+          <div className={`card-glass rounded-2xl p-5 mb-6 border ${s.eligible ? 'border-green/30 bg-green/5' : 'border-yellow-400/30 bg-yellow-400/5'}`}>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className={`font-orbitron text-[0.85rem] font-bold mb-1 ${s.eligible ? 'text-green' : 'text-yellow-400'}`}>
+                  {s.eligible ? 'CASHBACK ACTIVE' : 'NOT YET ELIGIBLE'}
+                </div>
+                {s.eligible ? (
+                  <div className="text-white/50 text-[0.65rem] space-y-0.5">
+                    <div>You'll receive approximately <span className="text-green font-orbitron">{fmt(s.estimatedDailyAmount)} USDT</span> at next payout</div>
+                    <div className="text-white/30">Rate: {fmt(num(s.rate) * 100, 2)}% of your effective net loss daily</div>
+                  </div>
+                ) : (
+                  <div className="text-white/50 text-[0.65rem] space-y-0.5">
+                    {r.proActivationRequired && <div>Requires PRO activation (deposit {r.proThreshold}+ USDT)</div>}
+                    {!r.proActivationRequired && num(s.effectiveNetLoss) < num(r.minNetLoss) && (
+                      <div>Minimum net loss required: <span className="text-gold font-orbitron">{fmt(r.minNetLoss)} USDT</span> (current: {fmt(s.effectiveNetLoss)})</div>
+                    )}
+                    {s.cashbackPaused && <div>Cap reached — re-deposit to reactivate</div>}
+                  </div>
+                )}
+              </div>
+              <div className="text-center md:text-right">
+                <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">NEXT PAYOUT IN</div>
+                <div className={`font-russo text-[1.8rem] leading-none ${s.eligible ? 'text-green' : 'text-white/20'}`}>
+                  {nextPayout}
+                </div>
+                <div className="text-[0.45rem] text-white/20 mt-1">Daily at 00:01 server time</div>
+              </div>
+            </div>
+          </div>
+
           {/* Top stats grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <StatCard label="CASHBACK WALLET" value={s.cashbackWallet} color="green" highlight />
-            <StatCard label="EFFECTIVE NET LOSS" value={s.effectiveNetLoss} color="cyan" />
+            <StatCard label="EFFECTIVE NET LOSS" value={s.effectiveNetLoss} color="pink" />
             <StatCard label="DAILY RATE" value={fmt(num(s.rate) * 100, 2)} suffix="%" color="gold" unit="of effective net loss" />
             <StatCard label="EST. DAILY AMOUNT" value={s.estimatedDailyAmount} color="purple" />
           </div>
@@ -143,13 +196,13 @@ export default function Cashback() {
                 📊 NET LOSS BREAKDOWN
               </div>
               <div className="space-y-3 text-[0.75rem]">
-                <BreakdownRow label="Total Wagered in Games" value={s.totalAmountPlayed} sign="+" color="pink" />
+                <BreakdownRow label="Total Played in Games" value={s.totalAmountPlayed} sign="+" color="pink" />
                 <BreakdownRow label="Total Won in Games" value={s.totalAmountWon} sign="-" color="green" />
                 <div className="border-t border-white/10 pt-3 mt-3" />
-                <BreakdownRow label="Net Loss (game-only)" value={s.netLoss} bold color="white" />
+                <BreakdownRow label="Net Loss (game-only)" value={s.netLoss} bold color="pink" />
                 <BreakdownRow label="Cashback Already Received" value={s.cashbackTotalEarned} sign="-" color="gold" />
                 <div className="border-t border-white/10 pt-3 mt-3" />
-                <BreakdownRow label="Effective Net Loss (today's base)" value={s.effectiveNetLoss} bold color="cyan" />
+                <BreakdownRow label="Effective Net Loss (today's base)" value={s.effectiveNetLoss} bold color="pink" />
               </div>
 
               <div className="mt-5 p-3 rounded-lg bg-white/3 text-[0.65rem] text-white/40 leading-relaxed">
@@ -247,7 +300,7 @@ export default function Cashback() {
             </div>
             {history.length === 0 ? (
               <div className="text-center py-8 text-[0.7rem] text-white/30">
-                No cashback received yet. Daily cron runs at 00:01.
+                No cashback received yet. Payouts are processed daily at midnight.
               </div>
             ) : (
               <div className="overflow-x-auto">
