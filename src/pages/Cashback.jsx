@@ -53,6 +53,8 @@ export default function Cashback() {
     'roi:credited': () => refresh(),
   });
 
+  const nextPayout = useCountdownTo(status?.nextPayoutAt);
+
   if (loading) {
     return (
       <div>
@@ -67,7 +69,6 @@ export default function Cashback() {
 
   const s = status || {};
   const r = s.requirements || {};
-  const nextPayout = useCountdownTo(s.nextPayoutAt);
 
   // Coerce all numeric fields to safe numbers up-front
   const effectiveCap = num(s.effectiveCap ?? s.capLimit);
