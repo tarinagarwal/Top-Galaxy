@@ -32,8 +32,7 @@ export default function PracticeGame() {
   useSocket({
     'practice:converted': (data) => {
       setConversionToast({
-        practiceTransfer: data.practiceTransfer,
-        frozenTransfer: data.frozenTransfer,
+        converted: data.converted,
         sourceCommission: data.sourceCommission,
       });
       refresh();
@@ -164,12 +163,7 @@ export default function PracticeGame() {
                   </div>
                 </div>
                 <div className="text-right text-[0.65rem] font-orbitron">
-                  {conversionToast.practiceTransfer > 0 && (
-                    <div className="text-gold">+{fmt(conversionToast.practiceTransfer)} → Game Wallet</div>
-                  )}
-                  {conversionToast.frozenTransfer > 0 && (
-                    <div className="text-purple">+{fmt(conversionToast.frozenTransfer)} → Referral Wallet (from practice)</div>
-                  )}
+                  <div className="text-gold">+{fmt(conversionToast.converted)} → Game Wallet</div>
                 </div>
               </div>
             </div>
