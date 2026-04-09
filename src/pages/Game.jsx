@@ -397,18 +397,6 @@ export default function Game() {
                     )}
                   </div>
 
-                  {/* My History link */}
-                  <Link
-                    to="/game/history"
-                    className="block card-glass rounded-2xl p-4 text-center border border-purple/20 hover:border-purple/40 transition-all"
-                  >
-                    <div className="font-orbitron text-purple text-[0.7rem] font-bold">
-                      📊 VIEW MY FULL HISTORY
-                    </div>
-                    <div className="text-[0.5rem] text-white/30 mt-1">
-                      Cash & Practice · Win/Loss · Payouts · P&L
-                    </div>
-                  </Link>
                 </div>
               </div>
 
@@ -443,6 +431,19 @@ export default function Game() {
               </div>
             </>
           )}
+
+          {/* My History link — always visible */}
+          <Link
+            to="/game/history"
+            className="mt-6 block card-glass rounded-2xl p-5 text-center border border-purple/20 hover:border-purple/40 transition-all"
+          >
+            <div className="font-orbitron text-purple text-[0.75rem] font-bold">
+              📊 VIEW MY FULL HISTORY
+            </div>
+            <div className="text-[0.5rem] text-white/30 mt-1">
+              Cash & Practice · Win/Loss · Payouts · P&L
+            </div>
+          </Link>
         </div>
       </div>
     </div>

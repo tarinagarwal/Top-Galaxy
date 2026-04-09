@@ -143,7 +143,7 @@ export default function Cashback() {
                 📊 NET LOSS BREAKDOWN
               </div>
               <div className="space-y-3 text-[0.75rem]">
-                <BreakdownRow label="Total Lost in Games" value={s.totalAmountLost} sign="+" color="pink" />
+                <BreakdownRow label="Total Wagered in Games" value={s.totalAmountPlayed} sign="+" color="pink" />
                 <BreakdownRow label="Total Won in Games" value={s.totalAmountWon} sign="-" color="green" />
                 <div className="border-t border-white/10 pt-3 mt-3" />
                 <BreakdownRow label="Net Loss (game-only)" value={s.netLoss} bold color="white" />
