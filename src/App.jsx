@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import Wallet from './pages/Wallet';
 import PracticeGame from './pages/PracticeGame';
 import Game from './pages/Game';
+import GameHistory from './pages/GameHistory';
 import Cashback from './pages/Cashback';
 import LuckyDraw from './pages/LuckyDraw';
 import Club from './pages/Club';
@@ -50,6 +51,7 @@ function AppRoutes() {
       <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
       <Route path="/practice" element={<ProtectedRoute><PracticeGame /></ProtectedRoute>} />
       <Route path="/game" element={<ProtectedRoute><Game /></ProtectedRoute>} />
+      <Route path="/game/history" element={<ProtectedRoute><GameHistory /></ProtectedRoute>} />
       <Route path="/cashback" element={<ProtectedRoute><Cashback /></ProtectedRoute>} />
       <Route path="/lucky-draw" element={<ProtectedRoute><LuckyDraw /></ProtectedRoute>} />
       <Route path="/club" element={<ProtectedRoute><Club /></ProtectedRoute>} />
