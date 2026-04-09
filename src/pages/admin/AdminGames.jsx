@@ -16,12 +16,14 @@ function todayString() {
 }
 
 export default function AdminGames() {
+  const canOps = useAuthStore((s) => s.isOperationalAdmin);
   const [date, setDate] = useState(todayString());
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [forceGame, setForceGame] = useState(null); // game object for force-result modal
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -172,6 +174,7 @@ export default function AdminGames() {
                   <th className="py-3 px-3 text-right">PAYOUT</th>
                   <th className="py-3 px-3 text-center">DIGIT</th>
                   <th className="py-3 px-3 text-right">RETAINED</th>
+                  <th className="py-3 px-3 text-center">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -217,6 +220,16 @@ export default function AdminGames() {
                       <td className="py-2.5 px-3 font-orbitron text-green text-right">
                         {fmt(g.platformRetained)}
                       </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {g.status !== 'RESULTED' && canOps && (g.totalEntries || 0) > 0 && (
+                          <button
+                            onClick={() => setForceGame(g)}
+                            className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.5rem] hover:bg-pink/20"
+                          >
+                            🎯 FORCE
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -225,7 +238,101 @@ export default function AdminGames() {
           </div>
         )}
       </div>
+      {/* Force Result Modal */}
+      {forceGame && (
+        <ForceResultModal
+          game={forceGame}
+          onClose={() => setForceGame(null)}
+          onDone={() => { setForceGame(null); refresh(); }}
+        />
+      )}
     </AdminLayout>
+  );
+}
+
+function ForceResultModal({ game, onClose, onDone }) {
+  const [selectedDigit, setSelectedDigit] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+
+  const handleForce = async () => {
+    if (selectedDigit === null) return;
+    setBusy(true);
+    setFeedback(null);
+    try {
+      const { data } = await api.post(`/api/admin/games/${game._id}/force-result`, {
+        winningDigit: selectedDigit,
+      });
+      setFeedback({
+        type: 'success',
+        message: `Game #${game.gameNumber} resulted with digit ${selectedDigit} — ${data.processed?.wins || 0} winners, ${data.processed?.losses || 0} losses`,
+      });
+      setTimeout(onDone, 1500);
+    } catch (err) {
+      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Force result failed' });
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[1100] bg-black/80 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="card-glass rounded-2xl border border-pink/30 max-w-[500px] w-full p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="font-orbitron text-pink text-[0.85rem] font-bold mb-2">
+          🎯 FORCE RESULT — Game #{game.gameNumber}
+        </div>
+        <div className="text-[0.65rem] text-white/50 mb-1">
+          {game.date} · {game.totalEntries || 0} entries · {fmt(game.totalAmountPlayed)} USDT played
+        </div>
+        <div className="text-[0.6rem] text-yellow-400 mb-4">
+          ⚠️ This bypasses the provably-fair commit-reveal system. The selected digit will be the winner. Cannot be undone.
+        </div>
+
+        {/* Digit picker */}
+        <div className="mb-4">
+          <div className="text-[0.55rem] text-white/40 font-orbitron mb-2">SELECT WINNING DIGIT</div>
+          <div className="grid grid-cols-5 gap-2">
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+              <button
+                key={d}
+                onClick={() => setSelectedDigit(d)}
+                className={`py-3 rounded-xl font-russo text-[1.5rem] border-2 transition-all ${
+                  selectedDigit === d
+                    ? 'bg-gold/20 border-gold text-gold shadow-[0_0_20px_rgba(255,215,0,0.3)]'
+                    : 'bg-white/3 border-white/10 text-white/60 hover:border-gold/30 hover:text-gold'
+                }`}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {feedback && (
+          <div className={`text-[0.65rem] mb-4 px-3 py-2 rounded-lg ${
+            feedback.type === 'success' ? 'bg-green/5 border border-green/20 text-green' : 'bg-pink/5 border border-pink/20 text-pink'
+          }`}>
+            {feedback.message}
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            disabled={busy}
+            className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.6rem]"
+          >
+            CANCEL
+          </button>
+          <button
+            onClick={handleForce}
+            disabled={busy || selectedDigit === null}
+            className="flex-1 py-2.5 rounded-xl bg-pink/10 border border-pink/40 text-pink font-orbitron text-[0.6rem] font-bold hover:bg-pink/20 disabled:opacity-30"
+          >
+            {busy ? '⏳ EXECUTING...' : selectedDigit !== null ? `FORCE DIGIT ${selectedDigit}` : 'SELECT A DIGIT'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
