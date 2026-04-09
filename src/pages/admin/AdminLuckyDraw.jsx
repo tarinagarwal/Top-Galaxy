@@ -11,6 +11,7 @@ export default function AdminLuckyDraw() {
 
   const [status, setStatus] = useState({ golden: null, silver: null });
   const [stats, setStats] = useState({});
+  const [distSummary, setDistSummary] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -22,14 +23,16 @@ export default function AdminLuckyDraw() {
 
   const refresh = useCallback(async () => {
     try {
-      const [s, st, h] = await Promise.all([
+      const [s, st, h, ds] = await Promise.all([
         api.get('/api/admin/luckydraw/status'),
         api.get('/api/admin/luckydraw/stats').catch(() => ({ data: {} })),
         api.get('/api/luckydraw/history?pageSize=20'),
+        api.get('/api/admin/luckydraw/distribution-summary').catch(() => ({ data: {} })),
       ]);
       setStatus(s.data);
       setStats(st.data || {});
       setHistory(h.data.draws || []);
+      setDistSummary(ds.data || {});
     } catch {}
     setLoading(false);
   }, []);
@@ -92,6 +95,50 @@ export default function AdminLuckyDraw() {
         <StatCard label="DRAWS COMPLETED" value={stats.drawsResulted || 0} color="green" suffix="" />
         <StatCard label="DRAWS TOTAL" value={stats.drawsTotal || 0} color="purple" suffix="" />
       </div>
+
+      {/* Ticket Revenue Distribution */}
+      {distSummary && (distSummary.totalTicketAmount || 0) > 0 && (
+        <div className="card-glass rounded-2xl p-5 mb-6 border border-white/10">
+          <div className="font-orbitron text-white text-[0.75rem] font-bold mb-3">
+            💰 Ticket Revenue Distribution
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+            <div className="p-3 rounded-lg bg-white/3 border border-white/5">
+              <div className="text-[0.45rem] text-white/30 font-orbitron">TOTAL REVENUE</div>
+              <div className="font-orbitron text-gold text-[0.85rem] font-bold">{fmt(distSummary.totalTicketAmount, 3)}</div>
+              <div className="text-[0.4rem] text-white/20">{distSummary.count || 0} purchases</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/3 border border-white/5">
+              <div className="text-[0.45rem] text-white/30 font-orbitron">CREATOR</div>
+              <div className="font-orbitron text-cyan text-[0.85rem]">{fmt(distSummary.totalCreator, 3)}</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/3 border border-white/5">
+              <div className="text-[0.45rem] text-white/30 font-orbitron">BD (24)</div>
+              <div className="font-orbitron text-purple text-[0.85rem]">{fmt(distSummary.totalBD, 3)}</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/3 border border-white/5">
+              <div className="text-[0.45rem] text-white/30 font-orbitron">FEW</div>
+              <div className="font-orbitron text-pink text-[0.85rem]">{fmt(distSummary.totalFEW, 3)}</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/3 border border-white/5">
+              <div className="text-[0.45rem] text-white/30 font-orbitron">GAME POOL</div>
+              <div className="font-orbitron text-cyan text-[0.85rem]">{fmt(distSummary.totalGamePool, 3)}</div>
+            </div>
+            <div className="p-3 rounded-lg bg-green/5 border border-green/20">
+              <div className="text-[0.45rem] text-white/30 font-orbitron">PRIZE POOL</div>
+              <div className="font-orbitron text-green text-[0.85rem] font-bold">{fmt(distSummary.totalPrizePool, 3)}</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/3 border border-white/5">
+              <div className="text-[0.45rem] text-white/30 font-orbitron">PRIZE %</div>
+              <div className="font-orbitron text-green text-[0.85rem]">
+                {distSummary.totalTicketAmount > 0
+                  ? fmt((distSummary.totalPrizePool / distSummary.totalTicketAmount) * 100, 1)
+                  : '0'}%
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-white/40 font-orbitron text-[0.7rem]">Loading...</div>
