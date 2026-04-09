@@ -4,19 +4,154 @@ import { useAuthStore } from '../../store/authStore';
 import api from '../../lib/axios';
 
 const CATEGORY_LABELS = {
-  Game: '🎯 Game',
-  Practice: '🎮 Practice',
-  Activation: '🔓 Activation',
-  Cashback: '🛡️ Cashback',
-  ROI: '🔄 ROI on ROI',
-  Referral: '⭐ Referral',
-  Club: '🏆 Club Income',
-  LuckyDraw: '🎰 Lucky Draw',
-  Withdrawal: '💸 Withdrawal',
-  PracticeReferral: '🎁 Practice Referral',
-  Admin: '🛡️ Admin Wallet',
+  Game: '🎯 Game Settings',
+  Practice: '🎮 Practice Mode',
+  Activation: '🔓 Activation Tiers',
+  Cashback: '🛡️ Cashback (Stream 4)',
+  ROI: '🔄 ROI on ROI (Stream 5)',
+  Referral: '⭐ Referral Commissions',
+  Club: '🏆 Club Income (Stream 6)',
+  LuckyDraw: '🎰 Lucky Draw (Stream 7)',
+  Withdrawal: '💸 Withdrawals',
+  PracticeReferral: '🎁 Practice Referral Rewards',
+  Admin: '🛡️ Admin',
+  DepositV2: '📥 Deposit Distribution (V2)',
   Other: '⚙️ Other',
 };
+
+// Human-friendly display for each config key: { label, desc, format }
+// format: 'pct' (×100 + %), 'pct_raw' (already %, just add %), 'usdt', 'count', 'ms', 'bool', 'bps', 'address'
+const CONFIG_DISPLAY = {
+  // Game
+  GAME_PHASE1_MULTIPLIER: { label: 'Win Multiplier (Phase 1)', desc: 'Total payout multiplier when user wins in Phase 1', format: 'x' },
+  GAME_PHASE2_MULTIPLIER: { label: 'Win Multiplier (Phase 2)', desc: 'Total payout multiplier when user wins in Phase 2', format: 'x' },
+  GAME_PHASE1_USER_LIMIT: { label: 'Phase 1 → 2 Threshold', desc: 'Number of users before switching from Phase 1 to Phase 2', format: 'count' },
+  GAME_PHASE1_DIRECT_RATIO: { label: 'Direct Payout Ratio (Phase 1)', desc: 'Fraction of win that goes to withdrawal wallet (e.g., 0.25 = 25%)', format: 'pct' },
+  GAME_PHASE1_COMPOUND_RATIO: { label: 'Compound Payout Ratio (Phase 1)', desc: 'Fraction of win locked in compound slot (e.g., 0.75 = 75%)', format: 'pct' },
+  GAME_PHASE2_DIRECT_RATIO: { label: 'Direct Payout Ratio (Phase 2)', desc: 'Phase 2 direct payout fraction', format: 'pct' },
+  GAME_PHASE2_COMPOUND_RATIO: { label: 'Compound Payout Ratio (Phase 2)', desc: 'Phase 2 compound payout fraction', format: 'pct' },
+  GAME_CUTOFF_MINUTES: { label: 'Entry Cutoff', desc: 'Minutes before game result when entries close', format: 'min' },
+  GAME_MIN_ENTRY_USDT: { label: 'Minimum Bet', desc: 'Minimum USDT amount per game entry', format: 'usdt' },
+  GAMES_PER_DAY: { label: 'Games Per Day', desc: 'Number of game rounds scheduled daily', format: 'count' },
+  GAMES_PAUSED: { label: 'Games Paused', desc: 'Emergency pause flag — blocks all new game entries when true', format: 'bool' },
+
+  // Activation
+  BASIC_ACTIVATION_USDT: { label: 'BASIC Tier Deposit', desc: 'Minimum cumulative deposit to activate BASIC (unlocks L1-L3)', format: 'usdt' },
+  PRO_ACTIVATION_USDT: { label: 'PRO Tier Deposit', desc: 'Minimum cumulative deposit to activate PRO (unlocks all 15 levels)', format: 'usdt' },
+
+  // Cashback
+  CASHBACK_PHASE1_RATE: { label: 'Daily Rate (Phase 1)', desc: 'Daily cashback % of effective net loss (≤10K users)', format: 'pct' },
+  CASHBACK_PHASE2_RATE: { label: 'Daily Rate (Phase 2)', desc: 'Daily cashback % (10K–100K users)', format: 'pct' },
+  CASHBACK_PHASE3_RATE: { label: 'Daily Rate (Phase 3)', desc: 'Daily cashback % (>100K users)', format: 'pct' },
+  CASHBACK_PHASE1_USER_LIMIT: { label: 'Phase 1 → 2 Users', desc: 'User count that triggers rate drop from Phase 1 to Phase 2', format: 'count' },
+  CASHBACK_PHASE2_USER_LIMIT: { label: 'Phase 2 → 3 Users', desc: 'User count that triggers rate drop from Phase 2 to Phase 3', format: 'count' },
+  CASHBACK_MIN_NET_LOSS: { label: 'Minimum Net Loss', desc: 'User must have at least this much effective net loss to receive cashback', format: 'usdt' },
+  CASHBACK_CAP_0_REF: { label: 'Cap: 0 Referrals', desc: 'Lifetime cashback cap multiplier with 0 qualifying directs', format: 'x' },
+  CASHBACK_CAP_5_REF: { label: 'Cap: 5 Referrals', desc: 'Cap multiplier with 5+ qualifying directs', format: 'x' },
+  CASHBACK_CAP_10_REF: { label: 'Cap: 10 Referrals', desc: 'Cap multiplier with 10+ qualifying directs', format: 'x' },
+  CASHBACK_CAP_20_REF: { label: 'Cap: 20 Referrals', desc: 'Cap multiplier with 20+ qualifying directs', format: 'x' },
+  CASHBACK_CAP_POST10K_10_REF: { label: 'Cap Post-10K: 10 Refs', desc: 'Reduced cap multiplier after 10K platform users (was 4×)', format: 'x' },
+  CASHBACK_CAP_POST10K_20_REF: { label: 'Cap Post-10K: 20 Refs', desc: 'Reduced cap multiplier after 10K platform users (was 8×)', format: 'x' },
+  CASHBACK_REACTIVATION_DEPOSIT: { label: 'Reactivation Deposit', desc: 'Deposit amount needed to resume cashback after cap is hit', format: 'usdt' },
+
+  // ROI
+  ROI_POOL_PERCENT: { label: 'ROI Pool Size', desc: 'Fraction of cashback distributed as ROI to uplines (0.5 = 50%)', format: 'pct' },
+  ROI_L1_PERCENT: { label: 'Level 1 Share', desc: 'L1 upline gets this % of the ROI pool', format: 'pct_raw' },
+  ROI_L2_L5_PERCENT: { label: 'Level 2-5 Share (each)', desc: 'Each L2-L5 upline gets this % of the ROI pool', format: 'pct_raw' },
+  ROI_L6_L10_PERCENT: { label: 'Level 6-10 Share (each)', desc: 'Each L6-L10 upline gets this % of the ROI pool', format: 'pct_raw' },
+  ROI_L11_L15_PERCENT: { label: 'Level 11-15 Share (each)', desc: 'Each L11-L15 upline gets this % of the ROI pool', format: 'pct_raw' },
+
+  // Referral
+  REF_L1_PERCENT: { label: 'L1 Commission', desc: 'Level 1 direct referral commission on deposits', format: 'pct_raw' },
+  REF_L2_PERCENT: { label: 'L2 Commission', desc: 'Level 2 commission on deposits', format: 'pct_raw' },
+  REF_L3_L5_PERCENT: { label: 'L3-5 Commission (each)', desc: 'Each L3-L5 commission on deposits', format: 'pct_raw' },
+  REF_L6_L15_PERCENT: { label: 'L6-15 Commission (each)', desc: 'Each L6-L15 commission on deposits', format: 'pct_raw' },
+  WINNERS_REF_TOTAL_PERCENT: { label: 'Winners Ref Total', desc: 'Informational: total % distributed across 15 levels on game wins', format: 'pct_raw' },
+
+  // Club
+  CLUB_RANK1_PERCENT: { label: 'Rank 1 Pool %', desc: 'Daily turnover % allocated to Rank 1 members', format: 'pct_raw' },
+  CLUB_RANK2_PERCENT: { label: 'Rank 2 Pool %', format: 'pct_raw' },
+  CLUB_RANK3_PERCENT: { label: 'Rank 3 Pool %', format: 'pct_raw' },
+  CLUB_RANK4_PERCENT: { label: 'Rank 4 Pool %', format: 'pct_raw' },
+  CLUB_RANK5_PERCENT: { label: 'Rank 5 Pool %', format: 'pct_raw' },
+  CLUB_RANK6_PERCENT: { label: 'Rank 6 Pool %', format: 'pct_raw' },
+  CLUB_RANK1_VOLUME: { label: 'Rank 1 Volume Required', desc: 'Business volume needed for Rank 1', format: 'usdt' },
+  CLUB_RANK2_VOLUME: { label: 'Rank 2 Volume', format: 'usdt' },
+  CLUB_RANK3_VOLUME: { label: 'Rank 3 Volume', format: 'usdt' },
+  CLUB_RANK4_VOLUME: { label: 'Rank 4 Volume', format: 'usdt' },
+  CLUB_RANK5_VOLUME: { label: 'Rank 5 Volume', format: 'usdt' },
+  CLUB_RANK6_VOLUME: { label: 'Rank 6 Volume', format: 'usdt' },
+  CLUB_LEG_RATIO: { label: 'Balanced Leg Ratio', desc: '50/50 strong leg vs other legs split requirement', format: 'pct' },
+
+  // Lucky Draw
+  GOLDEN_ENTRY_FEE: { label: 'Golden Ticket Price', format: 'usdt' },
+  SILVER_ENTRY_FEE: { label: 'Silver Ticket Price', format: 'usdt' },
+  DRAW_TOTAL_TICKETS: { label: 'Tickets Per Draw', desc: 'Draw triggers when this many tickets are sold', format: 'count' },
+  DRAW_TOTAL_WINNERS: { label: 'Winners Per Draw', desc: 'Number of winners selected from each draw', format: 'count' },
+  DRAW_AUTO_FUND_PERCENT: { label: 'Auto-Fund Rate', desc: 'Fraction of daily cashback+ROI auto-credited to draw wallets (0.2 = 20%)', format: 'pct' },
+  DRAW_TIMER_DURATION_MS: { label: 'Countdown Timer', desc: 'Time between draw filling and execution', format: 'ms' },
+  TICKET_SPLIT_CREATOR_PERCENT: { label: 'Ticket Revenue → Creator', desc: 'Creator wallet share of each ticket sale', format: 'pct_raw' },
+  TICKET_SPLIT_BD_PERCENT: { label: 'Ticket Revenue → BD Wallets', desc: 'Total BD wallet share (split across 24 wallets)', format: 'pct_raw' },
+  TICKET_SPLIT_FEW_PERCENT: { label: 'Ticket Revenue → FEW', desc: 'Field Expenses wallet share', format: 'pct_raw' },
+  TICKET_SPLIT_GAME_POOL_PERCENT: { label: 'Ticket Revenue → Game Pool', desc: 'Game pool share', format: 'pct_raw' },
+
+  // Withdrawal
+  WITHDRAWAL_MIN_USDT: { label: 'Minimum Withdrawal', format: 'usdt' },
+  WITHDRAWAL_MAX_DAILY_USDT: { label: 'Daily Limit', desc: 'Max USDT a user can withdraw per day', format: 'usdt' },
+  WITHDRAWAL_FEE_PERCENT: { label: 'Withdrawal Fee', desc: 'Fee deducted from each withdrawal (0.10 = 10%)', format: 'pct' },
+
+  // Practice
+  PRACTICE_PHASE1_BALANCE: { label: 'Phase 1 Starting Balance', desc: 'Practice USDT given to first 10K users', format: 'usdt' },
+  PRACTICE_PHASE1_LIMIT: { label: 'Phase 1 User Limit', format: 'count' },
+  PRACTICE_PHASE2_BALANCE: { label: 'Phase 2 Starting Balance', desc: 'Practice USDT given after 10K users', format: 'usdt' },
+  PRACTICE_PHASE2_LIMIT: { label: 'Phase 2 User Limit', format: 'count' },
+  PRACTICE_EXPIRY_DAYS: { label: 'Practice Expiry', desc: 'Days before practice account expires', format: 'days' },
+  PRACTICE_PHASE1_WIN_MULTIPLIER: { label: 'Win Multiplier (Phase 1)', format: 'x' },
+  PRACTICE_PHASE2_WIN_MULTIPLIER: { label: 'Win Multiplier (Phase 2)', format: 'x' },
+  PRACTICE_MAX_REF_BONUS_DIRECTS: { label: 'Max Referral Bonus Directs', desc: 'Cap on how many directs earn practice referral rewards', format: 'count' },
+
+  // Practice Referral
+  PRACTICE_REF_L1_USDT: { label: 'L1 Practice Ref Reward', format: 'usdt' },
+  PRACTICE_REF_L2_L5_USDT: { label: 'L2-5 Reward (each)', format: 'usdt' },
+  PRACTICE_REF_L6_L10_USDT: { label: 'L6-10 Reward (each)', format: 'usdt' },
+  PRACTICE_REF_L11_L15_USDT: { label: 'L11-15 Reward (each)', format: 'usdt' },
+
+  // Deposit V2
+  DEPOSIT_CREATOR_BPS: { label: 'Deposit → Creator', desc: 'Basis points (200 = 2%)', format: 'bps' },
+  DEPOSIT_BD_DEFAULT_BPS: { label: 'Deposit → Per BD Wallet', desc: 'Basis points per BD wallet (25 = 0.25%)', format: 'bps' },
+  DEPOSIT_FEW_BPS: { label: 'Deposit → FEW', desc: 'Field Expenses (500 = 5%)', format: 'bps' },
+  DEPOSIT_REFERRAL_POOL_BPS: { label: 'Deposit → Referral Pool', desc: 'Direct referral pool (1500 = 15%)', format: 'bps' },
+  DEPOSIT_LUCKY_DRAW_BPS: { label: 'Deposit → Lucky Draw', desc: 'Lucky draw pool (100 = 1%)', format: 'bps' },
+
+  // Wallets
+  ADMIN_WALLET: { label: 'Admin Wallet Address', desc: 'This wallet gets auto-promoted to Super Admin on login', format: 'address' },
+  CREATOR_WALLET: { label: 'Creator Wallet Address', format: 'address' },
+  FEW_WALLET: { label: 'FEW Wallet Address', desc: 'Field Expenses Wallet', format: 'address' },
+  BD_FALLBACK_WALLET: { label: 'BD Fallback Address', desc: 'Default address for BD wallet slots 21-24', format: 'address' },
+};
+
+// Format a raw value for display
+function formatConfigValue(key, value) {
+  const info = CONFIG_DISPLAY[key];
+  if (!info) return String(value);
+  switch (info.format) {
+    case 'pct': return `${(Number(value) * 100).toFixed(2)}%`;
+    case 'pct_raw': return `${Number(value)}%`;
+    case 'usdt': return `$${Number(value).toLocaleString()} USDT`;
+    case 'count': return Number(value).toLocaleString();
+    case 'x': return `${Number(value)}×`;
+    case 'ms': {
+      const mins = Math.round(Number(value) / 60000);
+      return mins >= 60 ? `${(mins / 60).toFixed(1)} hours` : `${mins} minutes`;
+    }
+    case 'min': return `${Number(value)} minutes`;
+    case 'days': return `${Number(value)} days`;
+    case 'bool': return value ? '✅ YES' : '❌ NO';
+    case 'bps': return `${Number(value)} bps (${(Number(value) / 100).toFixed(2)}%)`;
+    case 'address': return String(value);
+    default: return String(value);
+  }
+}
 
 const CATEGORY_COLORS = {
   Game: 'gold',
@@ -343,14 +478,22 @@ function ConfigRow({
   // Determine input type based on current value type
   const inputType = typeof value === 'number' ? 'number' : 'text';
 
+  const info = CONFIG_DISPLAY[configKey];
+  const friendlyLabel = info?.label || configKey;
+  const friendlyDesc = info?.desc || '';
+  const friendlyValue = formatConfigValue(configKey, value);
+
   return (
     <div className="p-3 hover:bg-white/3">
       <div className="flex items-start gap-3 flex-wrap md:flex-nowrap">
         <div className="flex-1 min-w-[200px]">
-          <div className="font-orbitron text-[0.65rem] text-white/80">{configKey}</div>
-          <div className="text-[0.55rem] text-white/30 font-orbitron mt-0.5">
-            Current: <span className="text-cyan">{JSON.stringify(value)}</span> · Type:{' '}
-            <span className="text-purple">{typeof value}</span>
+          <div className="font-orbitron text-[0.65rem] text-white/80">{friendlyLabel}</div>
+          {friendlyDesc && (
+            <div className="text-[0.5rem] text-white/25 mt-0.5 leading-relaxed">{friendlyDesc}</div>
+          )}
+          <div className="text-[0.55rem] text-white/40 font-orbitron mt-1">
+            Value: <span className="text-cyan">{friendlyValue}</span>
+            <span className="text-white/20 ml-2">({configKey})</span>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
