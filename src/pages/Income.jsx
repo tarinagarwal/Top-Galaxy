@@ -6,6 +6,13 @@ import { fmt, num } from '../lib/format';
 
 const STREAMS = [
   {
+    key: 'GAME_WINNINGS',
+    icon: '🎯',
+    name: 'Game Winnings',
+    color: 'gold',
+    description: 'Direct payout (2x) from winning games. Credited to your winnings wallet and available for withdrawal.',
+  },
+  {
     key: 'DIRECT_REFERRAL',
     icon: '⭐',
     name: 'Direct Referral',
@@ -57,7 +64,7 @@ const STREAMS = [
 ];
 
 export default function Income() {
-  const [activeStream, setActiveStream] = useState('DIRECT_REFERRAL');
+  const [activeStream, setActiveStream] = useState('GAME_WINNINGS');
   const [aggregates, setAggregates] = useState({});
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
@@ -230,15 +237,21 @@ export default function Income() {
                           {new Date(r.createdAt).toLocaleString()}
                         </td>
                         <td className="py-2.5 px-3 font-orbitron text-cyan text-[0.55rem]">
-                          {r.fromUserId?.walletAddress
+                          {activeStream === 'GAME_WINNINGS'
+                            ? (r.meta?.gameId ? `Game` : '—')
+                            : r.fromUserId?.walletAddress
                             ? `${r.fromUserId.walletAddress.slice(0, 6)}...${r.fromUserId.walletAddress.slice(-4)}`
                             : '—'}
                         </td>
                         <td className="py-2.5 px-3 text-center font-orbitron text-purple">
-                          {r.level ? `L${r.level}` : '—'}
+                          {activeStream === 'GAME_WINNINGS'
+                            ? (r.meta?.digit !== undefined ? `Digit ${r.meta.digit}` : '—')
+                            : r.level ? `L${r.level}` : '—'}
                         </td>
                         <td className="py-2.5 px-3 text-right font-orbitron text-white/60">
-                          {r.percentage !== undefined && r.percentage !== null
+                          {activeStream === 'GAME_WINNINGS'
+                            ? (r.meta?.multiplier ? `${r.meta.multiplier}x` : '—')
+                            : r.percentage !== undefined && r.percentage !== null
                             ? `${fmt(r.percentage, 2)}%`
                             : '—'}
                         </td>
@@ -246,7 +259,7 @@ export default function Income() {
                           {fmt(r.baseAmount)}
                         </td>
                         <td className="py-2.5 px-3 text-right font-orbitron text-green">
-                          +{fmt(r.earnedAmount, 4)}
+                          +{fmt(r.earnedAmount, 3)}
                         </td>
                       </tr>
                     ))}
