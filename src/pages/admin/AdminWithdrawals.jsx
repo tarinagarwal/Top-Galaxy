@@ -65,7 +65,8 @@ export default function AdminWithdrawals() {
   const totalPages = Math.max(1, Math.ceil(total / 25));
 
   // Daily total of all withdrawals (sum of today's amounts across users)
-  const todayString = new Date().toISOString().slice(0, 10);
+  const _d = new Date();
+  const todayString = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
   const todayWithdrawalTotal = useMemo(() => {
     return withdrawals
       .filter((w) => {

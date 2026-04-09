@@ -12,7 +12,8 @@ const STATUS_STYLES = {
 };
 
 function todayString() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export default function AdminGames() {
@@ -24,6 +25,7 @@ export default function AdminGames() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [forceGame, setForceGame] = useState(null); // game object for force-result modal
+  const [viewMode, setViewMode] = useState('cash'); // 'cash' | 'practice'
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -74,14 +76,18 @@ export default function AdminGames() {
     }
   };
 
-  // Aggregate stats
+  // Aggregate stats from breakdown data (not from stale game fields)
   const totals = games.reduce(
-    (acc, g) => ({
-      entries: acc.entries + (g.totalEntries || 0),
-      played: acc.played + (g.totalAmountPlayed || 0),
-      payout: acc.payout + (g.totalPayout || 0),
-      retained: acc.retained + (g.platformRetained || 0),
-    }),
+    (acc, g) => {
+      const b = g.breakdown || {};
+      const isCash = viewMode === 'cash';
+      return {
+        entries: acc.entries + (isCash ? (b.cashEntries || 0) : (b.practiceEntries || 0)),
+        played: acc.played + (isCash ? (b.cashAmount || 0) : (b.practiceAmount || 0)),
+        payout: acc.payout + (isCash ? (b.cashPayout || 0) : (b.practicePayout || 0)),
+        retained: acc.retained + (isCash ? (b.cashRetained || 0) : (b.practiceRetained || 0)),
+      };
+    },
     { entries: 0, played: 0, payout: 0, retained: 0 }
   );
 
@@ -127,6 +133,30 @@ export default function AdminGames() {
         </div>
       )}
 
+      {/* Cash / Practice toggle */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setViewMode('cash')}
+          className={`flex-1 py-2.5 rounded-xl font-orbitron text-[0.6rem] font-bold tracking-[0.1em] border transition-all ${
+            viewMode === 'cash'
+              ? 'bg-gold/10 border-gold/40 text-gold shadow-[0_0_15px_rgba(255,215,0,0.15)]'
+              : 'bg-white/3 border-white/10 text-white/40 hover:border-gold/20'
+          }`}
+        >
+          💰 CASH ENTRIES
+        </button>
+        <button
+          onClick={() => setViewMode('practice')}
+          className={`flex-1 py-2.5 rounded-xl font-orbitron text-[0.6rem] font-bold tracking-[0.1em] border transition-all ${
+            viewMode === 'practice'
+              ? 'bg-cyan/10 border-cyan/40 text-cyan shadow-[0_0_15px_rgba(0,255,255,0.15)]'
+              : 'bg-white/3 border-white/10 text-white/40 hover:border-cyan/20'
+          }`}
+        >
+          🎮 PRACTICE ENTRIES
+        </button>
+      </div>
+
       {/* Date selector */}
       <div className="card-glass rounded-2xl p-4 mb-4 border border-white/10 flex items-center gap-3 flex-wrap">
         <label className="font-orbitron text-[0.6rem] text-white/40 tracking-[0.1em]">DATE:</label>
@@ -145,11 +175,12 @@ export default function AdminGames() {
       </div>
 
       {/* Aggregate stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
         <StatCard label="GAMES" value={games.length} color="cyan" type="count" />
         <StatCard label="TOTAL ENTRIES" value={totals.entries} color="purple" type="count" />
         <StatCard label="TOTAL PLAYED" value={totals.played} color="gold" />
-        <StatCard label="PLATFORM RETAINED" value={totals.retained} color="green" />
+        <StatCard label="TOTAL PAYOUT" value={totals.payout} color="pink" />
+        <StatCard label="RETAINED" value={totals.retained} color="green" />
       </div>
 
       {/* Games table */}
@@ -180,6 +211,9 @@ export default function AdminGames() {
               <tbody>
                 {games.map((g) => {
                   const style = STATUS_STYLES[g.status] || STATUS_STYLES.UPCOMING;
+                  const b = g.breakdown || {};
+                  const rowEntries = viewMode === 'cash' ? (b.cashEntries || 0) : (b.practiceEntries || 0);
+                  const rowPlayed = viewMode === 'cash' ? (b.cashAmount || 0) : (b.practiceAmount || 0);
                   return (
                     <tr key={g._id} className="border-b border-white/5 hover:bg-white/3">
                       <td className="py-2.5 px-3 font-orbitron text-white/70">#{g.gameNumber}</td>
@@ -197,16 +231,16 @@ export default function AdminGames() {
                         </span>
                       </td>
                       <td className="py-2.5 px-3 font-orbitron text-cyan text-right">
-                        {g.totalEntries || 0}
+                        {rowEntries}
                       </td>
                       <td className="py-2.5 px-3 font-orbitron text-gold text-right">
-                        {fmt(g.totalAmountPlayed)}
+                        {fmt(rowPlayed)}
                       </td>
                       <td className="py-2.5 px-3 font-orbitron text-purple text-right">
                         {g.totalWinners || 0}
                       </td>
                       <td className="py-2.5 px-3 font-orbitron text-pink text-right">
-                        {fmt(g.totalPayout)}
+                        {fmt(viewMode === 'cash' ? (b.cashPayout || 0) : (b.practicePayout || 0))}
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         {g.status === 'RESULTED' ? (
@@ -218,10 +252,10 @@ export default function AdminGames() {
                         )}
                       </td>
                       <td className="py-2.5 px-3 font-orbitron text-green text-right">
-                        {fmt(g.platformRetained)}
+                        {fmt(viewMode === 'cash' ? (b.cashRetained || 0) : (b.practiceRetained || 0))}
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        {g.status !== 'RESULTED' && canOps && (g.totalEntries || 0) > 0 && (
+                        {g.status !== 'RESULTED' && canOps && ((b.cashEntries || 0) + (b.practiceEntries || 0)) > 0 && (
                           <button
                             onClick={() => setForceGame(g)}
                             className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.5rem] hover:bg-pink/20"
@@ -254,6 +288,17 @@ function ForceResultModal({ game, onClose, onDone }) {
   const [selectedDigit, setSelectedDigit] = useState(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [viewMode, setViewMode] = useState('cash'); // 'cash' | 'practice'
+
+  // Fetch per-digit breakdown on mount
+  useEffect(() => {
+    api.get(`/api/admin/games/${game._id}`)
+      .then(({ data }) => setDetail(data))
+      .catch(() => {});
+  }, [game._id]);
+
+  const perDigit = detail?.breakdown?.perDigit || [];
 
   const handleForce = async () => {
     if (selectedDigit === null) return;
@@ -280,30 +325,61 @@ function ForceResultModal({ game, onClose, onDone }) {
         <div className="font-orbitron text-pink text-[0.85rem] font-bold mb-2">
           🎯 FORCE RESULT — Game #{game.gameNumber}
         </div>
-        <div className="text-[0.65rem] text-white/50 mb-1">
-          {game.date} · {game.totalEntries || 0} entries · {fmt(game.totalAmountPlayed)} USDT played
-        </div>
-        <div className="text-[0.6rem] text-yellow-400 mb-4">
-          ⚠️ This bypasses the provably-fair commit-reveal system. The selected digit will be the winner. Cannot be undone.
+
+        {/* Cash / Practice toggle */}
+        <div className="flex gap-2 mb-3">
+          <button onClick={() => setViewMode('cash')}
+            className={`flex-1 py-1.5 rounded-lg font-orbitron text-[0.5rem] border transition-all ${
+              viewMode === 'cash' ? 'bg-gold/10 border-gold/40 text-gold' : 'bg-white/3 border-white/10 text-white/40'
+            }`}>
+            💰 CASH — {detail?.breakdown?.cash?.entries || 0} entries · {fmt(detail?.breakdown?.cash?.amount || 0)} USDT
+          </button>
+          <button onClick={() => setViewMode('practice')}
+            className={`flex-1 py-1.5 rounded-lg font-orbitron text-[0.5rem] border transition-all ${
+              viewMode === 'practice' ? 'bg-cyan/10 border-cyan/40 text-cyan' : 'bg-white/3 border-white/10 text-white/40'
+            }`}>
+            🎮 PRACTICE — {detail?.breakdown?.practice?.entries || 0} entries · {fmt(detail?.breakdown?.practice?.amount || 0)} USDT
+          </button>
         </div>
 
-        {/* Digit picker */}
+        <div className="text-[0.6rem] text-yellow-400 mb-3">
+          ⚠️ The selected digit will be the winner for BOTH cash and practice entries. Cannot be undone.
+        </div>
+
+        {/* Digit picker with per-digit amounts */}
         <div className="mb-4">
           <div className="text-[0.55rem] text-white/40 font-orbitron mb-2">SELECT WINNING DIGIT</div>
           <div className="grid grid-cols-5 gap-2">
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
-              <button
-                key={d}
-                onClick={() => setSelectedDigit(d)}
-                className={`py-3 rounded-xl font-russo text-[1.5rem] border-2 transition-all ${
-                  selectedDigit === d
-                    ? 'bg-gold/20 border-gold text-gold shadow-[0_0_20px_rgba(255,215,0,0.3)]'
-                    : 'bg-white/3 border-white/10 text-white/60 hover:border-gold/30 hover:text-gold'
-                }`}
-              >
-                {d}
-              </button>
-            ))}
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => {
+              const info = perDigit.find((p) => p.digit === d) || {};
+              const amt = viewMode === 'cash' ? (info.cashAmount || 0) : (info.practiceAmount || 0);
+              const cnt = viewMode === 'cash' ? (info.cashCount || 0) : (info.practiceCount || 0);
+              const isLowest = perDigit.length > 0 && amt === Math.min(...perDigit.map((p) => viewMode === 'cash' ? (p.cashAmount || 0) : (p.practiceAmount || 0)));
+
+              return (
+                <button
+                  key={d}
+                  onClick={() => setSelectedDigit(d)}
+                  className={`py-2 rounded-xl border-2 transition-all text-center ${
+                    selectedDigit === d
+                      ? 'bg-gold/20 border-gold text-gold shadow-[0_0_20px_rgba(255,215,0,0.3)]'
+                      : isLowest && amt === 0
+                      ? 'bg-green/5 border-green/20 text-white/60 hover:border-gold/30'
+                      : 'bg-white/3 border-white/10 text-white/60 hover:border-gold/30 hover:text-gold'
+                  }`}
+                >
+                  <div className="font-russo text-[1.3rem]">{d}</div>
+                  <div className={`text-[0.45rem] font-orbitron mt-0.5 ${amt > 0 ? 'text-pink' : 'text-green'}`}>
+                    {cnt > 0 ? `${fmt(amt)}` : '—'}
+                  </div>
+                  {cnt > 0 && <div className="text-[0.4rem] text-white/30">{cnt} bet{cnt > 1 ? 's' : ''}</div>}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-3 mt-2 text-[0.5rem] text-white/30">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-green/30 border border-green/30"></span> No bets (max profit)</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-pink/30 border border-pink/30"></span> Has bets (payout required)</span>
           </div>
         </div>
 
