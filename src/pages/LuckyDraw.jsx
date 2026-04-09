@@ -233,10 +233,22 @@ function AutoFundEstimate({ cashbackStats }) {
             ⚡ AUTO-FUND STATUS
           </div>
           <div className="text-[0.65rem] text-white/40 leading-relaxed">
-            20% of your daily cashback + ROI on ROI earnings is auto-credited equally to your Golden and Silver draw
-            wallets each day at 00:01. Tickets are purchased automatically when balances reach
-            the entry fee.
+            Lucky Draw pools are funded from <strong className="text-white/60">3 sources</strong>:
           </div>
+          <ul className="text-[0.6rem] text-white/40 mt-2 space-y-1 list-none">
+            <li className="flex items-start gap-2">
+              <span className="text-gold">1.</span>
+              <span><strong className="text-white/60">1% of every deposit</strong> — split equally to Golden & Silver prize pools instantly on-chain</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-gold">2.</span>
+              <span><strong className="text-white/60">20% of daily cashback + ROI on ROI</strong> — auto-credited to your draw wallets at 00:01 daily</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-gold">3.</span>
+              <span><strong className="text-white/60">70% of ticket revenue</strong> — from every ticket purchased across all draws</span>
+            </li>
+          </ul>
           {!eligible && (
             <div className="mt-2 text-[0.6rem] text-pink font-orbitron">
               ⚠️ Auto-fund inactive — requires PRO activation + 100+ effective net loss
