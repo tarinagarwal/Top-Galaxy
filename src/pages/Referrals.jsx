@@ -13,14 +13,19 @@ const TIER_STYLES = {
 
 export default function Referrals() {
   const [stats, setStats] = useState(null);
+  const [levels, setLevels] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState('');
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/api/user/referrals/stats');
-      setStats(data);
+      const [s, l] = await Promise.all([
+        api.get('/api/user/referrals/stats'),
+        api.get('/api/user/referrals/levels'),
+      ]);
+      setStats(s.data);
+      setLevels(l.data);
     } catch {}
     setLoading(false);
   }, []);
@@ -168,6 +173,127 @@ export default function Referrals() {
                   color="pink"
                 />
               </div>
+
+              {/* Level Breakdown */}
+              {levels && (
+                <div className="card-glass rounded-2xl p-6 mb-6 border border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <div className="font-orbitron text-white text-[0.85rem] font-bold flex items-center gap-2">
+                        📊 Level Breakdown
+                      </div>
+                      <div className="text-[0.6rem] text-white/40 mt-1">
+                        Consolidated view of your network capacity and earnings.
+                      </div>
+                    </div>
+                    <div className="px-4 py-2 rounded-xl border border-gold/30 bg-gold/10">
+                      <span className="font-orbitron text-gold text-[0.7rem] font-bold">
+                        {levels.activeLevels} Active Levels
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Header row — desktop */}
+                  <div className="hidden md:grid grid-cols-[1fr_0.7fr_0.7fr_0.8fr_0.8fr] gap-2 mb-2 px-3">
+                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em]">TIER</div>
+                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em]">TOTAL TEAM</div>
+                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em]">PRACTICE BONUS</div>
+                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em] text-center">DIRECT REFERRAL</div>
+                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em] text-center">WINNER REFERRAL</div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {levels.levels.map((lv) => {
+                      const commPct = lv.level === 1 ? '5%' : lv.level === 2 ? '2%' : lv.level <= 5 ? '1%' : '0.5%';
+                      return (
+                        <div key={lv.level} className="rounded-xl bg-white/3 border border-white/5 p-3">
+                          {/* Desktop layout */}
+                          <div className="hidden md:grid grid-cols-[1fr_0.7fr_0.7fr_0.8fr_0.8fr] gap-2 items-center">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-orbitron text-[0.6rem] font-bold ${
+                                lv.unlocked
+                                  ? 'bg-green/10 border border-green/30 text-green'
+                                  : 'bg-pink/10 border border-pink/30 text-pink'
+                              }`}>
+                                L{lv.level}
+                              </div>
+                              <div>
+                                <div className="font-orbitron text-white/80 text-[0.65rem]">LEVEL {lv.level}</div>
+                                {lv.unlocked ? (
+                                  <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
+                                ) : (
+                                  <div className="text-[0.45rem] text-pink font-orbitron">
+                                    {lv.lockType} LOCKED — DEPOSIT {lv.lockType === 'BASIC' ? '10' : '100'} USDT
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
+                              <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">users</span>
+                            </div>
+                            <div>
+                              <span className="font-orbitron text-white/60 text-[0.75rem]">{fmt(lv.practiceBonus, 3)}</span>
+                              <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">USDT</span>
+                            </div>
+                            <div className="text-center">
+                              <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-cyan text-[0.7rem]">
+                                +{fmt(lv.directReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                              </span>
+                            </div>
+                            <div className="text-center">
+                              <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-pink text-[0.7rem]">
+                                +{fmt(lv.winnersReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Mobile layout */}
+                          <div className="md:hidden">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-orbitron text-[0.6rem] font-bold ${
+                                lv.unlocked
+                                  ? 'bg-green/10 border border-green/30 text-green'
+                                  : 'bg-pink/10 border border-pink/30 text-pink'
+                              }`}>
+                                L{lv.level}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-orbitron text-white/80 text-[0.65rem]">LEVEL {lv.level}</div>
+                                {lv.unlocked ? (
+                                  <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
+                                ) : (
+                                  <div className="text-[0.45rem] text-pink font-orbitron">
+                                    {lv.lockType} LOCKED — DEPOSIT {lv.lockType === 'BASIC' ? '10' : '100'} USDT
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
+                                <span className="text-[0.45rem] text-white/30 ml-1">users</span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                <div className="text-[0.4rem] text-white/30 font-orbitron">PRACTICE</div>
+                                <div className="font-orbitron text-white/60 text-[0.6rem]">{fmt(lv.practiceBonus, 3)}</div>
+                              </div>
+                              <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                <div className="text-[0.4rem] text-white/30 font-orbitron">DIRECT REF</div>
+                                <div className="font-orbitron text-cyan text-[0.6rem]">+{fmt(lv.directReferral, 3)}</div>
+                              </div>
+                              <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                <div className="text-[0.4rem] text-white/30 font-orbitron">WINNER REF</div>
+                                <div className="font-orbitron text-pink text-[0.6rem]">+{fmt(lv.winnersReferral, 3)}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Interactive tree */}
               <div className="card-glass rounded-2xl p-6 border border-purple/20">
