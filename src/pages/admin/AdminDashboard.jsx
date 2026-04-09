@@ -8,20 +8,23 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState([]);
   const [incomeTotals, setIncomeTotals] = useState({});
   const [systemStatus, setSystemStatus] = useState(null);
+  const [kpi, setKpi] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
-      const [p, s, i, sys] = await Promise.all([
+      const [p, s, i, sys, k] = await Promise.all([
         api.get('/api/admin/pools'),
         api.get('/api/admin/analytics/stats?days=1'),
         api.get('/api/admin/analytics/income-totals'),
         api.get('/api/admin/system/status'),
+        api.get('/api/admin/dashboard/kpi').catch(() => null),
       ]);
       setPools(p.data);
       setStats(s.data.stats || []);
       setIncomeTotals(i.data.totals || {});
       setSystemStatus(sys.data);
+      if (k?.data) setKpi(k.data);
     } catch {}
     setLoading(false);
   }, []);
@@ -59,6 +62,16 @@ export default function AdminDashboard() {
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Dashboard</h1>
       </div>
+
+      {/* V2 KPI Cards — TEAM / DEPOSIT / DISTRIBUTION / RECEIVING */}
+      {kpi && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <KPICard label="TEAM" icon="👥" color="cyan" today={kpi.team?.today} total={kpi.team?.total} suffix="" />
+          <KPICard label="DEPOSIT" icon="📥" color="green" today={kpi.deposit?.today} total={kpi.deposit?.total} />
+          <KPICard label="DISTRIBUTION" icon="📤" color="purple" today={kpi.distribution?.today} total={kpi.distribution?.total} />
+          <KPICard label="RECEIVING" icon="📨" color="gold" today={kpi.receiving?.today} total={kpi.receiving?.total} />
+        </div>
+      )}
 
       {/* Today's stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -323,6 +336,39 @@ function DashStatCard({ label, value, color, suffix = ' USDT' }) {
       <div className={`font-orbitron font-bold text-[1.3rem] ${colorClass.split(' ')[0]}`}>
         {display}
         {!isCount && <span className="text-[0.55rem] text-white/30 ml-1">USDT</span>}
+      </div>
+    </div>
+  );
+}
+
+function KPICard({ label, icon, color, today, total, suffix = ' USDT' }) {
+  const colorClass = {
+    cyan: 'text-cyan border-cyan/20',
+    green: 'text-green border-green/20',
+    purple: 'text-purple border-purple/20',
+    gold: 'text-gold border-gold/20',
+  }[color] || 'text-white/60 border-white/10';
+  const isCount = suffix === '';
+  const fmtVal = (v) => (isCount ? String(v || 0) : fmt(v));
+  return (
+    <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
+      <div className="flex items-center gap-1.5 mb-2">
+        <span className="text-[1rem]">{icon}</span>
+        <span className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em]">{label}</span>
+      </div>
+      <div className="flex items-baseline gap-3">
+        <div>
+          <div className="text-[0.45rem] text-white/30 font-orbitron mb-0.5">TODAY</div>
+          <div className={`font-orbitron font-bold text-[1.1rem] ${colorClass.split(' ')[0]}`}>
+            {fmtVal(today)}{!isCount && <span className="text-[0.45rem] text-white/20 ml-0.5">USDT</span>}
+          </div>
+        </div>
+        <div className="border-l border-white/10 pl-3">
+          <div className="text-[0.45rem] text-white/30 font-orbitron mb-0.5">TOTAL</div>
+          <div className="font-orbitron text-[0.85rem] text-white/60">
+            {fmtVal(total)}{!isCount && <span className="text-[0.45rem] text-white/20 ml-0.5">USDT</span>}
+          </div>
+        </div>
       </div>
     </div>
   );

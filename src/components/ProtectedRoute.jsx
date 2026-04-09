@@ -14,3 +14,11 @@ export function AdminRoute({ children }) {
   if (!isAdmin) return <Navigate to="/" replace />;
   return children;
 }
+
+export function SuperAdminRoute({ children }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isSuperAdmin = useAuthStore((s) => s.isSuperAdmin);
+  if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!isSuperAdmin) return <Navigate to="/" replace />;
+  return children;
+}

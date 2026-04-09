@@ -84,15 +84,11 @@ export default function PracticeGame() {
   const isPro = !!status?.conversionEligible;
 
   // Auto-conversion progress: total converted / (total converted + remaining)
-  const practiceRemaining = num(status?.practiceWallet);
-  const frozenRemaining = num(status?.practiceReferralBalance);
+  // Frozen referral rewards are merged into the single "Practice Balance" display.
+  const practiceRemaining = num(status?.practiceWallet) + num(status?.practiceReferralBalance);
   const lifetimeConverted = num(status?.lifetimeAutoConverted);
-  const lifetimePractice = num(status?.lifetimeAutoConvertedPractice);
-  const lifetimeFrozen = num(status?.lifetimeAutoConvertedFrozen);
-  const totalEverPractice = practiceRemaining + lifetimePractice;
-  const totalEverFrozen = frozenRemaining + lifetimeFrozen;
-  const practiceProgress = totalEverPractice > 0 ? (lifetimePractice / totalEverPractice) * 100 : 0;
-  const frozenProgress = totalEverFrozen > 0 ? (lifetimeFrozen / totalEverFrozen) * 100 : 0;
+  const totalEverPractice = practiceRemaining + lifetimeConverted;
+  const practiceProgress = totalEverPractice > 0 ? (lifetimeConverted / totalEverPractice) * 100 : 0;
 
   return (
     <div>
@@ -171,7 +167,7 @@ export default function PracticeGame() {
                     <div className="text-gold">+{fmt(conversionToast.practiceTransfer)} → Game Wallet</div>
                   )}
                   {conversionToast.frozenTransfer > 0 && (
-                    <div className="text-purple">+{fmt(conversionToast.frozenTransfer)} → Referral Wallet</div>
+                    <div className="text-purple">+{fmt(conversionToast.frozenTransfer)} → Referral Wallet (from practice)</div>
                   )}
                 </div>
               </div>
@@ -186,7 +182,7 @@ export default function PracticeGame() {
                   🌉 PRACTICE → REAL CASH AUTO-CONVERSION
                 </div>
                 <div className="text-[0.65rem] text-white/50 mt-1 max-w-[600px] leading-relaxed">
-                  50% of every <span className="text-cyan">Direct Referral Commission (Stream 2)</span> you earn automatically transfers from your practice balance into your game wallet. Your frozen practice referral rewards convert the same way, into your referral wallet.
+                  50% of every <span className="text-cyan">Direct Referral Commission (Stream 2)</span> you earn automatically transfers from your practice balance into your game wallet and referral wallet.
                 </div>
               </div>
               <div
@@ -217,7 +213,7 @@ export default function PracticeGame() {
                   <div className="font-orbitron text-cyan text-[0.6rem] tracking-[0.1em]">
                     🎮 PRACTICE BALANCE
                   </div>
-                  <div className="text-[0.5rem] text-white/30 font-orbitron">→ Game Wallet</div>
+                  <div className="text-[0.5rem] text-white/30 font-orbitron">→ Game + Referral Wallet</div>
                 </div>
                 <div className="flex items-end justify-between mb-2">
                   <div>
@@ -229,7 +225,7 @@ export default function PracticeGame() {
                   <div className="text-right">
                     <div className="text-[0.5rem] text-white/30 font-orbitron">CONVERTED</div>
                     <div className="font-orbitron text-gold text-[0.95rem] font-bold leading-none">
-                      {fmt(lifetimePractice)}
+                      {fmt(lifetimeConverted)}
                     </div>
                   </div>
                 </div>
@@ -241,39 +237,6 @@ export default function PracticeGame() {
                 </div>
                 <div className="text-[0.5rem] text-white/30 font-orbitron mt-1 text-right">
                   {fmt(practiceProgress, 1)}% converted
-                </div>
-              </div>
-
-              {/* Frozen Referral bucket */}
-              <div className="p-4 rounded-xl bg-white/3 border border-purple/20">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-orbitron text-purple text-[0.6rem] tracking-[0.1em]">
-                    ⭐ FROZEN REFERRAL REWARDS
-                  </div>
-                  <div className="text-[0.5rem] text-white/30 font-orbitron">→ Referral Wallet</div>
-                </div>
-                <div className="flex items-end justify-between mb-2">
-                  <div>
-                    <div className="text-[0.5rem] text-white/30 font-orbitron">REMAINING</div>
-                    <div className="font-orbitron text-purple text-[1.4rem] font-bold leading-none">
-                      {fmt(frozenRemaining)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[0.5rem] text-white/30 font-orbitron">CONVERTED</div>
-                    <div className="font-orbitron text-gold text-[0.95rem] font-bold leading-none">
-                      {fmt(lifetimeFrozen)}
-                    </div>
-                  </div>
-                </div>
-                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-purple to-gold transition-all"
-                    style={{ width: `${frozenProgress}%` }}
-                  />
-                </div>
-                <div className="text-[0.5rem] text-white/30 font-orbitron mt-1 text-right">
-                  {fmt(frozenProgress, 1)}% converted
                 </div>
               </div>
             </div>
@@ -389,7 +352,7 @@ export default function PracticeGame() {
                   <li>Deposit 100+ USDT to reach <span className="text-green">PRO tier</span></li>
                   <li>Refer friends who deposit — you earn <span className="text-cyan">Stream 2 commission</span></li>
                   <li>50% of each commission <span className="text-gold">auto-drains</span> from your practice balance into your game wallet</li>
-                  <li>Frozen referral rewards unlock the same way, into your referral wallet</li>
+                  <li>Practice balance converts into both your game wallet and referral wallet</li>
                   <li>Over time your practice balance becomes real withdrawable USDT</li>
                 </ol>
               </div>

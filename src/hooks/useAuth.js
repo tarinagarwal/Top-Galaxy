@@ -27,7 +27,7 @@ export function useAuth() {
   const { disconnect } = useDisconnect();
   const { signMessageAsync } = useSignMessage();
   const { switchChainAsync } = useSwitchChain();
-  const { setAuth, logout: storeLogout, isAuthenticated, user, isAdmin } = useAuthStore();
+  const { setAuth, logout: storeLogout, isAuthenticated, user, isAdmin, isSuperAdmin, isOperationalAdmin, adminRole } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -80,10 +80,19 @@ export function useAuth() {
           return result;
         }
 
-        // Otherwise: connect wallet, then resume via the useEffect below
+        // Otherwise: connect wallet, then resume via the useEffect below.
+        // Smart connector selection:
+        //   - If window.ethereum exists (browser has MetaMask/Trust extension) → use injected
+        //   - Otherwise (mobile Chrome/Safari without wallet extension) → use WalletConnect
+        //     which shows a QR code or deep-links to the wallet app
         return await new Promise((resolve, reject) => {
           pendingRef.current = { referralCode, resolve, reject };
-          const connector = connectors[0]; // injected (MetaMask, etc.)
+
+          const hasInjected = typeof window !== 'undefined' && !!window.ethereum;
+          const connector = hasInjected
+            ? connectors.find((c) => c.type === 'injected') || connectors[0]
+            : connectors.find((c) => c.type === 'walletConnect') || connectors[0];
+
           connectAsync({ connector }).catch((err) => {
             pendingRef.current = null;
             const message = err?.shortMessage || err?.message || 'Connection cancelled';
@@ -140,6 +149,9 @@ export function useAuth() {
     address,
     user,
     isAdmin,
+    isSuperAdmin,
+    isOperationalAdmin,
+    adminRole,
     chainId,
   };
 }

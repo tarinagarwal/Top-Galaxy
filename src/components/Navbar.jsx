@@ -52,10 +52,40 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-[1000] px-[20px] md:px-[30px] py-[14px] flex items-center justify-between bg-[rgba(3,0,16,0.88)] backdrop-blur-[20px] border-b border-[rgba(255,215,0,0.1)]">
-        <Link to="/" className="font-orbitron text-[0.9rem] font-black text-gold tracking-[0.2em] no-underline">
-          ⛓ TOP<span className="text-cyan">GALAXY</span>
-        </Link>
+      <nav className="fixed top-0 left-0 right-0 z-[1000] px-[12px] md:px-[30px] py-[14px] flex items-center justify-between bg-[rgba(3,0,16,0.88)] backdrop-blur-[20px] border-b border-[rgba(255,215,0,0.1)]">
+        {/* Left group: hamburger (mobile) + logo */}
+        <div className="flex items-center gap-2">
+          {/* Hamburger button — left side, always visible on small screens */}
+          <button
+            type="button"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((v) => !v)}
+            className="md:hidden w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors"
+          >
+            <div className="relative w-4 h-3">
+              <span
+                className={`absolute left-0 top-0 w-4 h-[2px] bg-gold transition-all duration-300 ${
+                  mobileOpen ? 'translate-y-[5px] rotate-45' : ''
+                }`}
+              />
+              <span
+                className={`absolute left-0 top-[5px] w-4 h-[2px] bg-gold transition-all duration-300 ${
+                  mobileOpen ? 'opacity-0' : ''
+                }`}
+              />
+              <span
+                className={`absolute left-0 top-[10px] w-4 h-[2px] bg-gold transition-all duration-300 ${
+                  mobileOpen ? '-translate-y-[5px] -rotate-45' : ''
+                }`}
+              />
+            </div>
+          </button>
+
+          <Link to="/" className="font-orbitron text-[0.9rem] font-black text-gold tracking-[0.2em] no-underline">
+            ⛓ TOP<span className="text-cyan">GALAXY</span>
+          </Link>
+        </div>
 
         {/* Desktop nav (md+) */}
         <ul className="hidden md:flex gap-[22px] list-none">
@@ -76,36 +106,7 @@ export default function Navbar() {
           })}
         </ul>
 
-        <div className="flex items-center gap-2">
-          <ConnectWalletButton />
-
-          {/* Hamburger button (mobile only) */}
-          <button
-            type="button"
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((v) => !v)}
-            className="md:hidden ml-1 w-9 h-9 flex items-center justify-center rounded-lg border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors"
-          >
-            <div className="relative w-4 h-3">
-              <span
-                className={`absolute left-0 top-0 w-4 h-[2px] bg-gold transition-all duration-300 ${
-                  mobileOpen ? 'translate-y-[5px] rotate-45' : ''
-                }`}
-              />
-              <span
-                className={`absolute left-0 top-[5px] w-4 h-[2px] bg-gold transition-all duration-300 ${
-                  mobileOpen ? 'opacity-0' : ''
-                }`}
-              />
-              <span
-                className={`absolute left-0 top-[10px] w-4 h-[2px] bg-gold transition-all duration-300 ${
-                  mobileOpen ? '-translate-y-[5px] -rotate-45' : ''
-                }`}
-              />
-            </div>
-          </button>
-        </div>
+        <ConnectWalletButton />
       </nav>
 
       {/* Mobile drawer overlay */}

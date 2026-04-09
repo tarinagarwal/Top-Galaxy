@@ -24,7 +24,9 @@ import AdminLuckyDraw from './pages/admin/AdminLuckyDraw';
 import AdminClub from './pages/admin/AdminClub';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminLogs from './pages/admin/AdminLogs';
-import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+import AdminRoles from './pages/admin/AdminRoles';
+import AdminDeposits from './pages/admin/AdminDeposits';
+import { ProtectedRoute, AdminRoute, SuperAdminRoute } from './components/ProtectedRoute';
 import { useAccountWatcher } from './hooks/useAccountWatcher';
 import { useGlobalNotifications } from './hooks/useGlobalNotifications';
 // Eagerly import useSocket so its window-level disconnect helper is registered
@@ -66,6 +68,8 @@ function AppRoutes() {
       <Route path="/admin/club" element={<AdminRoute><AdminClub /></AdminRoute>} />
       <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
       <Route path="/admin/logs" element={<AdminRoute><AdminLogs /></AdminRoute>} />
+      <Route path="/admin/deposits" element={<AdminRoute><AdminDeposits /></AdminRoute>} />
+      <Route path="/admin/roles" element={<SuperAdminRoute><AdminRoles /></SuperAdminRoute>} />
     </Routes>
   );
 }

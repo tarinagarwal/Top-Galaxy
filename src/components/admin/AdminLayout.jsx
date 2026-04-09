@@ -9,15 +9,23 @@ const ADMIN_LINKS = [
   { to: '/admin/games', label: 'Games', icon: '🎯' },
   { to: '/admin/withdrawals', label: 'Withdrawals', icon: '💸' },
   { to: '/admin/pools', label: 'Pools', icon: '💧' },
+  { to: '/admin/deposits', label: 'Deposits', icon: '📥' },
   { to: '/admin/config', label: 'Config', icon: '⚙️' },
   { to: '/admin/luckydraw', label: 'Lucky Draw', icon: '🎰' },
   { to: '/admin/club', label: 'Club', icon: '🏆' },
   { to: '/admin/analytics', label: 'Analytics', icon: '📈' },
   { to: '/admin/logs', label: 'Logs', icon: '📜' },
+  { to: '/admin/roles', label: 'Roles', icon: '🔑', superOnly: true },
 ];
 
+const ROLE_BADGE = {
+  SUPER: { label: 'SUPER ADMIN', color: 'text-pink border-pink/30 bg-pink/10' },
+  OPERATIONAL: { label: 'OPS ADMIN', color: 'text-gold border-gold/30 bg-gold/10' },
+  NORMAL: { label: 'VIEW ONLY', color: 'text-cyan border-cyan/30 bg-cyan/10' },
+};
+
 export default function AdminLayout({ children }) {
-  const { isAuthenticated, isAdmin, address, logout } = useAuth();
+  const { isAuthenticated, isAdmin, isSuperAdmin, adminRole, address, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,6 +48,13 @@ export default function AdminLayout({ children }) {
   }
 
   const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
+  const badge = ROLE_BADGE[adminRole] || ROLE_BADGE.NORMAL;
+
+  // Filter nav links by role
+  const visibleLinks = ADMIN_LINKS.filter((link) => {
+    if (link.superOnly && !isSuperAdmin) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen">
@@ -53,15 +68,15 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Back to user app */}
           <Link
             to="/dashboard"
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan/10 border border-cyan/30 text-cyan font-orbitron text-[0.55rem] tracking-[0.1em] hover:bg-cyan/20 transition-all"
           >
             ← USER DASHBOARD
           </Link>
-          <div className="px-3 py-1.5 rounded-full bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.55rem] tracking-[0.15em]">
-            🛡️ ADMIN
+          {/* Role badge */}
+          <div className={`px-3 py-1.5 rounded-full border font-orbitron text-[0.55rem] tracking-[0.15em] ${badge.color}`}>
+            🛡️ {badge.label}
           </div>
           <span className="hidden md:inline font-orbitron text-[0.6rem] text-gold">{shortAddress}</span>
           <button
@@ -80,7 +95,7 @@ export default function AdminLayout({ children }) {
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col w-[200px] min-h-[calc(100vh-60px)] border-r border-white/5 bg-[rgba(3,0,16,0.6)] backdrop-blur-[10px] py-6 px-3 sticky top-[60px]">
           <nav className="flex flex-col gap-1">
-            {ADMIN_LINKS.map((link) => (
+            {visibleLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
@@ -112,7 +127,7 @@ export default function AdminLayout({ children }) {
         {/* Mobile sidebar (horizontal scroll) */}
         <aside className="md:hidden fixed top-[60px] left-0 right-0 z-[999] bg-[rgba(3,0,16,0.95)] backdrop-blur-[10px] border-b border-white/10 overflow-x-auto">
           <nav className="flex gap-1 px-3 py-2 min-w-max">
-            {ADMIN_LINKS.map((link) => (
+            {visibleLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}

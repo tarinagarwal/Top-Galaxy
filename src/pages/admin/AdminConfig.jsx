@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { useAuthStore } from '../../store/authStore';
 import api from '../../lib/axios';
 
 const CATEGORY_LABELS = {
@@ -33,6 +34,7 @@ const CATEGORY_COLORS = {
 };
 
 export default function AdminConfig() {
+  const canEdit = useAuthStore((s) => s.isOperationalAdmin);
   const [config, setConfig] = useState({});
   const [loading, setLoading] = useState(true);
   const [pendingEdits, setPendingEdits] = useState({}); // key → newValue
@@ -182,6 +184,7 @@ export default function AdminConfig() {
               onCancel={cancelEdit}
               onRequestSave={requestSave}
               onConfirmSave={confirmSave}
+              canEdit={canEdit}
             />
           ))}
           {Object.keys(filteredConfig).length === 0 && (
@@ -284,6 +287,7 @@ function ConfigCategory({
   onCancel,
   onRequestSave,
   onConfirmSave,
+  canEdit = true,
 }) {
   const color = CATEGORY_COLORS[category] || 'cyan';
   const colorClass = {
@@ -309,10 +313,11 @@ function ConfigCategory({
             pending={pendingEdits[key]}
             isSaving={savingKey === key}
             isConfirming={confirmKey === key}
-            onEdit={onEdit}
+            onEdit={canEdit ? onEdit : () => {}}
             onCancel={onCancel}
             onRequestSave={onRequestSave}
             onConfirmSave={onConfirmSave}
+            readOnly={!canEdit}
           />
         ))}
       </div>
@@ -330,6 +335,7 @@ function ConfigRow({
   onCancel,
   onRequestSave,
   onConfirmSave,
+  readOnly = false,
 }) {
   const isEditing = pending !== undefined;
   const displayValue = isEditing ? pending : value;
@@ -386,14 +392,14 @@ function ConfigRow({
                 CANCEL
               </button>
             </div>
-          ) : (
+          ) : !readOnly ? (
             <button
               onClick={() => onRequestSave(configKey)}
               className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.55rem] font-bold hover:bg-gold/20"
             >
               💾 SAVE
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 

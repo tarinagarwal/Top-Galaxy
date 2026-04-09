@@ -6,31 +6,53 @@ export const useAuthStore = create(
     (set, get) => ({
       user: null,
       token: null,
-      isAdmin: false,
       isAuthenticated: false,
+
+      // Computed from user.adminRole (set in setAuth / updateUser)
+      adminRole: null,        // 'SUPER' | 'OPERATIONAL' | 'NORMAL' | null
+      isAdmin: false,         // true if any admin role
+      isSuperAdmin: false,    // true only for SUPER
+      isOperationalAdmin: false, // true for SUPER or OPERATIONAL
 
       setAuth: (user, token) => {
         localStorage.setItem('tg-token', token);
+        const role = user?.adminRole || null;
         set({
           user,
           token,
-          isAdmin: user?.isAdmin || false,
           isAuthenticated: true,
+          adminRole: role,
+          isAdmin: !!role,
+          isSuperAdmin: role === 'SUPER',
+          isOperationalAdmin: role === 'SUPER' || role === 'OPERATIONAL',
         });
       },
 
-      updateUser: (user) => set({ user, isAdmin: user?.isAdmin || false }),
+      updateUser: (user) => {
+        const role = user?.adminRole || null;
+        set({
+          user,
+          adminRole: role,
+          isAdmin: !!role,
+          isSuperAdmin: role === 'SUPER',
+          isOperationalAdmin: role === 'SUPER' || role === 'OPERATIONAL',
+        });
+      },
 
       logout: () => {
         localStorage.removeItem('tg-token');
-        // Tear down the singleton socket so the server stops sending events
-        // to this browser session and a future login (possibly as a different
-        // user) starts with a fresh handshake. useSocket exposes a window
-        // helper to break the otherwise-circular import.
         if (typeof window !== 'undefined' && typeof window.__tgDisconnectSocket === 'function') {
           try { window.__tgDisconnectSocket(); } catch {}
         }
-        set({ user: null, token: null, isAdmin: false, isAuthenticated: false });
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          adminRole: null,
+          isAdmin: false,
+          isSuperAdmin: false,
+          isOperationalAdmin: false,
+        });
       },
 
       getToken: () => get().token,
@@ -40,8 +62,11 @@ export const useAuthStore = create(
       partialize: (state) => ({
         user: state.user,
         token: state.token,
-        isAdmin: state.isAdmin,
         isAuthenticated: state.isAuthenticated,
+        adminRole: state.adminRole,
+        isAdmin: state.isAdmin,
+        isSuperAdmin: state.isSuperAdmin,
+        isOperationalAdmin: state.isOperationalAdmin,
       }),
     }
   )

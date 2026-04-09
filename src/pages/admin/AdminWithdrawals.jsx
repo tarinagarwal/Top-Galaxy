@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { useAuthStore } from '../../store/authStore';
 import api from '../../lib/axios';
 import { fmt, num } from '../../lib/format';
 
@@ -15,6 +16,7 @@ const STATUS_STYLES = {
 };
 
 export default function AdminWithdrawals() {
+  const canApprove = useAuthStore((s) => s.isSuperAdmin);
   const [statusFilter, setStatusFilter] = useState('PENDING');
   const [withdrawals, setWithdrawals] = useState([]);
   const [total, setTotal] = useState(0);
@@ -303,13 +305,15 @@ export default function AdminWithdrawals() {
             >
               CLEAR
             </button>
-            <button
-              onClick={handleBulkApprove}
-              disabled={busy}
-              className="px-4 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.6rem] font-bold hover:bg-green/20 disabled:opacity-50"
-            >
-              {busy ? '⏳ APPROVING...' : `✓ BULK APPROVE (${selectedIds.size})`}
-            </button>
+            {canApprove && (
+              <button
+                onClick={handleBulkApprove}
+                disabled={busy}
+                className="px-4 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.6rem] font-bold hover:bg-green/20 disabled:opacity-50"
+              >
+                {busy ? '⏳ APPROVING...' : `✓ BULK APPROVE (${selectedIds.size})`}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -419,7 +423,7 @@ export default function AdminWithdrawals() {
                         {w.requestedAt ? new Date(w.requestedAt).toLocaleString() : '—'}
                       </td>
                       <td className="py-2.5 px-3">
-                        {isPending && (
+                        {isPending && canApprove && (
                           <div className="flex gap-1 justify-center">
                             <button
                               disabled={busy}
@@ -439,6 +443,9 @@ export default function AdminWithdrawals() {
                               ✗ REJECT
                             </button>
                           </div>
+                        )}
+                        {isPending && !canApprove && (
+                          <span className="text-[0.5rem] text-white/30 font-orbitron">SUPER ADMIN ONLY</span>
                         )}
                         {w.adminNote && (
                           <div className="text-[0.5rem] text-white/40 italic mt-1 max-w-[150px] truncate">

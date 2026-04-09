@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { useAuthStore } from '../../store/authStore';
 import api from '../../lib/axios';
 import { fmt, num } from '../../lib/format';
 
 export default function AdminUsers() {
+  const canEdit = useAuthStore((s) => s.isOperationalAdmin);
+  const canActivate = useAuthStore((s) => s.isSuperAdmin);
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -158,6 +161,8 @@ export default function AdminUsers() {
           userId={selectedUser._id}
           onClose={() => setSelectedUser(null)}
           onAction={refresh}
+          canEdit={canEdit}
+          canActivate={canActivate}
         />
       )}
     </AdminLayout>
@@ -167,7 +172,7 @@ export default function AdminUsers() {
 // ============================================================================
 // UserDetailModal
 // ============================================================================
-function UserDetailModal({ userId, onClose, onAction }) {
+function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivate = true }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -346,8 +351,11 @@ function UserDetailModal({ userId, onClose, onAction }) {
             {/* Action buttons */}
             <div className="border-t border-white/10 pt-4">
               <div className="text-[0.55rem] font-orbitron text-pink tracking-[0.15em] mb-3">⚙️ ACTIONS</div>
+              {!canEdit && (
+                <div className="text-[0.6rem] text-white/30 font-orbitron mb-3">VIEW ONLY — actions require Operational or Super Admin role</div>
+              )}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                {!u.isBanned ? (
+                {canEdit && (!u.isBanned ? (
                   <ActionButton
                     label="🚫 BAN"
                     color="pink"
@@ -361,8 +369,8 @@ function UserDetailModal({ userId, onClose, onAction }) {
                     disabled={busy}
                     onClick={() => action('User unbanned', () => api.post(`/api/admin/users/${u._id}/unban`))}
                   />
-                )}
-                {!u.realCashActivated && (
+                ))}
+                {canActivate && !u.realCashActivated && (
                   <ActionButton
                     label="🔓 ACTIVATE BASIC"
                     color="cyan"
@@ -374,7 +382,7 @@ function UserDetailModal({ userId, onClose, onAction }) {
                     }
                   />
                 )}
-                {!u.fullActivated && (
+                {canActivate && !u.fullActivated && (
                   <ActionButton
                     label="🌟 ACTIVATE PRO"
                     color="green"
