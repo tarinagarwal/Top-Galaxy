@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import StarfieldCanvas from '../components/StarfieldCanvas';
 import api from '../lib/axios';
 import { useSocket } from '../hooks/useSocket';
-import { fmt } from '../lib/format';
+import { fmt, num } from '../lib/format';
 
 const PRIZE_TIERS = [
   { rank: '1st', goldenPrize: 10000, silverPrize: 1000, winners: 1 },
@@ -20,22 +20,25 @@ export default function LuckyDraw() {
   const [status, setStatus] = useState({ golden: null, silver: null });
   const [myTickets, setMyTickets] = useState([]);
   const [history, setHistory] = useState([]);
+  const [myStats, setMyStats] = useState(null);
   const [winModal, setWinModal] = useState(null); // { type, prize, rank, ticketNumber }
   const [showPrizes, setShowPrizes] = useState(false);
   const [cashbackStats, setCashbackStats] = useState(null);
 
   const refresh = useCallback(async () => {
     try {
-      const [s, t, h, c] = await Promise.all([
+      const [s, t, h, c, ms] = await Promise.all([
         api.get('/api/luckydraw/status'),
         api.get('/api/luckydraw/my-tickets'),
         api.get('/api/luckydraw/history?pageSize=10'),
-        api.get('/api/cashback/status').catch(() => null), // optional
+        api.get('/api/cashback/status').catch(() => null),
+        api.get('/api/luckydraw/my-stats').catch(() => null),
       ]);
       setStatus(s.data);
       setMyTickets(t.data.tickets || []);
       setHistory(h.data.draws || []);
       setCashbackStats(c?.data || null);
+      if (ms?.data) setMyStats(ms.data);
     } catch {}
   }, []);
 
@@ -45,10 +48,15 @@ export default function LuckyDraw() {
     return () => clearInterval(id);
   }, [refresh]);
 
-  // Live socket updates
+  // Live socket updates (including timer events)
   useSocket({
     'draw:ticket': () => refresh(),
     'draw:triggered': () => refresh(),
+    'draw:timerStarted': () => refresh(),
+    'draw:timerPaused': () => refresh(),
+    'draw:timerResumed': () => refresh(),
+    'draw:timerUpdated': () => refresh(),
+    'draw:cancelled': () => refresh(),
     'draw:winner': (data) => {
       setWinModal(data);
       refresh();
@@ -105,9 +113,27 @@ export default function LuckyDraw() {
               Lucky Draw
             </h1>
             <p className="text-white/40 text-[0.75rem] mt-2 max-w-[600px]">
-              10,000 tickets per draw · 1,000 winners · 10% win odds. Auto-funded daily from your cashback.
+              10,000 tickets per draw · 1,000 winners · 10% win odds. Auto-funded daily from your cashback + ROI on ROI.
             </p>
           </div>
+
+          {/* My Stats — 7 summary cards */}
+          {myStats && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+              <LDStatCard label="TOTAL TICKETS" value={myStats.totalTickets} icon="🎫" color="cyan" isCount />
+              <LDStatCard label="TOTAL SPENT" value={myStats.totalSpent} icon="💸" color="pink" />
+              <LDStatCard label="WINS" value={myStats.wins} icon="🏆" color="gold" isCount />
+              <LDStatCard label="WON AMOUNT" value={myStats.winAmount} icon="💰" color="green" />
+              <LDStatCard label="LOSSES" value={myStats.losses} icon="❌" color="pink" isCount />
+              <LDStatCard label="LOST AMOUNT" value={myStats.lossAmount} icon="📉" color="pink" />
+              <LDStatCard
+                label="NET P/L"
+                value={myStats.netPL}
+                icon={myStats.netPL >= 0 ? '📈' : '📉'}
+                color={myStats.netPL >= 0 ? 'green' : 'pink'}
+              />
+            </div>
+          )}
 
           {/* Two side-by-side draw cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -184,98 +210,8 @@ export default function LuckyDraw() {
             )}
           </div>
 
-          {/* My tickets */}
-          <div className="card-glass rounded-2xl p-6 mb-6 border border-cyan/20">
-            <div className="font-orbitron text-cyan text-[0.75rem] font-bold mb-4">
-              🎟️ MY TICKETS ({myTickets.length})
-            </div>
-            {myTickets.length === 0 ? (
-              <div className="text-[0.7rem] text-white/30 text-center py-6">
-                You don't have any tickets yet. Buy some above or earn them via auto-fund from cashback.
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                {myTickets.slice(0, 60).map((t) => (
-                  <div
-                    key={t._id}
-                    className={`p-2 rounded-lg border text-center ${
-                      t.drawId?.type === 'GOLDEN'
-                        ? 'bg-gold/5 border-gold/20'
-                        : 'bg-silver/5 border-silver/20'
-                    }`}
-                  >
-                    <div className="text-[0.5rem] font-orbitron text-white/30">
-                      {t.drawId?.type || '—'} #{t.drawId?.drawNumber || '—'}
-                    </div>
-                    <div className="font-orbitron text-[0.85rem] text-white">
-                      #{t.ticketNumber}
-                    </div>
-                    {t.purchaseType === 'AUTO_CASHBACK' && (
-                      <div className="text-[0.45rem] text-purple font-orbitron mt-0.5">AUTO</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {myTickets.length > 60 && (
-              <div className="text-[0.6rem] text-white/30 text-center mt-3">
-                + {myTickets.length - 60} more...
-              </div>
-            )}
-          </div>
-
-          {/* History */}
-          <div className="card-glass rounded-2xl p-6 border border-purple/20">
-            <div className="font-orbitron text-purple text-[0.75rem] font-bold mb-4">
-              📜 PAST DRAWS
-            </div>
-            {history.length === 0 ? (
-              <div className="text-[0.7rem] text-white/30 text-center py-6">
-                No completed draws yet.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-[0.7rem]">
-                  <thead>
-                    <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] border-b border-white/10">
-                      <th className="py-2 px-2">TYPE</th>
-                      <th className="py-2 px-2">DRAW #</th>
-                      <th className="py-2 px-2 text-right">TICKETS SOLD</th>
-                      <th className="py-2 px-2 text-right">TOTAL POOL</th>
-                      <th className="py-2 px-2 text-right">RESULTED AT</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((d) => (
-                      <tr key={d._id} className="border-b border-white/5 hover:bg-white/3">
-                        <td className="py-2 px-2">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[0.55rem] font-orbitron ${
-                              d.type === 'GOLDEN'
-                                ? 'bg-gold/10 text-gold border border-gold/30'
-                                : 'bg-silver/10 text-silver border border-silver/30'
-                            }`}
-                          >
-                            {d.type}
-                          </span>
-                        </td>
-                        <td className="py-2 px-2 font-orbitron text-white/70">#{d.drawNumber}</td>
-                        <td className="py-2 px-2 font-orbitron text-cyan text-right">
-                          {d.ticketsSold}
-                        </td>
-                        <td className="py-2 px-2 font-orbitron text-gold text-right">
-                          {fmt(d.totalPool)} USDT
-                        </td>
-                        <td className="py-2 px-2 font-orbitron text-white/30 text-right text-[0.6rem]">
-                          {d.resultedAt ? new Date(d.resultedAt).toLocaleString() : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          {/* Tabbed history section */}
+          <HistoryTabs myTickets={myTickets} history={history} />
         </div>
       </div>
     </div>
@@ -283,7 +219,7 @@ export default function LuckyDraw() {
 }
 
 function AutoFundEstimate({ cashbackStats }) {
-  // Auto-fund formula: 20% of daily cashback split equally to Golden + Silver wallets
+  // Auto-fund formula: 20% of (daily cashback + ROI on ROI received) split equally to Golden + Silver wallets
   const dailyCashback = cashbackStats?.estimatedDailyAmount || 0;
   const totalAutoFund = dailyCashback * 0.2;
   const halfFund = totalAutoFund / 2;
@@ -297,7 +233,7 @@ function AutoFundEstimate({ cashbackStats }) {
             ⚡ AUTO-FUND STATUS
           </div>
           <div className="text-[0.65rem] text-white/40 leading-relaxed">
-            20% of your daily cashback is auto-credited equally to your Golden and Silver draw
+            20% of your daily cashback + ROI on ROI earnings is auto-credited equally to your Golden and Silver draw
             wallets each day at 00:01. Tickets are purchased automatically when balances reach
             the entry fee.
           </div>
@@ -421,6 +357,17 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
         </div>
       </div>
 
+      {/* Countdown timer — shown when draw is ACTIVATED */}
+      {draw.status === 'ACTIVATED' && draw.timerEndsAt && (
+        <UserCountdownTimer timerEndsAt={draw.timerEndsAt} accent={accentColors.text} />
+      )}
+      {draw.status === 'PAUSED' && (
+        <div className="text-center py-3 mb-3 rounded-lg bg-yellow-400/5 border border-yellow-400/20">
+          <div className="font-orbitron text-yellow-400 text-[0.65rem]">⏸️ DRAW PAUSED</div>
+          <div className="text-[0.5rem] text-white/30 mt-1">Ticket sales temporarily suspended</div>
+        </div>
+      )}
+
       {/* Progress bar */}
       <div className="mb-4">
         <div className="flex items-center justify-between text-[0.6rem] font-orbitron mb-1.5">
@@ -517,6 +464,269 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
           {feedback.message}
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// UserCountdownTimer — shows live countdown on user draw card
+// ============================================================================
+function UserCountdownTimer({ timerEndsAt, accent }) {
+  const [remaining, setRemaining] = useState(null);
+
+  useEffect(() => {
+    if (!timerEndsAt) return;
+    const target = new Date(timerEndsAt).getTime();
+    const tick = () => setRemaining(Math.max(0, target - Date.now()));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [timerEndsAt]);
+
+  if (remaining === null) return null;
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+
+  return (
+    <div className="text-center py-3 mb-3 rounded-xl bg-gold/5 border border-gold/20">
+      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.2em]">DRAW IN</div>
+      <div className={`font-russo text-[2rem] ${accent} leading-none mt-1`}>
+        {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// HistoryTabs — 4 tabbed views: My Tickets, My Wins, My Losses, Past Draws
+// ============================================================================
+function HistoryTabs({ myTickets, history }) {
+  const [tab, setTab] = useState('tickets');
+  const [wins, setWins] = useState([]);
+  const [losses, setLosses] = useState([]);
+  const [winsLoading, setWinsLoading] = useState(false);
+  const [lossesLoading, setLossesLoading] = useState(false);
+
+  useEffect(() => {
+    if (tab === 'wins' && wins.length === 0) {
+      setWinsLoading(true);
+      api.get('/api/luckydraw/my-wins?pageSize=50')
+        .then(({ data }) => setWins(data.tickets || []))
+        .catch(() => {})
+        .finally(() => setWinsLoading(false));
+    }
+    if (tab === 'losses' && losses.length === 0) {
+      setLossesLoading(true);
+      api.get('/api/luckydraw/my-losses?pageSize=50')
+        .then(({ data }) => setLosses(data.tickets || []))
+        .catch(() => {})
+        .finally(() => setLossesLoading(false));
+    }
+  }, [tab]);
+
+  const tabs = [
+    { key: 'tickets', label: `🎟️ MY TICKETS (${myTickets.length})`, color: 'cyan' },
+    { key: 'wins', label: '🏆 WINS', color: 'green' },
+    { key: 'losses', label: '❌ LOSSES', color: 'pink' },
+    { key: 'draws', label: '📜 PAST DRAWS', color: 'purple' },
+  ];
+
+  return (
+    <div className="card-glass rounded-2xl border border-white/10 overflow-hidden">
+      {/* Tab bar */}
+      <div className="flex border-b border-white/10 overflow-x-auto">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`flex-1 min-w-[100px] px-4 py-3 font-orbitron text-[0.55rem] tracking-[0.1em] transition-all whitespace-nowrap ${
+              tab === t.key
+                ? `text-${t.color} border-b-2 border-${t.color} bg-${t.color}/5`
+                : 'text-white/40 hover:text-white/60'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-5">
+        {/* Tab: My Tickets */}
+        {tab === 'tickets' && (
+          myTickets.length === 0 ? (
+            <div className="text-[0.7rem] text-white/30 text-center py-6">No tickets yet.</div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {myTickets.slice(0, 60).map((t) => (
+                <div key={t._id} className={`p-2 rounded-lg border text-center ${
+                  t.outcome === 'WIN' ? 'bg-green/5 border-green/30' :
+                  t.outcome === 'LOSS' ? 'bg-pink/5 border-pink/20' :
+                  t.drawId?.type === 'GOLDEN' ? 'bg-gold/5 border-gold/20' : 'bg-white/3 border-white/10'
+                }`}>
+                  <div className="text-[0.45rem] font-orbitron text-white/30">
+                    {t.drawId?.type || '—'} #{t.drawId?.drawNumber || '—'}
+                  </div>
+                  <div className="font-orbitron text-[0.85rem] text-white">#{t.ticketNumber}</div>
+                  {t.outcome === 'WIN' && (
+                    <div className="text-[0.45rem] text-green font-orbitron mt-0.5">🏆 WON {fmt(t.prizeAmount)}</div>
+                  )}
+                  {t.outcome === 'LOSS' && (
+                    <div className="text-[0.45rem] text-pink font-orbitron mt-0.5">LOSS</div>
+                  )}
+                  {t.outcome === 'PENDING' && t.purchaseType === 'AUTO_CASHBACK' && (
+                    <div className="text-[0.45rem] text-purple font-orbitron mt-0.5">AUTO</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        )}
+
+        {/* Tab: My Wins */}
+        {tab === 'wins' && (
+          winsLoading ? (
+            <div className="text-center py-6 text-white/30 text-[0.7rem]">Loading...</div>
+          ) : wins.length === 0 ? (
+            <div className="text-center py-6 text-white/30 text-[0.7rem]">No wins yet. Keep playing!</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.65rem]">
+                <thead>
+                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] border-b border-white/10">
+                    <th className="py-2 px-2">TYPE</th>
+                    <th className="py-2 px-2">DRAW #</th>
+                    <th className="py-2 px-2 text-right">TICKET #</th>
+                    <th className="py-2 px-2 text-right">PRIZE</th>
+                    <th className="py-2 px-2">DATE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {wins.map((w) => (
+                    <tr key={w._id} className="border-b border-white/5 hover:bg-white/3">
+                      <td className="py-2 px-2 font-orbitron text-gold text-[0.55rem]">{w.drawId?.type || '—'}</td>
+                      <td className="py-2 px-2 font-orbitron text-white/70">#{w.drawId?.drawNumber || '—'}</td>
+                      <td className="py-2 px-2 font-orbitron text-cyan text-right">#{w.ticketNumber}</td>
+                      <td className="py-2 px-2 font-orbitron text-green text-right">{fmt(w.prizeAmount)} USDT</td>
+                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.5rem]">
+                        {w.drawResultedAt ? new Date(w.drawResultedAt).toLocaleDateString() : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+
+        {/* Tab: My Losses */}
+        {tab === 'losses' && (
+          lossesLoading ? (
+            <div className="text-center py-6 text-white/30 text-[0.7rem]">Loading...</div>
+          ) : losses.length === 0 ? (
+            <div className="text-center py-6 text-white/30 text-[0.7rem]">No losses recorded.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.65rem]">
+                <thead>
+                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] border-b border-white/10">
+                    <th className="py-2 px-2">TYPE</th>
+                    <th className="py-2 px-2">DRAW #</th>
+                    <th className="py-2 px-2 text-right">TICKET #</th>
+                    <th className="py-2 px-2 text-right">LOSS</th>
+                    <th className="py-2 px-2">DATE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {losses.map((l) => (
+                    <tr key={l._id} className="border-b border-white/5 hover:bg-white/3">
+                      <td className="py-2 px-2 font-orbitron text-white/50 text-[0.55rem]">{l.drawId?.type || '—'}</td>
+                      <td className="py-2 px-2 font-orbitron text-white/70">#{l.drawId?.drawNumber || '—'}</td>
+                      <td className="py-2 px-2 font-orbitron text-cyan text-right">#{l.ticketNumber}</td>
+                      <td className="py-2 px-2 font-orbitron text-pink text-right">{fmt(l.amount)} USDT</td>
+                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.5rem]">
+                        {l.drawResultedAt ? new Date(l.drawResultedAt).toLocaleDateString() : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+
+        {/* Tab: Past Draws */}
+        {tab === 'draws' && (
+          history.length === 0 ? (
+            <div className="text-center py-6 text-white/30 text-[0.7rem]">No completed draws yet.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.65rem]">
+                <thead>
+                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] border-b border-white/10">
+                    <th className="py-2 px-2">TYPE</th>
+                    <th className="py-2 px-2">DRAW #</th>
+                    <th className="py-2 px-2 text-right">TICKETS</th>
+                    <th className="py-2 px-2 text-right">POOL</th>
+                    <th className="py-2 px-2">STATUS</th>
+                    <th className="py-2 px-2">DATE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map((d) => (
+                    <tr key={d._id} className="border-b border-white/5 hover:bg-white/3">
+                      <td className="py-2 px-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[0.5rem] font-orbitron ${
+                          d.type === 'GOLDEN' ? 'bg-gold/10 text-gold border border-gold/30' : 'bg-white/5 text-white/50 border border-white/20'
+                        }`}>{d.type}</span>
+                      </td>
+                      <td className="py-2 px-2 font-orbitron text-white/70">#{d.drawNumber}</td>
+                      <td className="py-2 px-2 font-orbitron text-cyan text-right">{d.ticketsSold}</td>
+                      <td className="py-2 px-2 font-orbitron text-gold text-right">{fmt(d.totalPool)}</td>
+                      <td className="py-2 px-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[0.45rem] font-orbitron border ${
+                          d.status === 'RESULTED' ? 'bg-green/5 border-green/30 text-green' :
+                          d.status === 'CANCELLED' ? 'bg-pink/5 border-pink/30 text-pink' :
+                          'bg-white/5 border-white/20 text-white/40'
+                        }`}>{d.status}</span>
+                      </td>
+                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.5rem]">
+                        {d.resultedAt ? new Date(d.resultedAt).toLocaleDateString() : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// LDStatCard — Lucky Draw user summary stat card
+// ============================================================================
+function LDStatCard({ label, value, icon, color, isCount = false }) {
+  const colorClass = {
+    cyan: 'text-cyan border-cyan/20',
+    gold: 'text-gold border-gold/20',
+    green: 'text-green border-green/20',
+    pink: 'text-pink border-pink/20',
+    purple: 'text-purple border-purple/20',
+  }[color] || 'text-white/60 border-white/10';
+
+  const display = isCount ? String(num(value)) : fmt(value);
+
+  return (
+    <div className={`card-glass rounded-xl p-3 border ${colorClass.split(' ')[1]} text-center`}>
+      <div className="text-[1rem] mb-1">{icon}</div>
+      <div className={`font-orbitron font-bold text-[0.9rem] ${colorClass.split(' ')[0]}`}>
+        {display}
+      </div>
+      <div className="text-[0.4rem] text-white/30 font-orbitron tracking-[0.08em] mt-0.5">
+        {label}
+      </div>
     </div>
   );
 }
