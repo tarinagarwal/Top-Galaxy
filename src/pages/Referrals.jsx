@@ -204,9 +204,14 @@ export default function Referrals() {
                         style={{ width: `${(levels.activeLevels / 15) * 100}%` }} />
                     </div>
                     <div className="flex items-center justify-between text-[0.4rem] text-white/20 font-orbitron mt-1">
-                      <span>L1-L3: Basic (10 USDT)</span>
-                      <span>L4-L15: PRO (100 USDT)</span>
+                      <span>L1-L3: Basic (10 USDT deposit)</span>
+                      <span>L4-L15: PRO (100 USDT) + active directs</span>
                     </div>
+                    {levels.activeDirects !== undefined && (
+                      <div className="text-[0.45rem] text-cyan font-orbitron mt-1">
+                        You have {levels.activeDirects} active direct{levels.activeDirects !== 1 ? 's' : ''} (each deposited 100+ USDT)
+                      </div>
+                    )}
                   </div>
 
                   {/* Header row — desktop */}
@@ -243,7 +248,7 @@ export default function Referrals() {
                                   <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
                                 ) : (
                                   <div className="text-[0.45rem] text-pink font-orbitron">
-                                    🔒 {lv.lockType} LOCKED — DEPOSIT {lv.lockType === 'BASIC' ? '10' : '100'} USDT
+                                    🔒 {lv.lockReason || 'LOCKED'}
                                   </div>
                                 )}
                               </div>
@@ -272,7 +277,7 @@ export default function Referrals() {
                             ) : (
                               <div className="col-span-4 text-center">
                                 <span className="font-orbitron text-pink/60 text-[0.55rem]">
-                                  🔒 Deposit {lv.lockType === 'BASIC' ? '10' : '100'} USDT to unlock Level {lv.level} ({commPct} commission)
+                                  🔒 {lv.lockReason || `Deposit ${lv.level <= 3 ? '10' : '100'} USDT to unlock`} — Level {lv.level} ({commPct})
                                 </span>
                               </div>
                             )}
@@ -322,7 +327,7 @@ export default function Referrals() {
                               </div>
                             ) : (
                               <div className="text-center text-[0.5rem] text-pink/60 font-orbitron">
-                                Deposit {lv.lockType === 'BASIC' ? '10' : '100'} USDT to unlock
+                                {lv.lockReason || `Deposit ${lv.level <= 3 ? '10' : '100'} USDT`}
                               </div>
                             )}
                           </div>
