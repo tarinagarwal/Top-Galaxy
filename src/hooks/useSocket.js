@@ -38,6 +38,7 @@ function getSocket() {
       // Harmless when not behind ngrok.
       extraHeaders: {
         'ngrok-skip-browser-warning': 'true',
+        'bypass-tunnel-reminder': 'true',
       },
     });
     connectedToken = token;
