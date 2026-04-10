@@ -5,11 +5,13 @@ import StarfieldCanvas from '../components/StarfieldCanvas';
 import api from '../lib/axios';
 import { fmt, num } from '../lib/format';
 import { useSocket } from '../hooks/useSocket';
+import { useCountdown, formatSeconds } from '../hooks/useCountdown';
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export default function PracticeGame() {
   const [status, setStatus] = useState(null);
+  const [currentGame, setCurrentGame] = useState(null);
   const [selectedDigit, setSelectedDigit] = useState(null);
   const [amount, setAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -18,8 +20,12 @@ export default function PracticeGame() {
 
   const refresh = useCallback(async () => {
     try {
-      const { data } = await api.get('/api/practice/status');
-      setStatus(data);
+      const [s, g] = await Promise.all([
+        api.get('/api/practice/status'),
+        api.get('/api/game/current'),
+      ]);
+      setStatus(s.data);
+      setCurrentGame(g.data?.game || null);
     } catch (err) {
       // ignore
     }
@@ -29,8 +35,19 @@ export default function PracticeGame() {
     refresh();
   }, [refresh]);
 
-  // Subscribe to auto-conversion live events
+  // Poll current game every 5s
+  useEffect(() => {
+    const id = setInterval(() => {
+      api.get('/api/game/current').then(({ data }) => setCurrentGame(data?.game || null)).catch(() => {});
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Subscribe to auto-conversion live events + game events
   useSocket({
+    'game:open': () => refresh(),
+    'game:cutoff': () => refresh(),
+    'game:result': () => refresh(),
     'practice:converted': (data) => {
       setConversionToast({
         converted: data.converted,
@@ -82,6 +99,13 @@ export default function PracticeGame() {
   const isExpired = status?.practiceExpired;
   const isActive = status?.practiceActivated && !isExpired;
   const isPro = !!status?.conversionEligible;
+
+  // Game countdown
+  const cutoffSeconds = useCountdown(currentGame?.cutoffAt);
+  const resultSeconds = useCountdown(currentGame?.scheduledAt);
+  const cutoffParts = formatSeconds(cutoffSeconds);
+  const resultParts = formatSeconds(resultSeconds);
+  const cutoffPassed = cutoffSeconds === 0;
 
   // Auto-conversion progress: total converted / (total converted + remaining)
   // Combined pool (practice + frozen) shown as one "Practice Balance" to the user.
@@ -149,6 +173,55 @@ export default function PracticeGame() {
               <div className="text-[0.55rem] text-white/30 mt-1">On every winning entry</div>
             </div>
           </div>
+
+          {/* Game Countdown */}
+          {currentGame ? (
+            <div className="card-glass rounded-2xl p-5 mb-6 border border-cyan/20">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em]">
+                    GAME #{currentGame.gameNumber} · {currentGame.date}
+                  </div>
+                  <div className="font-orbitron text-cyan text-[0.65rem] mt-1">
+                    {cutoffPassed ? '⏳ Awaiting Result' : '⏱️ Entries Close In'}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-center">
+                    <div className="font-russo text-[1.6rem] text-cyan leading-none tabular-nums">
+                      {cutoffPassed ? resultParts.h : cutoffParts.h}
+                    </div>
+                    <div className="text-[0.4rem] text-white/30 font-orbitron">HRS</div>
+                  </div>
+                  <span className="text-cyan text-[1.2rem] font-russo">:</span>
+                  <div className="text-center">
+                    <div className="font-russo text-[1.6rem] text-cyan leading-none tabular-nums">
+                      {cutoffPassed ? resultParts.m : cutoffParts.m}
+                    </div>
+                    <div className="text-[0.4rem] text-white/30 font-orbitron">MIN</div>
+                  </div>
+                  <span className="text-cyan text-[1.2rem] font-russo">:</span>
+                  <div className="text-center">
+                    <div className="font-russo text-[1.6rem] text-cyan leading-none tabular-nums">
+                      {cutoffPassed ? resultParts.s : cutoffParts.s}
+                    </div>
+                    <div className="text-[0.4rem] text-white/30 font-orbitron">SEC</div>
+                  </div>
+                </div>
+              </div>
+              {cutoffPassed && (
+                <div className="mt-2 text-[0.55rem] text-yellow-400 font-orbitron">
+                  Entries closed — result will be announced shortly
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="card-glass rounded-2xl p-4 mb-6 border border-white/10 text-center">
+              <div className="font-orbitron text-white/40 text-[0.65rem]">
+                ⏸️ No game currently open — check back at the next hour
+              </div>
+            </div>
+          )}
 
           {/* Live conversion toast (appears briefly after each auto-conversion) */}
           {conversionToast && (

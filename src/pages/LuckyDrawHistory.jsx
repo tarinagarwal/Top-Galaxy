@@ -78,14 +78,34 @@ export default function LuckyDrawHistory() {
             <SC label="FROM DEPOSITS (1%)" value={s.totalFromDeposits || 0} color="purple" />
           </div>
 
-          {/* Deposit contribution breakdown */}
-          {(s.goldenFromDeposits > 0 || s.silverFromDeposits > 0) && (
-            <div className="card-glass rounded-2xl p-3 mb-4 border border-white/10 flex items-center gap-4 text-[0.6rem]">
-              <span className="text-white/40 font-orbitron">DEPOSIT CONTRIBUTIONS:</span>
-              <span className="font-orbitron text-gold">Golden: {fmt(s.goldenFromDeposits || 0, 3)}</span>
-              <span className="font-orbitron text-white/40">Silver: {fmt(s.silverFromDeposits || 0, 3)}</span>
+          {/* Wallet balances for ticket buying */}
+          <div className="card-glass rounded-2xl p-4 mb-4 border border-gold/20">
+            <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.12em] mb-3">TICKET BUYING BALANCE</div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 rounded-lg bg-white/3 border border-white/5">
+                <div className="text-[0.45rem] text-white/30 font-orbitron">GAME WALLET</div>
+                <div className="font-orbitron text-gold text-[1rem] font-bold">{fmt(s.gameWallet || 0, 3)}</div>
+                <div className="text-[0.4rem] text-white/20">Manual purchases</div>
+              </div>
+              <div className="p-3 rounded-lg bg-gold/5 border border-gold/20">
+                <div className="text-[0.45rem] text-white/30 font-orbitron">GOLDEN DRAW</div>
+                <div className="font-orbitron text-gold text-[1rem] font-bold">{fmt(s.goldenDrawWallet || 0, 3)}</div>
+                <div className="text-[0.4rem] text-white/20">Auto-fund (cashback+ROI)</div>
+              </div>
+              <div className="p-3 rounded-lg bg-white/3 border border-white/5">
+                <div className="text-[0.45rem] text-white/30 font-orbitron">SILVER DRAW</div>
+                <div className="font-orbitron text-white/70 text-[1rem] font-bold">{fmt(s.silverDrawWallet || 0, 3)}</div>
+                <div className="text-[0.4rem] text-white/20">Auto-fund (cashback+ROI)</div>
+              </div>
             </div>
-          )}
+            {(s.goldenFromDeposits > 0 || s.silverFromDeposits > 0) && (
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-white/5 text-[0.55rem]">
+                <span className="text-white/30 font-orbitron">DEPOSIT CONTRIBUTIONS (1%):</span>
+                <span className="font-orbitron text-gold">Golden: {fmt(s.goldenFromDeposits || 0, 3)}</span>
+                <span className="font-orbitron text-white/50">Silver: {fmt(s.silverFromDeposits || 0, 3)}</span>
+              </div>
+            )}
+          </div>
 
           {/* Tab toggle */}
           <div className="flex gap-1 mb-4">
@@ -158,8 +178,10 @@ export default function LuckyDrawHistory() {
                             </td>
                             <td className="py-2 px-3 font-orbitron text-gold text-right">{fmt(t.amount, 3)}</td>
                             <td className="py-2 px-3 text-center">
-                              <span className={`font-orbitron text-[0.45rem] ${t.purchaseType === 'AUTO_CASHBACK' ? 'text-purple' : 'text-white/40'}`}>
-                                {t.purchaseType === 'AUTO_CASHBACK' ? 'AUTO' : 'MANUAL'}
+                              <span className={`font-orbitron text-[0.45rem] ${t.purchaseType === 'AUTO_CASHBACK' ? 'text-purple' : 'text-cyan'}`}>
+                                {t.purchaseType === 'AUTO_CASHBACK'
+                                  ? (draw.type === 'GOLDEN' ? 'Golden Wallet' : 'Silver Wallet')
+                                  : 'Game Wallet'}
                               </span>
                             </td>
                             <td className="py-2 px-3 text-center">
@@ -241,7 +263,9 @@ export default function LuckyDrawHistory() {
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-1 text-[0.45rem] text-white/30 font-orbitron">
-                          <span>{t.purchaseType === 'AUTO_CASHBACK' ? 'Auto-funded' : 'Manual'}</span>
+                          <span>{t.purchaseType === 'AUTO_CASHBACK'
+                              ? ((t.drawId?.type || '') === 'GOLDEN' ? 'Golden Wallet' : 'Silver Wallet')
+                              : 'Game Wallet'}</span>
                           <span>{t.purchasedAt ? new Date(t.purchasedAt).toLocaleDateString() : ''}</span>
                         </div>
                       </div>
