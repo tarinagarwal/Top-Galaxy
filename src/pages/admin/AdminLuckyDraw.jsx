@@ -304,35 +304,35 @@ function DrawCard({ draw, type, icon, accent, busy, canOps, isSuperAdmin, onActi
       {/* Control buttons */}
       <div className="grid grid-cols-2 gap-2">
         {isOpen && canOps && (
-          <CtrlBtn label="▶ FORCE START" color="cyan" disabled={busy || draw.ticketsSold === 0}
+          <CtrlBtn label="▶ FORCE START" sub="Start 1hr countdown early" color="cyan" disabled={busy || draw.ticketsSold === 0}
             onClick={() => onAction('Force Start', () => api.post('/api/admin/luckydraw/force-start', { drawId: draw._id }))} />
         )}
         {isOpen && canOps && (
-          <CtrlBtn label="🎰 TRIGGER NOW" color="pink" disabled={busy || draw.ticketsSold === 0}
+          <CtrlBtn label="🎰 TRIGGER NOW" sub="Execute draw immediately" color="pink" disabled={busy || draw.ticketsSold === 0}
             onClick={() => onAction('Trigger', () => api.post('/api/admin/luckydraw/trigger', { drawId: draw._id }))} />
         )}
         {isActivated && canOps && (
-          <CtrlBtn label="⏸ PAUSE" color="yellow" disabled={busy}
+          <CtrlBtn label="⏸ PAUSE" sub="Pause timer + ticket sales" color="yellow" disabled={busy}
             onClick={() => onAction('Pause', () => api.post('/api/admin/luckydraw/pause', { drawId: draw._id }))} />
         )}
         {isActivated && canOps && (
-          <CtrlBtn label="+30 MIN" color="cyan" disabled={busy}
+          <CtrlBtn label="+30 MIN" sub="Extend countdown" color="cyan" disabled={busy}
             onClick={() => onAction('Extend +30m', () => api.post('/api/admin/luckydraw/extend', { drawId: draw._id, minutes: 30 }))} />
         )}
         {isPaused && canOps && (
-          <CtrlBtn label="▶ RESUME" color="green" disabled={busy}
+          <CtrlBtn label="▶ RESUME" sub="Resume timer + sales" color="green" disabled={busy}
             onClick={() => onAction('Resume', () => api.post('/api/admin/luckydraw/resume', { drawId: draw._id }))} />
         )}
         {(isActivated || isPaused) && isSuperAdmin && (
-          <CtrlBtn label="⚡ FORCE EXECUTE" color="pink" disabled={busy}
+          <CtrlBtn label="⚡ FORCE EXECUTE" sub="Skip timer, draw now" color="pink" disabled={busy}
             onClick={() => onAction('Force Execute', () => api.post('/api/admin/luckydraw/force-execute', { drawId: draw._id }))} />
         )}
         {(isOpen || isActivated || isPaused) && isSuperAdmin && (
-          <CtrlBtn label="❌ CANCEL + REFUND" color="red" disabled={busy}
+          <CtrlBtn label="❌ CANCEL + REFUND" sub="Refund all tickets, new draw opens" color="red" disabled={busy}
             onClick={() => onAction('Cancel', () => api.post('/api/admin/luckydraw/cancel', { drawId: draw._id }))} />
         )}
         {(isOpen || isActivated || isPaused) && isSuperAdmin && (
-          <CtrlBtn label="🏆 MANUAL WINNERS" color="purple" disabled={busy}
+          <CtrlBtn label="🏆 MANUAL WINNERS" sub="Set guaranteed winners (max 50)" color="purple" disabled={busy}
             onClick={() => onManualWinners(draw._id)} />
         )}
       </div>
@@ -504,7 +504,7 @@ function ManualWinnersModal({ drawId, onClose }) {
     <div className="fixed inset-0 z-[1100] bg-black/80 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div className="card-glass rounded-2xl border border-purple/30 max-w-[700px] w-full my-8 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
-          <div className="font-orbitron text-purple text-[0.85rem] font-bold">🏆 MANUAL WINNERS (MAX 50)</div>
+          <div className="font-orbitron text-white text-[0.85rem] font-bold">🏆 MANUAL WINNERS (MAX 50)</div>
           <button onClick={onClose} className="text-white/40 hover:text-pink font-orbitron text-[0.7rem]">✕</button>
         </div>
 
@@ -744,7 +744,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function CtrlBtn({ label, color, disabled, onClick }) {
+function CtrlBtn({ label, sub, color, disabled, onClick }) {
   const colors = {
     cyan: 'bg-cyan/10 border-cyan/30 text-cyan hover:bg-cyan/20',
     gold: 'bg-gold/10 border-gold/30 text-gold hover:bg-gold/20',
@@ -759,6 +759,7 @@ function CtrlBtn({ label, color, disabled, onClick }) {
     <button onClick={onClick} disabled={disabled}
       className={`px-3 py-2 rounded-lg border font-orbitron text-[0.5rem] font-bold disabled:opacity-30 disabled:cursor-not-allowed ${colors}`}>
       {label}
+      {sub && <div className="text-[0.4rem] font-normal opacity-60 mt-0.5">{sub}</div>}
     </button>
   );
 }
