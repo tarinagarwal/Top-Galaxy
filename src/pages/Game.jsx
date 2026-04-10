@@ -400,35 +400,6 @@ export default function Game() {
                 </div>
               </div>
 
-              {/* Provably fair section */}
-              <div className="mt-6 card-glass rounded-2xl p-6 border border-cyan/20">
-                <div className="font-orbitron text-cyan text-[0.75rem] font-bold mb-3 flex items-center gap-2">
-                  🔐 PROVABLY FAIR
-                </div>
-                <div className="text-[0.65rem] text-white/50 leading-relaxed mb-3">
-                  This game uses a commit-reveal scheme. The server seed hash below was committed
-                  before the game opened — verify the result after by hashing the revealed seed
-                  and computing keccak256(seed || blockHash) mod 10.
-                </div>
-                <div className="space-y-2 text-[0.6rem] font-orbitron break-all">
-                  <div>
-                    <span className="text-white/40">SEED HASH (committed): </span>
-                    <span className="text-cyan">{game.serverSeedHash}</span>
-                  </div>
-                  {game.status === 'RESULTED' && (
-                    <>
-                      <div>
-                        <span className="text-white/40">BLOCK HASH: </span>
-                        <span className="text-green">{game.blockHash}</span>
-                      </div>
-                      <div>
-                        <span className="text-white/40">WINNING DIGIT: </span>
-                        <span className="text-gold text-[0.85rem]">{game.winningDigit}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
             </>
           )}
 

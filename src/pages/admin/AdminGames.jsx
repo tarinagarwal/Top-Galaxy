@@ -25,6 +25,7 @@ export default function AdminGames() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [forceGame, setForceGame] = useState(null); // game object for force-result modal
+  const [detailGame, setDetailGame] = useState(null); // game object for detail modal
   const [viewMode, setViewMode] = useState('cash'); // 'cash' | 'practice'
 
   const refresh = useCallback(async () => {
@@ -215,7 +216,7 @@ export default function AdminGames() {
                   const rowEntries = viewMode === 'cash' ? (b.cashEntries || 0) : (b.practiceEntries || 0);
                   const rowPlayed = viewMode === 'cash' ? (b.cashAmount || 0) : (b.practiceAmount || 0);
                   return (
-                    <tr key={g._id} className="border-b border-white/5 hover:bg-white/3">
+                    <tr key={g._id} className="border-b border-white/5 hover:bg-white/3 cursor-pointer" onClick={() => setDetailGame(g)}>
                       <td className="py-2.5 px-3 font-orbitron text-white/70">#{g.gameNumber}</td>
                       <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.55rem]">
                         {g.scheduledAt
@@ -257,7 +258,7 @@ export default function AdminGames() {
                       <td className="py-2.5 px-3 text-center">
                         {g.status !== 'RESULTED' && canOps && ((b.cashEntries || 0) + (b.practiceEntries || 0)) > 0 && (
                           <button
-                            onClick={() => setForceGame(g)}
+                            onClick={(e) => { e.stopPropagation(); setForceGame(g); }}
                             className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.5rem] hover:bg-pink/20"
                           >
                             🎯 FORCE
@@ -272,6 +273,15 @@ export default function AdminGames() {
           </div>
         )}
       </div>
+      {/* Game Detail Modal */}
+      {detailGame && (
+        <GameDetailModal
+          game={detailGame}
+          onClose={() => setDetailGame(null)}
+          onForce={(g) => { setDetailGame(null); setForceGame(g); }}
+          canOps={canOps}
+        />
+      )}
       {/* Force Result Modal */}
       {forceGame && (
         <ForceResultModal
@@ -407,6 +417,254 @@ function ForceResultModal({ game, onClose, onDone }) {
             {busy ? '⏳ EXECUTING...' : selectedDigit !== null ? `FORCE DIGIT ${selectedDigit}` : 'SELECT A DIGIT'}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function GameDetailModal({ game, onClose, onForce, canOps }) {
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('overview'); // 'overview' | 'entries'
+
+  useEffect(() => {
+    api.get(`/api/admin/games/${game._id}`)
+      .then(({ data }) => setDetail(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [game._id]);
+
+  const g = detail?.game || game;
+  const entries = detail?.entries || [];
+  const bd = detail?.breakdown || {};
+  const perDigit = bd.perDigit || [];
+  const style = STATUS_STYLES[g.status] || STATUS_STYLES.UPCOMING;
+
+  const cashEntries = entries.filter((e) => e.walletType !== 'PRACTICE');
+  const practiceEntries = entries.filter((e) => e.walletType === 'PRACTICE');
+  const cashPayout = cashEntries.reduce((s, e) => s + (e.directPayout || 0) + (e.compoundPayout || 0), 0);
+  const practicePayout = practiceEntries.reduce((s, e) => s + (e.directPayout || 0) + (e.compoundPayout || 0), 0);
+  const cashPlayed = cashEntries.reduce((s, e) => s + e.amount, 0);
+  const practicePlayed = practiceEntries.reduce((s, e) => s + e.amount, 0);
+  const maxDigitAmount = Math.max(...perDigit.map((p) => (p.cashAmount || 0) + (p.practiceAmount || 0)), 1);
+
+  return (
+    <div className="fixed inset-0 z-[1100] bg-black/85 flex items-start justify-center p-4 pt-[60px] overflow-y-auto" onClick={onClose}>
+      <div className="card-glass rounded-2xl border border-white/15 max-w-[800px] w-full p-6 mb-8" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-start justify-between mb-5">
+          <div>
+            <div className="font-russo text-[1.5rem] text-gradient-gold">Game #{g.gameNumber}</div>
+            <div className="font-orbitron text-[0.6rem] text-white/40 mt-1">
+              {g.date} · Phase {g.phase} · {g.phase === 1 ? '8x' : '4x'} multiplier
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`px-3 py-1 rounded-full border font-orbitron text-[0.55rem] ${style.color}`}>
+              {style.label}
+            </span>
+            {g.status === 'RESULTED' && (
+              <div className="text-center">
+                <div className="text-[0.4rem] text-white/30 font-orbitron">WINNING</div>
+                <div className="font-russo text-[1.8rem] text-gold leading-none">{g.winningDigit}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-4 border-b border-white/10 pb-2">
+          {['overview', 'entries'].map((t) => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-4 py-2 rounded-lg font-orbitron text-[0.55rem] transition-all ${
+                tab === t ? 'bg-gold/10 border border-gold/30 text-gold' : 'text-white/40 hover:text-white/60'
+              }`}>
+              {t === 'overview' ? '📊 OVERVIEW' : '📋 ENTRIES'}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="text-center py-8 text-white/40 font-orbitron text-[0.65rem]">Loading game data...</div>
+        ) : (
+          <>
+            {/* OVERVIEW TAB */}
+            {tab === 'overview' && (
+              <>
+                {/* Stats grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
+                  <MiniStat label="CASH ENTRIES" value={cashEntries.length} type="count" color="cyan" />
+                  <MiniStat label="CASH PLAYED" value={cashPlayed} color="gold" />
+                  <MiniStat label="CASH PAYOUT" value={cashPayout} color="pink" />
+                  <MiniStat label="CASH RETAINED" value={cashPlayed - cashPayout} color="green" />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
+                  <MiniStat label="PRACTICE ENTRIES" value={practiceEntries.length} type="count" color="cyan" />
+                  <MiniStat label="PRACTICE PLAYED" value={practicePlayed} color="gold" />
+                  <MiniStat label="PRACTICE PAYOUT" value={practicePayout} color="pink" />
+                  <MiniStat label="PRACTICE RETAINED" value={practicePlayed - practicePayout} color="green" />
+                </div>
+
+                {/* Per-digit breakdown */}
+                <div className="mb-5">
+                  <div className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.1em] mb-3">PER-DIGIT BREAKDOWN</div>
+                  <div className="space-y-1.5">
+                    {perDigit.map((p) => {
+                      const total = (p.cashAmount || 0) + (p.practiceAmount || 0);
+                      const pct = maxDigitAmount > 0 ? (total / maxDigitAmount) * 100 : 0;
+                      const isWinner = g.status === 'RESULTED' && p.digit === g.winningDigit;
+                      return (
+                        <div key={p.digit} className={`flex items-center gap-3 p-2 rounded-lg ${isWinner ? 'bg-gold/10 border border-gold/30' : 'bg-white/3'}`}>
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-russo text-[0.9rem] ${
+                            isWinner ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'
+                          }`}>
+                            {p.digit}
+                          </div>
+                          <div className="flex-1">
+                            <div className="h-3 rounded-full bg-white/5 overflow-hidden">
+                              <div className="h-full rounded-full bg-gradient-to-r from-cyan/60 to-purple/60"
+                                style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                          <div className="text-right min-w-[120px]">
+                            <span className="font-orbitron text-[0.55rem] text-gold">{fmt(p.cashAmount || 0, 3)}</span>
+                            <span className="text-white/20 mx-1">|</span>
+                            <span className="font-orbitron text-[0.55rem] text-cyan">{fmt(p.practiceAmount || 0, 3)}</span>
+                          </div>
+                          <div className="text-right min-w-[40px]">
+                            <span className="font-orbitron text-[0.45rem] text-white/30">
+                              {(p.cashCount || 0) + (p.practiceCount || 0)} bets
+                            </span>
+                          </div>
+                          {isWinner && <span className="text-gold text-[0.7rem]">🏆</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-4 mt-2 text-[0.45rem] text-white/30 font-orbitron">
+                    <span><span className="text-gold">Gold</span> = Cash</span>
+                    <span><span className="text-cyan">Cyan</span> = Practice</span>
+                  </div>
+                </div>
+
+                {/* Timing */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <div className="p-2 rounded-lg bg-white/3">
+                    <div className="text-[0.4rem] text-white/30 font-orbitron">SCHEDULED</div>
+                    <div className="text-[0.55rem] text-white/60 font-orbitron">{g.scheduledAt ? new Date(g.scheduledAt).toLocaleString() : '—'}</div>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/3">
+                    <div className="text-[0.4rem] text-white/30 font-orbitron">CUTOFF</div>
+                    <div className="text-[0.55rem] text-white/60 font-orbitron">{g.cutoffAt ? new Date(g.cutoffAt).toLocaleString() : '—'}</div>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/3">
+                    <div className="text-[0.4rem] text-white/30 font-orbitron">RESULTED</div>
+                    <div className="text-[0.55rem] text-white/60 font-orbitron">{g.resultAt ? new Date(g.resultAt).toLocaleString() : '—'}</div>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/3">
+                    <div className="text-[0.4rem] text-white/30 font-orbitron">CREATED</div>
+                    <div className="text-[0.55rem] text-white/60 font-orbitron">{g.createdAt ? new Date(g.createdAt).toLocaleString() : '—'}</div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ENTRIES TAB */}
+            {tab === 'entries' && (
+              entries.length === 0 ? (
+                <div className="text-center py-8 text-white/30 font-orbitron text-[0.65rem]">No entries for this game</div>
+              ) : (
+                <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                  <table className="w-full text-[0.6rem]">
+                    <thead className="bg-white/5 border-b border-white/10 sticky top-0">
+                      <tr className="text-left text-white/40 font-orbitron text-[0.5rem] tracking-[0.08em]">
+                        <th className="py-2 px-2">USER</th>
+                        <th className="py-2 px-2 text-center">DIGIT</th>
+                        <th className="py-2 px-2 text-right">AMOUNT</th>
+                        <th className="py-2 px-2">SOURCE</th>
+                        <th className="py-2 px-2 text-center">RESULT</th>
+                        <th className="py-2 px-2 text-right">DIRECT</th>
+                        <th className="py-2 px-2 text-right">COMPOUND</th>
+                        <th className="py-2 px-2 text-right">NET</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {entries.map((e) => {
+                        const totalPay = (e.directPayout || 0) + (e.compoundPayout || 0);
+                        const net = totalPay - e.amount;
+                        const isWin = e.isWin === true;
+                        const isLoss = e.isWin === false;
+                        const isPending = e.isWin === undefined || e.isWin === null;
+                        const addr = e.userId?.walletAddress;
+                        const short = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '—';
+                        return (
+                          <tr key={e._id} className={`border-b border-white/5 ${isWin ? 'bg-green/3' : isLoss ? 'bg-pink/3' : ''}`}>
+                            <td className="py-2 px-2 font-orbitron text-cyan text-[0.5rem]">{short}</td>
+                            <td className="py-2 px-2 text-center">
+                              <span className={`font-russo text-[0.9rem] ${isWin ? 'text-green' : isLoss ? 'text-pink' : 'text-white'}`}>{e.digit}</span>
+                            </td>
+                            <td className="py-2 px-2 font-orbitron text-gold text-right">{fmt(e.amount, 3)}</td>
+                            <td className="py-2 px-2 font-orbitron text-white/40 text-[0.45rem]">
+                              {e.walletType === 'GAME_WALLET' ? 'Game' : e.walletType === 'COMPOUND_SLOT' ? `Cmpd#${e.digit}` : 'Practice'}
+                            </td>
+                            <td className="py-2 px-2 text-center">
+                              {isPending ? (
+                                <span className="px-1.5 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-orbitron text-[0.4rem]">PENDING</span>
+                              ) : isWin ? (
+                                <span className="px-1.5 py-0.5 rounded-full bg-green/10 border border-green/20 text-green font-orbitron text-[0.4rem]">WIN</span>
+                              ) : (
+                                <span className="px-1.5 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink font-orbitron text-[0.4rem]">LOSS</span>
+                              )}
+                            </td>
+                            <td className="py-2 px-2 font-orbitron text-green text-right text-[0.5rem]">
+                              {isWin ? `+${fmt(e.directPayout || 0, 3)}` : '—'}
+                            </td>
+                            <td className="py-2 px-2 font-orbitron text-purple text-right text-[0.5rem]">
+                              {isWin ? `+${fmt(e.compoundPayout || 0, 3)}` : '—'}
+                            </td>
+                            <td className={`py-2 px-2 font-orbitron text-right font-bold text-[0.5rem] ${
+                              isPending ? 'text-yellow-400' : net >= 0 ? 'text-green' : 'text-pink'
+                            }`}>
+                              {isPending ? 'TBD' : `${net >= 0 ? '+' : ''}${fmt(net, 3)}`}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            )}
+
+          </>
+        )}
+
+        {/* Footer actions */}
+        <div className="flex gap-2 mt-5 pt-4 border-t border-white/10">
+          <button onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.6rem]">
+            CLOSE
+          </button>
+          {g.status !== 'RESULTED' && canOps && entries.length > 0 && (
+            <button onClick={() => onForce(g)}
+              className="flex-1 py-2.5 rounded-xl bg-pink/10 border border-pink/40 text-pink font-orbitron text-[0.6rem] font-bold hover:bg-pink/20">
+              🎯 FORCE RESULT
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value, color, type = 'usdt' }) {
+  const c = { cyan: 'text-cyan', green: 'text-green', pink: 'text-pink', gold: 'text-gold', purple: 'text-purple' }[color];
+  return (
+    <div className="p-2 rounded-lg bg-white/3 border border-white/5">
+      <div className="text-[0.4rem] text-white/30 font-orbitron tracking-[0.08em]">{label}</div>
+      <div className={`font-orbitron font-bold text-[0.85rem] ${c}`}>
+        {type === 'count' ? value : fmt(value, 3)}
+        {type !== 'count' && <span className="text-[0.4rem] text-white/20 ml-0.5">USDT</span>}
       </div>
     </div>
   );
