@@ -38,7 +38,9 @@ export default function Club() {
       ]);
       setRankData(r.data);
       setHistory(h.data.history || []);
-    } catch {}
+    } catch (err) {
+      console.error('[club] refresh failed:', err?.response?.data || err?.message);
+    }
     setLoading(false);
   }, []);
 
@@ -96,146 +98,164 @@ export default function Club() {
             </p>
           </div>
 
-          {/* Top: Current rank + Today's earning + Direct refs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {/* Current rank badge */}
-            <div className="card-glass rounded-2xl p-6 border border-gold/30 text-center">
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-2">
-                CURRENT RANK
+          {/* Top: Big stat — Total Club Income */}
+          <div className="card-glass rounded-2xl p-6 mb-6 border border-green/30 flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">TOTAL CLUB INCOME</div>
+              <div className="font-orbitron text-green text-[2.2rem] font-bold leading-none mt-1">
+                ${fmt(r.lifetimeClubIncome || 0, 3)}
               </div>
-              <div className="text-[3.5rem] leading-none mb-1">{RANK_ICONS[currentRank]}</div>
-              <div className="font-russo text-[1.4rem] text-gradient-gold">
-                {RANK_NAMES[currentRank]}
-              </div>
+              <div className="text-[0.5rem] text-white/20 font-orbitron mt-1">{r.lifetimeClubPayments || 0} payouts received</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[3rem] leading-none">{RANK_ICONS[currentRank]}</div>
+              <div className="font-russo text-[1rem] text-gradient-gold">{RANK_NAMES[currentRank]}</div>
               {currentRank > 0 && ladder[currentRank - 1] && (
-                <div className="text-[0.6rem] text-white/40 font-orbitron mt-1">
-                  {ladder[currentRank - 1].percent}% of daily turnover share
-                </div>
+                <div className="text-[0.5rem] text-white/30 font-orbitron">{ladder[currentRank - 1].percent}% share</div>
               )}
-            </div>
-
-            {/* Today's earnings */}
-            <div className="card-glass rounded-2xl p-6 border border-green/20 text-center">
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-2">
-                TODAY'S CLUB INCOME
-              </div>
-              <div className="font-orbitron text-green text-[2.4rem] font-bold leading-none">
-                {fmt(todayEarning)}
-              </div>
-              <div className="text-[0.55rem] text-white/30 font-orbitron mt-2">USDT</div>
-              {todayEarning === 0 && currentRank === 0 && (
-                <div className="text-[0.6rem] text-white/40 mt-2">
-                  Reach Rank 1 to start earning
-                </div>
-              )}
-              {todayEarning === 0 && currentRank > 0 && (
-                <div className="text-[0.6rem] text-white/40 mt-2">
-                  Distributed daily at 00:30
-                </div>
-              )}
-            </div>
-
-            {/* Direct refs */}
-            <div className="card-glass rounded-2xl p-6 border border-cyan/20 text-center">
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-2">
-                DIRECT REFERRALS
-              </div>
-              <div className="font-orbitron text-cyan text-[2.4rem] font-bold leading-none">
-                {r.directReferralCount || 0}
-              </div>
-              <div className="text-[0.55rem] text-white/30 font-orbitron mt-2">
-                Active downline
-              </div>
             </div>
           </div>
 
-          {/* Volume breakdown */}
-          <div className="card-glass rounded-2xl p-6 mb-6 border border-white/10">
-            <div className="font-orbitron text-cyan text-[0.75rem] font-bold mb-4">
-              📊 VOLUME BREAKDOWN
+          {/* Stats row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div className="card-glass rounded-2xl p-4 border border-gold/20">
+              <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">TODAY'S EARNING</div>
+              <div className="font-orbitron text-gold text-[1.2rem] font-bold">{fmt(todayEarning, 3)}</div>
+              <div className="text-[0.4rem] text-white/20">USDT</div>
             </div>
-
-            {next ? (
-              <>
-                <div className="text-[0.65rem] text-white/40 mb-4 leading-relaxed">
-                  Reach <span className="text-gold font-orbitron">{RANK_NAMES[next.rank]}</span> by
-                  satisfying the 50/50 balanced leg rule:{' '}
-                  <span className="text-cyan">{fmt(next.strongLegRequired, 0)} USDT</span>{' '}
-                  from your strongest single leg AND{' '}
-                  <span className="text-cyan">{fmt(next.otherLegsRequired, 0)} USDT</span>{' '}
-                  from all other legs combined.
-                </div>
-
-                <VolumeBar
-                  label="Strong Leg"
-                  current={strongLeg}
-                  required={next.strongLegRequired}
-                  color="gold"
-                />
-                <VolumeBar
-                  label="Other Legs Combined"
-                  current={otherLegs}
-                  required={next.otherLegsRequired}
-                  color="cyan"
-                />
-              </>
-            ) : (
-              <div className="text-center py-6">
-                <div className="text-[3rem] mb-2">👑</div>
-                <div className="font-orbitron text-gold text-[0.85rem]">
-                  MAX RANK ACHIEVED
-                </div>
-                <div className="text-[0.65rem] text-white/40 mt-1">
-                  You've reached Rank 6 — the highest tier
-                </div>
-              </div>
-            )}
+            <div className="card-glass rounded-2xl p-4 border border-cyan/20">
+              <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">TODAY'S TURNOVER</div>
+              <div className="font-orbitron text-cyan text-[1.2rem] font-bold">{fmt(r.todayTurnover || 0, 0)}</div>
+              <div className="text-[0.4rem] text-white/20">USDT platform-wide</div>
+            </div>
+            <div className="card-glass rounded-2xl p-4 border border-purple/20">
+              <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">TEAM VOLUME</div>
+              <div className="font-orbitron text-purple text-[1.2rem] font-bold">{fmt(r.teamVolume || 0, 0)}</div>
+              <div className="text-[0.4rem] text-white/20">USDT total</div>
+            </div>
+            <div className="card-glass rounded-2xl p-4 border border-white/10">
+              <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">DIRECT REFERRALS</div>
+              <div className="font-orbitron text-white text-[1.2rem] font-bold">{r.directReferralCount || 0}</div>
+              <div className="text-[0.4rem] text-white/20">active downline</div>
+            </div>
           </div>
 
-          {/* Rank ladder */}
+          {/* Two columns: Rank Progress + Income Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            {/* Rank Progress card */}
+            <div className="card-glass rounded-2xl p-6 border border-gold/20">
+              <div className="font-orbitron text-gold text-[0.75rem] font-bold mb-1">
+                {RANK_ICONS[currentRank]} {RANK_NAMES[currentRank]} → {next ? RANK_NAMES[next.rank] : '👑 MAX'}
+              </div>
+              <div className="text-[0.55rem] text-white/30 mb-4">
+                {next
+                  ? `Target: ${fmt(next.totalVolume, 0)} USDT total volume`
+                  : 'You have reached the highest rank'}
+              </div>
+
+              {next ? (
+                <>
+                  <VolumeBar label="Strong Leg" current={strongLeg} required={next.strongLegRequired} color="gold" />
+                  <VolumeBar label="Other Legs" current={otherLegs} required={next.otherLegsRequired} color="cyan" />
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <div className="text-[2.5rem]">👑</div>
+                  <div className="font-orbitron text-gold text-[0.75rem] mt-2">MAX RANK ACHIEVED</div>
+                </div>
+              )}
+            </div>
+
+            {/* Income Breakdown card */}
+            <div className="card-glass rounded-2xl p-6 border border-white/10">
+              <div className="font-orbitron text-white text-[0.75rem] font-bold mb-1">
+                💰 INCOME BREAKDOWN
+              </div>
+              <div className="text-[0.55rem] text-white/30 mb-4">
+                {currentRank === 0 ? 'Achieve Rank 1 to unlock Club Income' : `Earning ${ladder[currentRank - 1]?.percent}% of daily platform turnover`}
+              </div>
+
+              {currentRank === 0 ? (
+                <div className="text-center py-6">
+                  <div className="text-[2.5rem] mb-2">🔒</div>
+                  <div className="text-[0.65rem] text-white/40 font-orbitron">
+                    Achieve Rank 1 to unlock Club Income
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
+                    <span className="text-[0.6rem] text-white/50 font-orbitron">Today's Platform Turnover</span>
+                    <span className="font-orbitron text-cyan text-[0.7rem]">{fmt(r.todayTurnover || 0, 0)} USDT</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
+                    <span className="text-[0.6rem] text-white/50 font-orbitron">Your Rank Share</span>
+                    <span className="font-orbitron text-gold text-[0.7rem]">{ladder[currentRank - 1]?.percent}%</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
+                    <span className="text-[0.6rem] text-white/50 font-orbitron">Est. Daily (if sole qualifier)</span>
+                    <span className="font-orbitron text-green text-[0.7rem]">
+                      {fmt(((r.todayTurnover || 0) * (ladder[currentRank - 1]?.percent || 0)) / 100, 3)} USDT
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-green/5 border border-green/20">
+                    <span className="text-[0.6rem] text-white/50 font-orbitron">Lifetime Earned</span>
+                    <span className="font-orbitron text-green text-[0.85rem] font-bold">{fmt(r.lifetimeClubIncome || 0, 3)} USDT</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* All Ranks — Distribution table */}
           <div className="card-glass rounded-2xl p-6 mb-6 border border-purple/20">
             <div className="font-orbitron text-purple text-[0.75rem] font-bold mb-4">
-              🪜 RANK LADDER
+              🪜 ALL RANKS — DISTRIBUTION
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {ladder.map((tier) => {
-                const isCurrent = tier.rank === currentRank;
-                const isAchieved = tier.rank <= currentRank;
-                return (
-                  <div
-                    key={tier.rank}
-                    className={`p-4 rounded-xl border ${
-                      isCurrent
-                        ? 'border-gold bg-gold/10'
-                        : isAchieved
-                        ? 'border-green/30 bg-green/5'
-                        : 'border-white/10 bg-white/3'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[1.4rem]">{RANK_ICONS[tier.rank]}</span>
-                        <span
-                          className={`font-orbitron text-[0.7rem] font-bold ${
-                            isCurrent ? 'text-gold' : isAchieved ? 'text-green' : 'text-white/60'
-                          }`}
-                        >
-                          {RANK_NAMES[tier.rank]}
-                        </span>
-                      </div>
-                      <div className="font-orbitron text-[0.65rem] text-white/40">
-                        {tier.percent}%
-                      </div>
-                    </div>
-                    <div className="text-[0.6rem] text-white/40 font-orbitron">
-                      Total: {fmt(tier.totalVolume, 0)} USDT
-                    </div>
-                    <div className="text-[0.55rem] text-white/30 mt-0.5">
-                      {fmt(tier.strongLegRequired, 0)} strong + {fmt(tier.otherLegsRequired, 0)} other
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.6rem]">
+                <thead className="bg-white/5 border-b border-white/10">
+                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] tracking-[0.1em]">
+                    <th className="py-2.5 px-3">RANK</th>
+                    <th className="py-2.5 px-3 text-right">VOLUME REQUIRED</th>
+                    <th className="py-2.5 px-3 text-right">STRONG LEG</th>
+                    <th className="py-2.5 px-3 text-right">OTHER LEGS</th>
+                    <th className="py-2.5 px-3 text-right">SHARE %</th>
+                    <th className="py-2.5 px-3 text-center">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ladder.map((tier) => {
+                    const isCurrent = tier.rank === currentRank;
+                    const isAchieved = tier.rank <= currentRank;
+                    return (
+                      <tr key={tier.rank} className={`border-b border-white/5 ${isCurrent ? 'bg-gold/5' : isAchieved ? 'bg-green/3' : ''}`}>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[1.2rem]">{RANK_ICONS[tier.rank]}</span>
+                            <span className={`font-orbitron text-[0.65rem] font-bold ${isCurrent ? 'text-gold' : isAchieved ? 'text-green' : 'text-white/50'}`}>
+                              {RANK_NAMES[tier.rank]}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 font-orbitron text-white/60 text-right">${fmt(tier.totalVolume, 0)}</td>
+                        <td className="py-3 px-3 font-orbitron text-white/40 text-right">${fmt(tier.strongLegRequired, 0)}</td>
+                        <td className="py-3 px-3 font-orbitron text-white/40 text-right">${fmt(tier.otherLegsRequired, 0)}</td>
+                        <td className="py-3 px-3 font-orbitron text-gold text-right">{tier.percent}%</td>
+                        <td className="py-3 px-3 text-center">
+                          {isCurrent ? (
+                            <span className="px-2 py-0.5 rounded-full bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.45rem]">CURRENT</span>
+                          ) : isAchieved ? (
+                            <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/30 text-green font-orbitron text-[0.45rem]">ACHIEVED</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/30 font-orbitron text-[0.45rem]">LOCKED</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 

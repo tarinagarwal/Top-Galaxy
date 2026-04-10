@@ -177,7 +177,7 @@ export default function Referrals() {
               {/* Level Breakdown */}
               {levels && (
                 <div className="card-glass rounded-2xl p-6 mb-6 border border-white/10">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-2">
                     <div>
                       <div className="font-orbitron text-white text-[0.85rem] font-bold flex items-center gap-2">
                         📊 Level Breakdown
@@ -190,6 +190,22 @@ export default function Referrals() {
                       <span className="font-orbitron text-gold text-[0.7rem] font-bold">
                         {levels.activeLevels} Active Levels
                       </span>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between text-[0.5rem] font-orbitron mb-1">
+                      <span className="text-white/40">LEVELS UNLOCKED</span>
+                      <span className="text-gold">{levels.activeLevels} / 15</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-green to-gold transition-all"
+                        style={{ width: `${(levels.activeLevels / 15) * 100}%` }} />
+                    </div>
+                    <div className="flex items-center justify-between text-[0.4rem] text-white/20 font-orbitron mt-1">
+                      <span>L1-L3: Basic (10 USDT)</span>
+                      <span>L4-L15: PRO (100 USDT)</span>
                     </div>
                   </div>
 
@@ -206,7 +222,11 @@ export default function Referrals() {
                     {levels.levels.map((lv) => {
                       const commPct = lv.level === 1 ? '5%' : lv.level === 2 ? '2%' : lv.level <= 5 ? '1%' : '0.5%';
                       return (
-                        <div key={lv.level} className="rounded-xl bg-white/3 border border-white/5 p-3">
+                        <div key={lv.level} className={`rounded-xl p-3 border ${
+                          lv.unlocked
+                            ? 'bg-white/3 border-white/5'
+                            : 'bg-pink/3 border-pink/10 opacity-60'
+                        }`}>
                           {/* Desktop layout */}
                           <div className="hidden md:grid grid-cols-[1fr_0.7fr_0.7fr_0.8fr_0.8fr] gap-2 items-center">
                             <div className="flex items-center gap-3">
@@ -215,7 +235,7 @@ export default function Referrals() {
                                   ? 'bg-green/10 border border-green/30 text-green'
                                   : 'bg-pink/10 border border-pink/30 text-pink'
                               }`}>
-                                L{lv.level}
+                                {lv.unlocked ? `L${lv.level}` : '🔒'}
                               </div>
                               <div>
                                 <div className="font-orbitron text-white/80 text-[0.65rem]">LEVEL {lv.level}</div>
@@ -223,29 +243,39 @@ export default function Referrals() {
                                   <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
                                 ) : (
                                   <div className="text-[0.45rem] text-pink font-orbitron">
-                                    {lv.lockType} LOCKED — DEPOSIT {lv.lockType === 'BASIC' ? '10' : '100'} USDT
+                                    🔒 {lv.lockType} LOCKED — DEPOSIT {lv.lockType === 'BASIC' ? '10' : '100'} USDT
                                   </div>
                                 )}
                               </div>
                             </div>
-                            <div>
-                              <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
-                              <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">users</span>
-                            </div>
-                            <div>
-                              <span className="font-orbitron text-white/60 text-[0.75rem]">{fmt(lv.practiceBonus, 3)}</span>
-                              <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">USDT</span>
-                            </div>
-                            <div className="text-center">
-                              <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-cyan text-[0.7rem]">
-                                +{fmt(lv.directReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
-                              </span>
-                            </div>
-                            <div className="text-center">
-                              <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-pink text-[0.7rem]">
-                                +{fmt(lv.winnersReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
-                              </span>
-                            </div>
+                            {lv.unlocked ? (
+                              <>
+                                <div>
+                                  <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
+                                  <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">users</span>
+                                </div>
+                                <div>
+                                  <span className="font-orbitron text-white/60 text-[0.75rem]">{fmt(lv.practiceBonus, 3)}</span>
+                                  <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">USDT</span>
+                                </div>
+                                <div className="text-center">
+                                  <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-cyan text-[0.7rem]">
+                                    +{fmt(lv.directReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                                  </span>
+                                </div>
+                                <div className="text-center">
+                                  <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-pink text-[0.7rem]">
+                                    +{fmt(lv.winnersReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="col-span-4 text-center">
+                                <span className="font-orbitron text-pink/60 text-[0.55rem]">
+                                  🔒 Deposit {lv.lockType === 'BASIC' ? '10' : '100'} USDT to unlock Level {lv.level} ({commPct} commission)
+                                </span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Mobile layout */}
@@ -256,7 +286,7 @@ export default function Referrals() {
                                   ? 'bg-green/10 border border-green/30 text-green'
                                   : 'bg-pink/10 border border-pink/30 text-pink'
                               }`}>
-                                L{lv.level}
+                                {lv.unlocked ? `L${lv.level}` : '🔒'}
                               </div>
                               <div className="flex-1">
                                 <div className="font-orbitron text-white/80 text-[0.65rem]">LEVEL {lv.level}</div>
@@ -264,29 +294,37 @@ export default function Referrals() {
                                   <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
                                 ) : (
                                   <div className="text-[0.45rem] text-pink font-orbitron">
-                                    {lv.lockType} LOCKED — DEPOSIT {lv.lockType === 'BASIC' ? '10' : '100'} USDT
+                                    🔒 {lv.lockType} LOCKED
                                   </div>
                                 )}
                               </div>
-                              <div className="text-right">
-                                <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
-                                <span className="text-[0.45rem] text-white/30 ml-1">users</span>
-                              </div>
+                              {lv.unlocked && (
+                                <div className="text-right">
+                                  <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
+                                  <span className="text-[0.45rem] text-white/30 ml-1">users</span>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex gap-2">
-                              <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
-                                <div className="text-[0.4rem] text-white/30 font-orbitron">PRACTICE</div>
-                                <div className="font-orbitron text-white/60 text-[0.6rem]">{fmt(lv.practiceBonus, 3)}</div>
+                            {lv.unlocked ? (
+                              <div className="flex gap-2">
+                                <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                  <div className="text-[0.4rem] text-white/30 font-orbitron">PRACTICE</div>
+                                  <div className="font-orbitron text-white/60 text-[0.6rem]">{fmt(lv.practiceBonus, 3)}</div>
+                                </div>
+                                <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                  <div className="text-[0.4rem] text-white/30 font-orbitron">DIRECT REF</div>
+                                  <div className="font-orbitron text-cyan text-[0.6rem]">+{fmt(lv.directReferral, 3)}</div>
+                                </div>
+                                <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                  <div className="text-[0.4rem] text-white/30 font-orbitron">WINNER REF</div>
+                                  <div className="font-orbitron text-pink text-[0.6rem]">+{fmt(lv.winnersReferral, 3)}</div>
+                                </div>
                               </div>
-                              <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
-                                <div className="text-[0.4rem] text-white/30 font-orbitron">DIRECT REF</div>
-                                <div className="font-orbitron text-cyan text-[0.6rem]">+{fmt(lv.directReferral, 3)}</div>
+                            ) : (
+                              <div className="text-center text-[0.5rem] text-pink/60 font-orbitron">
+                                Deposit {lv.lockType === 'BASIC' ? '10' : '100'} USDT to unlock
                               </div>
-                              <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
-                                <div className="text-[0.4rem] text-white/30 font-orbitron">WINNER REF</div>
-                                <div className="font-orbitron text-pink text-[0.6rem]">+{fmt(lv.winnersReferral, 3)}</div>
-                              </div>
-                            </div>
+                            )}
                           </div>
                         </div>
                       );
