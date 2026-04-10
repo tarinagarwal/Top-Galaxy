@@ -226,10 +226,13 @@ export default function Referrals() {
                   <div className="space-y-2">
                     {levels.levels.map((lv) => {
                       const commPct = lv.level === 1 ? '5%' : lv.level === 2 ? '2%' : lv.level <= 5 ? '1%' : '0.5%';
+                      const isDirectsOnly = lv.lockCategory === 'directs';
                       return (
                         <div key={lv.level} className={`rounded-xl p-3 border ${
                           lv.unlocked
                             ? 'bg-white/3 border-white/5'
+                            : isDirectsOnly
+                            ? 'bg-yellow-400/5 border-yellow-400/15 opacity-80'
                             : 'bg-pink/3 border-pink/10 opacity-60'
                         }`}>
                           {/* Desktop layout */}
@@ -238,6 +241,8 @@ export default function Referrals() {
                               <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-orbitron text-[0.6rem] font-bold ${
                                 lv.unlocked
                                   ? 'bg-green/10 border border-green/30 text-green'
+                                  : isDirectsOnly
+                                  ? 'bg-yellow-400/10 border border-yellow-400/30 text-yellow-400'
                                   : 'bg-pink/10 border border-pink/30 text-pink'
                               }`}>
                                 {lv.unlocked ? `L${lv.level}` : '🔒'}
@@ -246,6 +251,10 @@ export default function Referrals() {
                                 <div className="font-orbitron text-white/80 text-[0.65rem]">LEVEL {lv.level}</div>
                                 {lv.unlocked ? (
                                   <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
+                                ) : isDirectsOnly ? (
+                                  <div className="text-[0.45rem] text-yellow-400 font-orbitron">
+                                    ✅ PRO Active · {lv.lockReason}
+                                  </div>
                                 ) : (
                                   <div className="text-[0.45rem] text-pink font-orbitron">
                                     🔒 {lv.lockReason || 'LOCKED'}
@@ -276,9 +285,15 @@ export default function Referrals() {
                               </>
                             ) : (
                               <div className="col-span-4 text-center">
-                                <span className="font-orbitron text-pink/60 text-[0.55rem]">
-                                  🔒 {lv.lockReason || `Deposit ${lv.level <= 3 ? '10' : '100'} USDT to unlock`} — Level {lv.level} ({commPct})
-                                </span>
+                                {isDirectsOnly ? (
+                                  <span className="font-orbitron text-yellow-400/80 text-[0.55rem]">
+                                    ✅ PRO activated — {lv.lockReason} to unlock Level {lv.level} ({commPct})
+                                  </span>
+                                ) : (
+                                  <span className="font-orbitron text-pink/50 text-[0.55rem]">
+                                    🔒 {lv.lockReason || 'LOCKED'} — Level {lv.level} ({commPct})
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
@@ -298,8 +313,8 @@ export default function Referrals() {
                                 {lv.unlocked ? (
                                   <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
                                 ) : (
-                                  <div className="text-[0.45rem] text-pink font-orbitron">
-                                    🔒 {lv.lockType} LOCKED
+                                  <div className={`text-[0.45rem] font-orbitron ${isDirectsOnly ? 'text-yellow-400' : 'text-pink'}`}>
+                                    {isDirectsOnly ? '✅ PRO Active' : '🔒 LOCKED'}
                                   </div>
                                 )}
                               </div>
@@ -326,8 +341,10 @@ export default function Referrals() {
                                 </div>
                               </div>
                             ) : (
-                              <div className="text-center text-[0.5rem] text-pink/60 font-orbitron">
-                                {lv.lockReason || `Deposit ${lv.level <= 3 ? '10' : '100'} USDT`}
+                              <div className={`text-center text-[0.5rem] font-orbitron ${isDirectsOnly ? 'text-yellow-400/70' : 'text-pink/50'}`}>
+                                {isDirectsOnly
+                                  ? `✅ PRO active · ${lv.lockReason}`
+                                  : lv.lockReason || 'LOCKED'}
                               </div>
                             )}
                           </div>
