@@ -252,8 +252,8 @@ export default function Referrals() {
                                 {lv.unlocked ? (
                                   <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
                                 ) : isDirectsOnly ? (
-                                  <div className="text-[0.45rem] text-yellow-400 font-orbitron">
-                                    ✅ PRO Active · {lv.lockReason}
+                                  <div className="text-[0.45rem] text-green font-orbitron">
+                                    ✅ PRO Active
                                   </div>
                                 ) : (
                                   <div className="text-[0.45rem] text-pink font-orbitron">
@@ -262,16 +262,18 @@ export default function Referrals() {
                                 )}
                               </div>
                             </div>
+                            {/* Team + Practice always visible */}
+                            <div>
+                              <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
+                              <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">users</span>
+                            </div>
+                            <div>
+                              <span className="font-orbitron text-white/60 text-[0.75rem]">{fmt(lv.practiceBonus, 3)}</span>
+                              <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">USDT</span>
+                            </div>
+                            {/* Direct + Winner: show values if unlocked, lock message if not */}
                             {lv.unlocked ? (
                               <>
-                                <div>
-                                  <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
-                                  <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">users</span>
-                                </div>
-                                <div>
-                                  <span className="font-orbitron text-white/60 text-[0.75rem]">{fmt(lv.practiceBonus, 3)}</span>
-                                  <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">USDT</span>
-                                </div>
                                 <div className="text-center">
                                   <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-cyan text-[0.7rem]">
                                     +{fmt(lv.directReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
@@ -284,16 +286,10 @@ export default function Referrals() {
                                 </div>
                               </>
                             ) : (
-                              <div className="col-span-4 text-center">
-                                {isDirectsOnly ? (
-                                  <span className="font-orbitron text-yellow-400/80 text-[0.55rem]">
-                                    ✅ PRO activated — {lv.lockReason} to unlock Level {lv.level} ({commPct})
-                                  </span>
-                                ) : (
-                                  <span className="font-orbitron text-pink/50 text-[0.55rem]">
-                                    🔒 {lv.lockReason || 'LOCKED'} — Level {lv.level} ({commPct})
-                                  </span>
-                                )}
+                              <div className="col-span-2 text-center">
+                                <span className="font-orbitron text-pink/60 text-[0.55rem]">
+                                  🔒 {lv.lockReason || 'LOCKED'}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -313,40 +309,38 @@ export default function Referrals() {
                                 {lv.unlocked ? (
                                   <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
                                 ) : (
-                                  <div className={`text-[0.45rem] font-orbitron ${isDirectsOnly ? 'text-yellow-400' : 'text-pink'}`}>
+                                  <div className={`text-[0.45rem] font-orbitron ${isDirectsOnly ? 'text-green' : 'text-pink'}`}>
                                     {isDirectsOnly ? '✅ PRO Active' : '🔒 LOCKED'}
                                   </div>
                                 )}
                               </div>
-                              {lv.unlocked && (
-                                <div className="text-right">
-                                  <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
-                                  <span className="text-[0.45rem] text-white/30 ml-1">users</span>
+                              <div className="text-right">
+                                <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
+                                <span className="text-[0.45rem] text-white/30 ml-1">users</span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                <div className="text-[0.4rem] text-white/30 font-orbitron">PRACTICE</div>
+                                <div className="font-orbitron text-white/60 text-[0.6rem]">{fmt(lv.practiceBonus, 3)}</div>
+                              </div>
+                              {lv.unlocked ? (
+                                <>
+                                  <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                    <div className="text-[0.4rem] text-white/30 font-orbitron">DIRECT REF</div>
+                                    <div className="font-orbitron text-cyan text-[0.6rem]">+{fmt(lv.directReferral, 3)}</div>
+                                  </div>
+                                  <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
+                                    <div className="text-[0.4rem] text-white/30 font-orbitron">WINNER REF</div>
+                                    <div className="font-orbitron text-pink text-[0.6rem]">+{fmt(lv.winnersReferral, 3)}</div>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="flex-[2] text-center py-1 rounded-lg bg-pink/5 border border-pink/10">
+                                  <div className="text-[0.4rem] text-pink/50 font-orbitron">🔒 {lv.lockReason || 'LOCKED'}</div>
                                 </div>
                               )}
                             </div>
-                            {lv.unlocked ? (
-                              <div className="flex gap-2">
-                                <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
-                                  <div className="text-[0.4rem] text-white/30 font-orbitron">PRACTICE</div>
-                                  <div className="font-orbitron text-white/60 text-[0.6rem]">{fmt(lv.practiceBonus, 3)}</div>
-                                </div>
-                                <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
-                                  <div className="text-[0.4rem] text-white/30 font-orbitron">DIRECT REF</div>
-                                  <div className="font-orbitron text-cyan text-[0.6rem]">+{fmt(lv.directReferral, 3)}</div>
-                                </div>
-                                <div className="flex-1 text-center py-1 rounded-lg bg-white/3 border border-white/5">
-                                  <div className="text-[0.4rem] text-white/30 font-orbitron">WINNER REF</div>
-                                  <div className="font-orbitron text-pink text-[0.6rem]">+{fmt(lv.winnersReferral, 3)}</div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className={`text-center text-[0.5rem] font-orbitron ${isDirectsOnly ? 'text-yellow-400/70' : 'text-pink/50'}`}>
-                                {isDirectsOnly
-                                  ? `✅ PRO active · ${lv.lockReason}`
-                                  : lv.lockReason || 'LOCKED'}
-                              </div>
-                            )}
                           </div>
                         </div>
                       );
