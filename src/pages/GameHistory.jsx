@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import StarfieldCanvas from '../components/StarfieldCanvas';
 import api from '../lib/axios';
@@ -11,7 +11,8 @@ function localToday() {
 }
 
 export default function GameHistory() {
-  const [mode, setMode] = useState('cash'); // 'cash' | 'practice'
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState(searchParams.get('mode') === 'practice' ? 'practice' : 'cash');
   const [date, setDate] = useState(''); // empty = all dates
   const [page, setPage] = useState(1);
   const [data, setData] = useState({ entries: [], total: 0, stats: {} });

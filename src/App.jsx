@@ -11,6 +11,7 @@ import Game from './pages/Game';
 import GameHistory from './pages/GameHistory';
 import Cashback from './pages/Cashback';
 import LuckyDraw from './pages/LuckyDraw';
+import LuckyDrawHistory from './pages/LuckyDrawHistory';
 import Club from './pages/Club';
 import Income from './pages/Income';
 import Transactions from './pages/Transactions';
@@ -54,6 +55,7 @@ function AppRoutes() {
       <Route path="/game/history" element={<ProtectedRoute><GameHistory /></ProtectedRoute>} />
       <Route path="/cashback" element={<ProtectedRoute><Cashback /></ProtectedRoute>} />
       <Route path="/lucky-draw" element={<ProtectedRoute><LuckyDraw /></ProtectedRoute>} />
+      <Route path="/lucky-draw/history" element={<ProtectedRoute><LuckyDrawHistory /></ProtectedRoute>} />
       <Route path="/club" element={<ProtectedRoute><Club /></ProtectedRoute>} />
       <Route path="/income" element={<ProtectedRoute><Income /></ProtectedRoute>} />
       <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />

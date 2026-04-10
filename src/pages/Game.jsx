@@ -193,6 +193,41 @@ export default function Game() {
             )}
           </div>
 
+          {/* Wallet balances + Compound slots */}
+          {walletData && (
+            <div className="mb-6 space-y-3">
+              {/* Wallet balance card */}
+              <div className="card-glass rounded-2xl p-4 border border-gold/20 flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em]">GAME WALLET</div>
+                  <div className="font-orbitron text-gold text-[1.4rem] font-bold">{fmt(walletData.gameWallet || 0, 3)} <span className="text-[0.55rem] text-white/30">USDT</span></div>
+                </div>
+                <div>
+                  <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em]">WINNINGS</div>
+                  <div className="font-orbitron text-green text-[1.4rem] font-bold">{fmt(walletData.winningsWallet || 0, 3)} <span className="text-[0.55rem] text-white/30">USDT</span></div>
+                </div>
+              </div>
+
+              {/* Compound slots */}
+              {Object.values(compoundSlots).some((v) => v > 0) && (
+                <div className="card-glass rounded-2xl p-4 border border-purple/20">
+                  <div className="text-[0.5rem] text-purple font-orbitron tracking-[0.15em] mb-2">🔒 COMPOUND SLOTS</div>
+                  <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+                    {DIGITS.map((d) => {
+                      const val = compoundSlots[String(d)] || 0;
+                      return (
+                        <div key={d} className={`text-center p-2 rounded-lg ${val > 0 ? 'bg-purple/10 border border-purple/30' : 'bg-white/3 border border-white/5'}`}>
+                          <div className="font-russo text-[1rem] text-white/60">{d}</div>
+                          <div className={`font-orbitron text-[0.5rem] ${val > 0 ? 'text-purple' : 'text-white/20'}`}>{fmt(val, 3)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* No game open */}
           {!game && (
             <div className="card-glass rounded-3xl p-12 text-center border border-white/10">
@@ -405,14 +440,14 @@ export default function Game() {
 
           {/* My History link — always visible */}
           <Link
-            to="/game/history"
+            to="/game/history?mode=cash"
             className="mt-6 block card-glass rounded-2xl p-5 text-center border border-purple/20 hover:border-purple/40 transition-all"
           >
             <div className="font-orbitron text-purple text-[0.75rem] font-bold">
-              📊 VIEW MY FULL HISTORY
+              📊 VIEW MY GAME HISTORY
             </div>
             <div className="text-[0.5rem] text-white/30 mt-1">
-              Cash & Practice · Win/Loss · Payouts · P&L
+              Win/Loss · Payouts · P&L
             </div>
           </Link>
         </div>

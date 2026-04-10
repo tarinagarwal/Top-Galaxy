@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import StarfieldCanvas from '../components/StarfieldCanvas';
 import api from '../lib/axios';
@@ -212,6 +213,19 @@ export default function LuckyDraw() {
 
           {/* Tabbed history section */}
           <HistoryTabs myTickets={myTickets} history={history} />
+
+          {/* Full History link */}
+          <Link
+            to="/lucky-draw/history"
+            className="mt-6 block card-glass rounded-2xl p-5 text-center border border-purple/20 hover:border-purple/40 transition-all"
+          >
+            <div className="font-orbitron text-purple text-[0.75rem] font-bold">
+              📊 VIEW FULL LUCKY DRAW HISTORY
+            </div>
+            <div className="text-[0.5rem] text-white/30 mt-1">
+              All Tickets · Wins · Losses · Stats · P&L
+            </div>
+          </Link>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import StarfieldCanvas from '../components/StarfieldCanvas';
 import api from '../lib/axios';
@@ -352,6 +353,19 @@ export default function PracticeGame() {
               </div>
             </div>
           </div>
+
+          {/* Practice History link */}
+          <Link
+            to="/game/history?mode=practice"
+            className="mt-6 block card-glass rounded-2xl p-5 text-center border border-cyan/20 hover:border-cyan/40 transition-all"
+          >
+            <div className="font-orbitron text-cyan text-[0.75rem] font-bold">
+              📊 VIEW PRACTICE HISTORY
+            </div>
+            <div className="text-[0.5rem] text-white/30 mt-1">
+              Win/Loss · Payouts · P&L
+            </div>
+          </Link>
         </div>
       </div>
     </div>
