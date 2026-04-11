@@ -157,6 +157,9 @@ export default function LuckyDraw() {
           {/* Auto-fund estimate (based on user's projected daily cashback) */}
           <AutoFundEstimate cashbackStats={cashbackStats} myStats={myStats} />
 
+          {/* Auto-fund history — shows daily 20% credits */}
+          <AutoFundHistory />
+
           {/* Prize tiers table */}
           <div className="card-glass rounded-2xl p-6 mb-6 border border-gold/20">
             <button
@@ -308,6 +311,111 @@ function AutoFundEstimate({ cashbackStats, myStats }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AutoFundHistory() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/luckydraw/my-autofund?pageSize=30')
+      .then(({ data }) => setData(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return null;
+  const txs = data?.transactions || [];
+  const summary = data?.summary || { goldenTotal: 0, silverTotal: 0, goldenCount: 0, silverCount: 0 };
+  const totalFunded = (summary.goldenTotal || 0) + (summary.silverTotal || 0);
+
+  // Group transactions by date for a cleaner display
+  const grouped = {};
+  for (const tx of txs) {
+    const date = new Date(tx.createdAt).toLocaleDateString();
+    if (!grouped[date]) grouped[date] = { date, golden: 0, silver: 0, goldenTx: null, silverTx: null };
+    if (tx.toWallet === 'goldenDrawWallet') {
+      grouped[date].golden += tx.amount;
+      grouped[date].goldenTx = tx;
+    } else if (tx.toWallet === 'silverDrawWallet') {
+      grouped[date].silver += tx.amount;
+      grouped[date].silverTx = tx;
+    }
+  }
+  const groupedRows = Object.values(grouped);
+
+  return (
+    <div className="card-glass rounded-2xl p-6 mb-6 border border-white/10">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between font-orbitron text-white text-[0.75rem] font-bold"
+      >
+        <div className="flex items-center gap-2">
+          <span>📜 AUTO-FUND HISTORY (20% of cashback+ROI)</span>
+        </div>
+        <span className="text-[0.6rem] text-white/40">{expanded ? '▲ HIDE' : '▼ SHOW'}</span>
+      </button>
+
+      {/* Summary row — always visible */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+        <div className="p-3 rounded-lg bg-gold/5 border border-gold/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">TOTAL TO GOLDEN</div>
+          <div className="font-orbitron text-gold text-[1rem] font-bold mt-1">+{fmt(summary.goldenTotal || 0, 4)} USDT</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">{summary.goldenCount} credits</div>
+        </div>
+        <div className="p-3 rounded-lg bg-white/3 border border-white/10">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">TOTAL TO SILVER</div>
+          <div className="font-orbitron text-white/70 text-[1rem] font-bold mt-1">+{fmt(summary.silverTotal || 0, 4)} USDT</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">{summary.silverCount} credits</div>
+        </div>
+        <div className="p-3 rounded-lg bg-green/5 border border-green/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">TOTAL AUTO-FUNDED</div>
+          <div className="font-orbitron text-green text-[1rem] font-bold mt-1">+{fmt(totalFunded, 4)} USDT</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">lifetime</div>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-4">
+          {txs.length === 0 ? (
+            <div className="text-center py-6 text-[0.68rem] text-white/30 font-orbitron">
+              No auto-fund credits yet. Earn cashback first — 20% will auto-credit to your draw wallets.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.65rem]">
+                <thead className="bg-white/5 border-b border-white/10">
+                  <tr className="text-left text-white/40 font-orbitron text-[0.6rem] tracking-[0.1em]">
+                    <th className="py-2 px-3">DATE</th>
+                    <th className="py-2 px-3 text-right">GOLDEN CREDIT</th>
+                    <th className="py-2 px-3 text-right">SILVER CREDIT</th>
+                    <th className="py-2 px-3 text-right">DAILY TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupedRows.map((row, i) => (
+                    <tr key={i} className="border-b border-white/5 hover:bg-white/3">
+                      <td className="py-2 px-3 font-orbitron text-white/60">{row.date}</td>
+                      <td className="py-2 px-3 font-orbitron text-gold text-right">
+                        {row.golden > 0 ? `+${fmt(row.golden, 4)}` : '—'}
+                      </td>
+                      <td className="py-2 px-3 font-orbitron text-white/70 text-right">
+                        {row.silver > 0 ? `+${fmt(row.silver, 4)}` : '—'}
+                      </td>
+                      <td className="py-2 px-3 font-orbitron text-green text-right font-bold">
+                        +{fmt(row.golden + row.silver, 4)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

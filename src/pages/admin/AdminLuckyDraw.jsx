@@ -140,6 +140,9 @@ export default function AdminLuckyDraw() {
         </div>
       )}
 
+      {/* Auto-fund history — platform-wide */}
+      <AdminAutoFundHistory />
+
       {loading ? (
         <div className="text-center py-12 text-white/40 font-orbitron text-[0.7rem]">Loading...</div>
       ) : (
@@ -240,6 +243,137 @@ export default function AdminLuckyDraw() {
 // ============================================================================
 // DrawCard — shows active draw with timer + controls
 // ============================================================================
+function AdminAutoFundHistory() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setLoading(true);
+    api.get(`/api/admin/luckydraw/autofund-history?page=${page}&pageSize=50`)
+      .then(({ data }) => setData(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [page]);
+
+  if (loading && !data) return null;
+  const txs = data?.transactions || [];
+  const summary = data?.summary || { goldenTotal: 0, silverTotal: 0, goldenCount: 0, silverCount: 0, uniqueUsers: 0 };
+  const total = data?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(total / 50));
+
+  return (
+    <div className="card-glass rounded-2xl p-5 mb-6 border border-white/10">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between font-orbitron text-white text-[0.75rem] font-bold"
+      >
+        <span>⚡ AUTO-FUND HISTORY (20% of cashback+ROI, platform-wide)</span>
+        <span className="text-[0.6rem] text-white/40">{expanded ? '▲ HIDE' : '▼ SHOW'}</span>
+      </button>
+
+      {/* Summary cards — always visible */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+        <div className="p-3 rounded-lg bg-gold/5 border border-gold/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">GOLDEN FUNDED</div>
+          <div className="font-orbitron text-gold text-[1rem] font-bold mt-1">{fmt(summary.goldenTotal || 0, 3)}</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">{summary.goldenCount} credits</div>
+        </div>
+        <div className="p-3 rounded-lg bg-white/3 border border-white/10">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">SILVER FUNDED</div>
+          <div className="font-orbitron text-white/70 text-[1rem] font-bold mt-1">{fmt(summary.silverTotal || 0, 3)}</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">{summary.silverCount} credits</div>
+        </div>
+        <div className="p-3 rounded-lg bg-green/5 border border-green/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">TOTAL</div>
+          <div className="font-orbitron text-green text-[1rem] font-bold mt-1">{fmt((summary.goldenTotal || 0) + (summary.silverTotal || 0), 3)}</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">USDT</div>
+        </div>
+        <div className="p-3 rounded-lg bg-cyan/5 border border-cyan/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">UNIQUE USERS</div>
+          <div className="font-orbitron text-cyan text-[1rem] font-bold mt-1">{summary.uniqueUsers || 0}</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">funded</div>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-4">
+          {txs.length === 0 ? (
+            <div className="text-center py-6 text-[0.68rem] text-white/30 font-orbitron">
+              No auto-fund credits yet.
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[0.65rem]">
+                  <thead className="bg-white/5 border-b border-white/10">
+                    <tr className="text-left text-white/40 font-orbitron text-[0.6rem] tracking-[0.1em]">
+                      <th className="py-2 px-3">DATE/TIME</th>
+                      <th className="py-2 px-3">USER</th>
+                      <th className="py-2 px-3">REF CODE</th>
+                      <th className="py-2 px-3">WALLET</th>
+                      <th className="py-2 px-3 text-right">AMOUNT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {txs.map((tx) => {
+                      const isGolden = tx.toWallet === 'goldenDrawWallet';
+                      return (
+                        <tr key={tx._id} className="border-b border-white/5 hover:bg-white/3">
+                          <td className="py-2 px-3 font-orbitron text-white/60 text-[0.6rem]">
+                            {new Date(tx.createdAt).toLocaleString()}
+                          </td>
+                          <td className="py-2 px-3 font-orbitron text-white/70">
+                            {tx.userId?.walletAddress
+                              ? `${tx.userId.walletAddress.slice(0, 6)}...${tx.userId.walletAddress.slice(-4)}`
+                              : '—'}
+                          </td>
+                          <td className="py-2 px-3 font-orbitron text-cyan">{tx.userId?.referralCode || '—'}</td>
+                          <td className="py-2 px-3">
+                            <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.55rem] ${
+                              isGolden ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-white/5 border-white/20 text-white/70'
+                            }`}>
+                              {isGolden ? '🏆 GOLDEN' : '🥈 SILVER'}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 font-orbitron text-green text-right font-bold">
+                            +{fmt(tx.amount, 4)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-3 p-3 mt-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.6rem] disabled:opacity-30"
+                  >
+                    PREV
+                  </button>
+                  <span className="font-orbitron text-[0.65rem] text-white/40">{page} / {totalPages}</span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.6rem] disabled:opacity-30"
+                  >
+                    NEXT
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DrawCard({ draw, type, icon, accent, busy, canOps, isSuperAdmin, onAction, onManualWinners }) {
   if (!draw) {
     return (
