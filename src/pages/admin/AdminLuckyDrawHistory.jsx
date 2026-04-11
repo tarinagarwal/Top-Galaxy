@@ -395,19 +395,45 @@ function RevenueSplitTab() {
 function AllDrawsTab() {
   const [draws, setDraws] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(null);
+  const [feedback, setFeedback] = useState(null);
 
-  useEffect(() => {
-    api.get('/api/luckydraw/history?pageSize=100')
+  const refresh = useCallback(() => {
+    setLoading(true);
+    api.get('/api/admin/luckydraw/all-draws?pageSize=200')
       .then(({ data }) => setDraws(data.draws || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const forceResult = async (drawId, label) => {
+    if (!window.confirm(`Force-result ${label}?\n\nThis will:\n• Pick winners from tickets (deterministic via seed+blockHash)\n• Credit prizes to winner wallets\n• Mark remaining tickets as LOSS\n• SKIP on-chain writes (reconcile manually if needed)\n\nProceed?`)) return;
+    setBusy(drawId);
+    setFeedback(null);
+    try {
+      const { data } = await api.post('/api/admin/luckydraw/force-result', { drawId });
+      setFeedback({ type: 'success', message: `✓ ${label} resulted. Paid ${data.paidCount}/${data.totalWinners} winners.` });
+      refresh();
+    } catch (err) {
+      setFeedback({ type: 'error', message: `Failed: ${err?.response?.data?.error || err?.message}` });
+    }
+    setBusy(null);
+  };
 
   if (loading) return <div className="text-center py-8 text-white/40">Loading...</div>;
   if (draws.length === 0) return <div className="text-center py-8 text-white/30 font-orbitron text-[0.7rem]">No draws yet</div>;
 
   return (
     <div className="card-glass rounded-2xl p-5 border border-white/10">
+      {feedback && (
+        <div className={`rounded-xl p-3 mb-4 border text-[0.7rem] ${
+          feedback.type === 'success' ? 'border-green/30 bg-green/5 text-green' : 'border-pink/30 bg-pink/5 text-pink'
+        }`}>
+          {feedback.message}
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-[0.65rem]">
           <thead className="bg-white/5 border-b border-white/10">
@@ -418,18 +444,25 @@ function AllDrawsTab() {
               <th className="py-2 px-3 text-right">TICKETS</th>
               <th className="py-2 px-3 text-right">PRIZE POOL</th>
               <th className="py-2 px-3 text-right">WINNERS</th>
-              <th className="py-2 px-3">RESULTED AT</th>
+              <th className="py-2 px-3">TRIGGERED</th>
+              <th className="py-2 px-3">RESULTED</th>
+              <th className="py-2 px-3 text-center">ACTION</th>
             </tr>
           </thead>
           <tbody>
             {draws.map((d) => {
               const isGolden = d.type === 'GOLDEN';
-              const statusColor = {
-                OPEN: 'text-cyan', ACTIVATED: 'text-green', PAUSED: 'text-yellow-400',
-                TRIGGERED: 'text-gold', RESULTED: 'text-green', CANCELLED: 'text-pink',
+              const statusCls = {
+                OPEN: 'text-cyan',
+                ACTIVATED: 'text-green',
+                PAUSED: 'text-yellow-400',
+                TRIGGERED: 'text-gold',
+                RESULTED: 'text-green',
+                CANCELLED: 'text-pink',
               }[d.status] || 'text-white/40';
+              const stuck = d.status === 'TRIGGERED' && (!d.winners || d.winners.length === 0);
               return (
-                <tr key={d._id} className="border-b border-white/5 hover:bg-white/3">
+                <tr key={d._id} className={`border-b border-white/5 hover:bg-white/3 ${stuck ? 'bg-pink/5' : ''}`}>
                   <td className="py-2 px-3">
                     <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.55rem] ${
                       isGolden ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-white/5 border-white/20 text-white/70'
@@ -438,7 +471,10 @@ function AllDrawsTab() {
                     </span>
                   </td>
                   <td className="py-2 px-3 font-orbitron text-white text-right">#{d.drawNumber}</td>
-                  <td className={`py-2 px-3 font-orbitron ${statusColor}`}>{d.status}</td>
+                  <td className={`py-2 px-3 font-orbitron ${statusCls}`}>
+                    {d.status}
+                    {stuck && <span className="ml-2 text-pink text-[0.55rem]">⚠ STUCK</span>}
+                  </td>
                   <td className="py-2 px-3 font-orbitron text-white/60 text-right">
                     {d.ticketsSold}/{d.totalTickets}
                   </td>
@@ -447,7 +483,23 @@ function AllDrawsTab() {
                     {d.winners?.length || 0}
                   </td>
                   <td className="py-2 px-3 font-orbitron text-white/40 text-[0.6rem]">
+                    {d.triggeredAt ? new Date(d.triggeredAt).toLocaleString() : '—'}
+                  </td>
+                  <td className="py-2 px-3 font-orbitron text-white/40 text-[0.6rem]">
                     {d.resultedAt ? new Date(d.resultedAt).toLocaleString() : '—'}
+                  </td>
+                  <td className="py-2 px-3 text-center">
+                    {stuck ? (
+                      <button
+                        onClick={() => forceResult(d._id, `${d.type} #${d.drawNumber}`)}
+                        disabled={busy === d._id}
+                        className="px-2 py-1 rounded-lg bg-pink/10 border border-pink/40 text-pink font-orbitron text-[0.55rem] font-bold hover:bg-pink/20 disabled:opacity-40"
+                      >
+                        {busy === d._id ? '...' : '⚡ FORCE RESULT'}
+                      </button>
+                    ) : (
+                      <span className="text-white/20 text-[0.55rem]">—</span>
+                    )}
                   </td>
                 </tr>
               );
