@@ -114,6 +114,31 @@ export default function AdminWithdrawals() {
     setBusy(false);
   };
 
+  const handleRetry = async (id) => {
+    if (!window.confirm(
+      'Retry this failed withdrawal?\n\n' +
+      '• Re-checks user balance\n' +
+      '• Re-debits the amount from their wallet\n' +
+      '• Re-submits the on-chain tx\n\n' +
+      'If the original failure was a transient issue (e.g. contract out of USDT, RPC hiccup), this should succeed now. ' +
+      'If the root cause is still present, it will fail again and refund the user automatically.\n\nProceed?'
+    )) return;
+    setBusy(true);
+    setFeedback(null);
+    try {
+      const { data } = await api.post(`/api/admin/withdrawals/${id}/retry`);
+      const newTx = data?.withdrawal?.txHash;
+      setFeedback({
+        type: 'success',
+        message: `✓ Retry submitted on-chain${newTx ? ` · tx: ${newTx.slice(0, 10)}...` : ''}`,
+      });
+      await refresh();
+    } catch (err) {
+      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Retry failed' });
+    }
+    setBusy(false);
+  };
+
   const handleReject = async (id) => {
     if (!rejectNote.trim()) {
       setFeedback({ type: 'error', message: 'Rejection note is required' });
@@ -370,6 +395,7 @@ export default function AdminWithdrawals() {
                 {withdrawals.map((w) => {
                   const style = STATUS_STYLES[w.status] || STATUS_STYLES.PENDING;
                   const isPending = w.status === 'PENDING';
+                  const isFailed = w.status === 'FAILED';
                   return (
                     <tr key={w._id} className="border-b border-white/5 hover:bg-white/3">
                       <td className="py-2.5 px-3">
@@ -448,8 +474,23 @@ export default function AdminWithdrawals() {
                         {isPending && !canApprove && (
                           <span className="text-[0.65rem] text-white/30 font-orbitron">SUPER ADMIN ONLY</span>
                         )}
+                        {isFailed && canApprove && (
+                          <div className="flex justify-center">
+                            <button
+                              disabled={busy}
+                              onClick={() => handleRetry(w._id)}
+                              className="px-2 py-1 rounded bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.65rem] font-bold hover:bg-gold/20 disabled:opacity-30"
+                              title="Re-submit the on-chain processWithdrawal call"
+                            >
+                              🔄 RETRY
+                            </button>
+                          </div>
+                        )}
+                        {isFailed && !canApprove && (
+                          <span className="text-[0.65rem] text-white/30 font-orbitron">SUPER ADMIN ONLY</span>
+                        )}
                         {w.adminNote && (
-                          <div className="text-[0.65rem] text-white/40 italic mt-1 max-w-[150px] truncate">
+                          <div className="text-[0.65rem] text-white/40 italic mt-1 max-w-[150px] truncate" title={w.adminNote}>
                             {w.adminNote}
                           </div>
                         )}
