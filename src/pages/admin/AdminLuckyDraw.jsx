@@ -312,13 +312,17 @@ function AdminAutoFundHistory() {
                       <th className="py-2 px-3">DATE/TIME</th>
                       <th className="py-2 px-3">USER</th>
                       <th className="py-2 px-3">REF CODE</th>
-                      <th className="py-2 px-3">WALLET</th>
+                      <th className="py-2 px-3">TARGET</th>
+                      <th className="py-2 px-3">SOURCE</th>
                       <th className="py-2 px-3 text-right">AMOUNT</th>
                     </tr>
                   </thead>
                   <tbody>
                     {txs.map((tx) => {
                       const isGolden = tx.toWallet === 'goldenDrawWallet';
+                      const src = tx.meta?.source || 'unknown';
+                      const cashPart = tx.meta?.cashbackPart || 0;
+                      const roiPart = tx.meta?.roiPart || 0;
                       return (
                         <tr key={tx._id} className="border-b border-white/5 hover:bg-white/3">
                           <td className="py-2 px-3 font-orbitron text-white/60 text-[0.6rem]">
@@ -336,6 +340,38 @@ function AdminAutoFundHistory() {
                             }`}>
                               {isGolden ? '🏆 GOLDEN' : '🥈 SILVER'}
                             </span>
+                          </td>
+                          <td className="py-2 px-3">
+                            {src === 'cashback+roi' ? (
+                              <div>
+                                <span className="px-2 py-0.5 rounded-full border font-orbitron text-[0.55rem] bg-purple/10 border-purple/30 text-purple">
+                                  CASHBACK + ROI
+                                </span>
+                                <div className="text-[0.5rem] text-white/30 font-orbitron mt-0.5">
+                                  CB: {fmt(cashPart, 3)} · ROI: {fmt(roiPart, 3)}
+                                </div>
+                              </div>
+                            ) : src === 'cashback' ? (
+                              <div>
+                                <span className="px-2 py-0.5 rounded-full border font-orbitron text-[0.55rem] bg-green/10 border-green/30 text-green">
+                                  CASHBACK
+                                </span>
+                                {cashPart > 0 && (
+                                  <div className="text-[0.5rem] text-white/30 font-orbitron mt-0.5">from {fmt(cashPart, 3)}</div>
+                                )}
+                              </div>
+                            ) : src === 'roi' ? (
+                              <div>
+                                <span className="px-2 py-0.5 rounded-full border font-orbitron text-[0.55rem] bg-cyan/10 border-cyan/30 text-cyan">
+                                  ROI ON ROI
+                                </span>
+                                {roiPart > 0 && (
+                                  <div className="text-[0.5rem] text-white/30 font-orbitron mt-0.5">from {fmt(roiPart, 3)}</div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-white/30 font-orbitron text-[0.55rem]">UNKNOWN</span>
+                            )}
                           </td>
                           <td className="py-2 px-3 font-orbitron text-green text-right font-bold">
                             +{fmt(tx.amount, 4)}

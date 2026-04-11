@@ -336,14 +336,13 @@ function AutoFundHistory() {
   const grouped = {};
   for (const tx of txs) {
     const date = new Date(tx.createdAt).toLocaleDateString();
-    if (!grouped[date]) grouped[date] = { date, golden: 0, silver: 0, goldenTx: null, silverTx: null };
-    if (tx.toWallet === 'goldenDrawWallet') {
-      grouped[date].golden += tx.amount;
-      grouped[date].goldenTx = tx;
-    } else if (tx.toWallet === 'silverDrawWallet') {
-      grouped[date].silver += tx.amount;
-      grouped[date].silverTx = tx;
-    }
+    if (!grouped[date]) grouped[date] = { date, golden: 0, silver: 0, cashbackPart: 0, roiPart: 0, source: 'unknown' };
+    if (tx.toWallet === 'goldenDrawWallet') grouped[date].golden += tx.amount;
+    else if (tx.toWallet === 'silverDrawWallet') grouped[date].silver += tx.amount;
+    // Source fields come from either the golden or silver tx (both have same meta)
+    if (tx.meta?.source) grouped[date].source = tx.meta.source;
+    if (tx.meta?.cashbackPart !== undefined) grouped[date].cashbackPart = tx.meta.cashbackPart;
+    if (tx.meta?.roiPart !== undefined) grouped[date].roiPart = tx.meta.roiPart;
   }
   const groupedRows = Object.values(grouped);
 
@@ -390,15 +389,38 @@ function AutoFundHistory() {
                 <thead className="bg-white/5 border-b border-white/10">
                   <tr className="text-left text-white/40 font-orbitron text-[0.6rem] tracking-[0.1em]">
                     <th className="py-2 px-3">DATE</th>
-                    <th className="py-2 px-3 text-right">GOLDEN CREDIT</th>
-                    <th className="py-2 px-3 text-right">SILVER CREDIT</th>
-                    <th className="py-2 px-3 text-right">DAILY TOTAL</th>
+                    <th className="py-2 px-3">SOURCE</th>
+                    <th className="py-2 px-3 text-right">GOLDEN</th>
+                    <th className="py-2 px-3 text-right">SILVER</th>
+                    <th className="py-2 px-3 text-right">TOTAL</th>
                   </tr>
                 </thead>
                 <tbody>
                   {groupedRows.map((row, i) => (
                     <tr key={i} className="border-b border-white/5 hover:bg-white/3">
                       <td className="py-2 px-3 font-orbitron text-white/60">{row.date}</td>
+                      <td className="py-2 px-3">
+                        {row.source === 'cashback+roi' ? (
+                          <div>
+                            <span className="px-2 py-0.5 rounded-full border font-orbitron text-[0.5rem] bg-purple/10 border-purple/30 text-purple">
+                              CASHBACK + ROI
+                            </span>
+                            <div className="text-[0.48rem] text-white/30 font-orbitron mt-0.5">
+                              CB {fmt(row.cashbackPart, 3)} · ROI {fmt(row.roiPart, 3)}
+                            </div>
+                          </div>
+                        ) : row.source === 'cashback' ? (
+                          <span className="px-2 py-0.5 rounded-full border font-orbitron text-[0.5rem] bg-green/10 border-green/30 text-green">
+                            CASHBACK
+                          </span>
+                        ) : row.source === 'roi' ? (
+                          <span className="px-2 py-0.5 rounded-full border font-orbitron text-[0.5rem] bg-cyan/10 border-cyan/30 text-cyan">
+                            ROI ON ROI
+                          </span>
+                        ) : (
+                          <span className="text-white/30 font-orbitron text-[0.5rem]">—</span>
+                        )}
+                      </td>
                       <td className="py-2 px-3 font-orbitron text-gold text-right">
                         {row.golden > 0 ? `+${fmt(row.golden, 4)}` : '—'}
                       </td>
