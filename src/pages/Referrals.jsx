@@ -128,7 +128,7 @@ export default function Referrals() {
               </div>
 
               {/* Stats grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
                 <StatCard
                   label="DIRECT REFERRALS"
                   value={num(stats?.directReferralCount)}
@@ -142,16 +142,29 @@ export default function Referrals() {
                   type="count"
                 />
                 <StatCard
-                  label="ACTIVE (7d)"
-                  value={num(stats?.activeLast7Days)}
-                  color="green"
-                  type="count"
-                />
-                <StatCard
                   label="TEAM VOLUME"
                   value={num(stats?.totalTeamVolume)}
                   color="purple"
                 />
+              </div>
+
+              {/* Team breakdown by tier */}
+              <div className="card-glass rounded-2xl p-5 mb-6 border border-white/10">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <div className="font-orbitron text-white text-[0.75rem] font-bold">👥 TEAM BREAKDOWN</div>
+                    <div className="text-[0.5rem] text-white/30 font-orbitron mt-0.5">Team members by activation tier</div>
+                  </div>
+                  <div className="font-orbitron text-white/40 text-[0.6rem]">
+                    TOTAL: <span className="text-white font-bold">{num(stats?.totalTeamCount)}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <TierBox label="PRO" value={num(stats?.teamBreakdown?.pro)} color="green" desc="100+ USDT deposited" />
+                  <TierBox label="BASIC" value={num(stats?.teamBreakdown?.basic)} color="gold" desc="10+ USDT deposited" />
+                  <TierBox label="PRACTICE" value={num(stats?.teamBreakdown?.practice)} color="cyan" desc="Not deposited yet" />
+                  <TierBox label="EXPIRED" value={num(stats?.teamBreakdown?.expired)} color="pink" desc="Practice window ended" />
+                </div>
               </div>
 
               {/* Commission cards */}
@@ -533,6 +546,24 @@ function TreeNode({ user, depth }) {
 // ============================================================================
 // StatCard
 // ============================================================================
+function TierBox({ label, value, color, desc }) {
+  const classes = {
+    green: 'border-green/30 bg-green/5 text-green',
+    gold: 'border-gold/30 bg-gold/5 text-gold',
+    cyan: 'border-cyan/30 bg-cyan/5 text-cyan',
+    pink: 'border-pink/30 bg-pink/5 text-pink',
+  }[color];
+  return (
+    <div className={`p-3 rounded-xl border ${classes}`}>
+      <div className="flex items-baseline justify-between">
+        <div className="font-orbitron text-[0.55rem] tracking-[0.1em] font-bold">{label}</div>
+        <div className="font-orbitron text-[1.4rem] font-bold">{value}</div>
+      </div>
+      <div className="text-[0.45rem] text-white/30 font-orbitron mt-1">{desc}</div>
+    </div>
+  );
+}
+
 function StatCard({ label, value, color, type = 'usdt' }) {
   const colorClass = {
     gold: 'text-gold border-gold/20',
