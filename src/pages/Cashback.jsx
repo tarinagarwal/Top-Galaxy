@@ -252,8 +252,8 @@ export default function Cashback() {
                 <div className="border-t border-white/10 pt-3 mt-3" />
                 <BreakdownRow label="Effective Net Loss (today's base)" value={s.effectiveNetLoss} bold color="pink" />
                 {num(s.effectiveNetLoss) > maxBase && (
-                  <div className="mt-2 p-2 rounded-lg bg-white/10 border border-white/20 text-[0.6rem] text-white font-orbitron">
-                    ⚠️ Only {fmt(maxBase, 0)} USDT will be counted for cashback calculation (max base cap)
+                  <div className="text-right text-[0.75rem] text-white font-orbitron font-bold">
+                    ⚠️ Only {fmt(maxBase, 0)} USDT will be counted
                   </div>
                 )}
               </div>
