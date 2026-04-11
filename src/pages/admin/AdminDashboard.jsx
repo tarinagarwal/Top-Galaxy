@@ -63,9 +63,9 @@ export default function AdminDashboard() {
         <h1 className="font-russo text-[2rem] text-gradient-gold">Dashboard</h1>
       </div>
 
-      {/* V2 KPI Cards — TEAM / DEPOSIT / DISTRIBUTION / RECEIVING */}
+      {/* V2 KPI Cards — TEAM / DEPOSIT / DISTRIBUTION */}
       {kpi && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
           <KPICard
             label="TEAM"
             icon="👥"
@@ -85,7 +85,6 @@ export default function AdminDashboard() {
             totalCount={kpi.deposit?.totalCount}
           />
           <KPICard label="DISTRIBUTION" icon="📤" color="purple" today={kpi.distribution?.today} total={kpi.distribution?.total} />
-          <KPICard label="RECEIVING" icon="📨" color="gold" today={kpi.receiving?.today} total={kpi.receiving?.total} />
         </div>
       )}
 
