@@ -15,6 +15,9 @@ const TABS = [
 
 export default function AdminLuckyDrawHistory() {
   const [tab, setTab] = useState('tickets');
+  // Top-level pool selector — applies to EVERY tab so golden/silver data
+  // never bleeds into the same view.
+  const [drawType, setDrawType] = useState('GOLDEN');
 
   return (
     <AdminLayout>
@@ -36,6 +39,34 @@ export default function AdminLuckyDrawHistory() {
         </Link>
       </div>
 
+      {/* Pool selector — GOLDEN vs SILVER */}
+      <div className="card-glass rounded-2xl p-2 mb-3 border border-white/10 flex gap-2 items-center flex-wrap">
+        <span className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.15em] px-2">POOL:</span>
+        <button
+          onClick={() => setDrawType('GOLDEN')}
+          className={`px-5 py-2 rounded-lg font-orbitron text-[0.7rem] font-bold border transition-all ${
+            drawType === 'GOLDEN'
+              ? 'bg-gold/15 border-gold/50 text-gold shadow-lg shadow-gold/10'
+              : 'bg-white/3 border-white/10 text-white/40 hover:border-gold/20'
+          }`}
+        >
+          🏆 GOLDEN
+        </button>
+        <button
+          onClick={() => setDrawType('SILVER')}
+          className={`px-5 py-2 rounded-lg font-orbitron text-[0.7rem] font-bold border transition-all ${
+            drawType === 'SILVER'
+              ? 'bg-white/10 border-white/40 text-white shadow-lg shadow-white/5'
+              : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20'
+          }`}
+        >
+          🥈 SILVER
+        </button>
+        <div className="text-[0.55rem] text-white/30 font-orbitron ml-auto pr-2">
+          Showing <span className={drawType === 'GOLDEN' ? 'text-gold' : 'text-white/70'}>{drawType}</span> pool data only
+        </div>
+      </div>
+
       {/* Tab bar */}
       <div className="card-glass rounded-2xl p-2 mb-4 border border-white/10 flex gap-1 flex-wrap">
         {TABS.map((t) => (
@@ -53,12 +84,12 @@ export default function AdminLuckyDrawHistory() {
         ))}
       </div>
 
-      {tab === 'tickets' && <AllTicketsTab />}
-      {tab === 'wins' && <WinsTab />}
-      {tab === 'losses' && <LossesTab />}
-      {tab === 'autofund' && <AutoFundTab />}
-      {tab === 'distribution' && <RevenueSplitTab />}
-      {tab === 'draws' && <AllDrawsTab />}
+      {tab === 'tickets' && <AllTicketsTab drawType={drawType} />}
+      {tab === 'wins' && <WinsTab drawType={drawType} />}
+      {tab === 'losses' && <LossesTab drawType={drawType} />}
+      {tab === 'autofund' && <AutoFundTab drawType={drawType} />}
+      {tab === 'distribution' && <RevenueSplitTab drawType={drawType} />}
+      {tab === 'draws' && <AllDrawsTab drawType={drawType} />}
     </AdminLayout>
   );
 }
@@ -66,18 +97,22 @@ export default function AdminLuckyDrawHistory() {
 // ============================================================================
 // TAB: All Tickets
 // ============================================================================
-function AllTicketsTab() {
+function AllTicketsTab({ drawType }) {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  // Reset to page 1 whenever the pool changes so admin doesn't end up
+  // on a page number that doesn't exist in the new pool
+  useEffect(() => { setPage(1); }, [drawType]);
+
   useEffect(() => {
     setLoading(true);
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100`)
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}`)
       .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, drawType]);
 
   const tickets = data?.tickets || [];
   const summary = data?.summary || {};
@@ -171,14 +206,16 @@ function AllTicketsTab() {
 // ============================================================================
 // TAB: Wins
 // ============================================================================
-function WinsTab() {
+function WinsTab({ drawType }) {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => { setPage(1); }, [drawType]);
+
   useEffect(() => {
     setLoading(true);
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100`)
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}`)
       .then(({ data }) => {
         // filter client-side for wins
         const wins = (data.tickets || []).filter((t) => t.outcome === 'WIN');
@@ -186,7 +223,7 @@ function WinsTab() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, drawType]);
 
   const wins = data?.tickets || [];
   const totalPrize = wins.reduce((s, t) => s + (t.prizeAmount || 0), 0);
@@ -215,21 +252,23 @@ function WinsTab() {
 // ============================================================================
 // TAB: Losses
 // ============================================================================
-function LossesTab() {
+function LossesTab({ drawType }) {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => { setPage(1); }, [drawType]);
+
   useEffect(() => {
     setLoading(true);
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100`)
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}`)
       .then(({ data }) => {
         const losses = (data.tickets || []).filter((t) => t.outcome === 'LOSS');
         setData({ ...data, tickets: losses });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, drawType]);
 
   const losses = data?.tickets || [];
   const totalLoss = losses.reduce((s, t) => s + (t.amount || 0), 0);
@@ -257,30 +296,35 @@ function LossesTab() {
 // ============================================================================
 // TAB: Auto-Fund
 // ============================================================================
-function AutoFundTab() {
+function AutoFundTab({ drawType }) {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => { setPage(1); }, [drawType]);
+
   useEffect(() => {
     setLoading(true);
-    api.get(`/api/admin/luckydraw/autofund-history?page=${page}&pageSize=100`)
+    api.get(`/api/admin/luckydraw/autofund-history?page=${page}&pageSize=100&type=${drawType}`)
       .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, drawType]);
 
   const txs = data?.transactions || [];
   const summary = data?.summary || {};
   const total = data?.total || 0;
   const totalPages = Math.max(1, Math.ceil(total / 100));
 
+  // Only the active pool's total is relevant since we filter server-side.
+  const poolTotal = drawType === 'GOLDEN' ? (summary.goldenTotal || 0) : (summary.silverTotal || 0);
+  const poolCount = drawType === 'GOLDEN' ? (summary.goldenCount || 0) : (summary.silverCount || 0);
+
   return (
     <div className="card-glass rounded-2xl p-5 border border-purple/20">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <Stat label="GOLDEN FUNDED" value={summary.goldenTotal} color="gold" />
-        <Stat label="SILVER FUNDED" value={summary.silverTotal} color="silver" />
-        <Stat label="TOTAL" value={(summary.goldenTotal || 0) + (summary.silverTotal || 0)} color="green" />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+        <Stat label={`${drawType} FUNDED`} value={poolTotal} color={drawType === 'GOLDEN' ? 'gold' : 'silver'} />
+        <Stat label="CREDIT COUNT" value={poolCount} color="purple" type="count" />
         <Stat label="UNIQUE USERS" value={summary.uniqueUsers} color="cyan" type="count" />
       </div>
 
@@ -347,16 +391,17 @@ function AutoFundTab() {
 // ============================================================================
 // TAB: Revenue Split (ticket distribution summary)
 // ============================================================================
-function RevenueSplitTab() {
+function RevenueSplitTab({ drawType }) {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/api/admin/luckydraw/distribution-summary')
+    setLoading(true);
+    api.get(`/api/admin/luckydraw/distribution-summary?type=${drawType}`)
       .then(({ data }) => setSummary(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [drawType]);
 
   if (loading) return <div className="text-center py-8 text-white/40">Loading...</div>;
   if (!summary) return <div className="text-center py-8 text-white/30 font-orbitron text-[0.7rem]">No data</div>;
@@ -374,7 +419,7 @@ function RevenueSplitTab() {
   return (
     <div className="card-glass rounded-2xl p-5 border border-gold/20">
       <div className="font-orbitron text-gold text-[0.75rem] font-bold mb-3">
-        💰 TICKET REVENUE DISTRIBUTION — {summary.count || 0} purchases
+        💰 {drawType} TICKET REVENUE DISTRIBUTION — {summary.count || 0} purchases
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {items.map((it) => (
@@ -392,7 +437,7 @@ function RevenueSplitTab() {
 // ============================================================================
 // TAB: All Draws
 // ============================================================================
-function AllDrawsTab() {
+function AllDrawsTab({ drawType }) {
   const [draws, setDraws] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
@@ -400,11 +445,11 @@ function AllDrawsTab() {
 
   const refresh = useCallback(() => {
     setLoading(true);
-    api.get('/api/admin/luckydraw/all-draws?pageSize=200')
+    api.get(`/api/admin/luckydraw/all-draws?pageSize=200&type=${drawType}`)
       .then(({ data }) => setDraws(data.draws || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [drawType]);
 
   useEffect(() => { refresh(); }, [refresh]);
 

@@ -430,14 +430,22 @@ function AdminTicketsHistory() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [page, setPage] = useState(1);
+  // 'ALL' | 'GOLDEN' | 'SILVER' — defaults to ALL so the main page still
+  // shows mixed history at a glance. Admin can narrow via the pills.
+  const [filter, setFilter] = useState('ALL');
+
+  // Reset to page 1 when the filter changes so we don't land on a page that
+  // doesn't exist in the narrower result set.
+  useEffect(() => { setPage(1); }, [filter]);
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=50`)
+    const typeParam = filter === 'ALL' ? '' : `&type=${filter}`;
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=50${typeParam}`)
       .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, filter]);
 
   if (loading && !data) return null;
   const tickets = data?.tickets || [];
@@ -483,9 +491,32 @@ function AdminTicketsHistory() {
 
       {expanded && (
         <div className="mt-4">
+          {/* Pool filter — GOLDEN / SILVER / ALL */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.15em]">FILTER:</span>
+            {[
+              { key: 'ALL', label: '⚪ ALL', activeCls: 'bg-white/10 border-white/40 text-white' },
+              { key: 'GOLDEN', label: '🏆 GOLDEN', activeCls: 'bg-gold/15 border-gold/50 text-gold' },
+              { key: 'SILVER', label: '🥈 SILVER', activeCls: 'bg-white/10 border-white/40 text-white/90' },
+            ].map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.6rem] font-bold border transition-all ${
+                  filter === f.key
+                    ? f.activeCls
+                    : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+            {loading && <span className="text-[0.55rem] text-white/30 font-orbitron ml-2">Loading...</span>}
+          </div>
+
           {tickets.length === 0 ? (
             <div className="text-center py-6 text-[0.68rem] text-white/30 font-orbitron">
-              No tickets purchased yet.
+              No tickets purchased {filter !== 'ALL' ? `in ${filter} pool` : 'yet'}.
             </div>
           ) : (
             <>
