@@ -16,7 +16,23 @@ const STATUS_STYLES = {
 };
 
 export default function AdminWithdrawals() {
-  const canApprove = useAuthStore((s) => s.isSuperAdmin);
+  // Two tiers on this page:
+  //   isSuper  — SUPER admin, sees the full management view (status filter,
+  //              daily volume card, treasury fee section, bulk approve,
+  //              reject button, all statuses)
+  //   canApprove — SUPER or OPERATIONAL-with-withdrawals-tab. Sees the
+  //                approval-only variant (PENDING + FAILED only, approve +
+  //                retry buttons only, no reject / bulk / treasury / filter).
+  // The AdminRoute guard at the route level already ensures non-authorized
+  // OPERATIONAL admins can't even reach this page.
+  const isSuper = useAuthStore((s) => s.isSuperAdmin);
+  const canApprove = isSuper; // for reject/bulk: SUPER only
+  const canApproveOrRetry = useAuthStore(
+    (s) => s.isSuperAdmin || (s.adminRole === 'OPERATIONAL' && (s.adminTabs || []).includes('withdrawals'))
+  );
+  // Default status filter for OPERATIONAL approvers: PENDING (they see
+  // both PENDING and FAILED via the simplified toggle below, defaulting to
+  // pending because that's typically the first queue they work on).
   const [statusFilter, setStatusFilter] = useState('PENDING');
   const [withdrawals, setWithdrawals] = useState([]);
   const [total, setTotal] = useState(0);
@@ -61,6 +77,15 @@ export default function AdminWithdrawals() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Clamp OPERATIONAL approvers to PENDING/FAILED only. If the filter state
+  // drifts to a SUPER-only value (e.g. persisted from an earlier SUPER login
+  // on the same browser), reset to PENDING so they see something.
+  useEffect(() => {
+    if (!isSuper && statusFilter !== 'PENDING' && statusFilter !== 'FAILED') {
+      setStatusFilter('PENDING');
+    }
+  }, [isSuper, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(total / 25));
 
@@ -217,7 +242,21 @@ export default function AdminWithdrawals() {
         <h1 className="font-russo text-[2rem] text-gradient-gold">Withdrawals</h1>
       </div>
 
-      {/* Daily volume + Treasury fee pool */}
+      {/* Simplified banner for OPERATIONAL approvers — replaces the full
+          daily-volume + treasury cards that SUPER sees */}
+      {!isSuper && canApproveOrRetry && (
+        <div className="card-glass rounded-2xl p-4 mb-4 border border-gold/30 bg-gradient-to-br from-gold/5 to-transparent">
+          <div className="font-orbitron text-gold text-[0.7rem] font-bold mb-1">
+            🛡️ WITHDRAWAL APPROVAL QUEUE
+          </div>
+          <div className="text-[0.65rem] text-white/50 font-orbitron">
+            You have approval permission. Approve pending withdrawals and retry failed ones. Reject, bulk-approve, and treasury operations are SUPER-only.
+          </div>
+        </div>
+      )}
+
+      {/* Daily volume + Treasury fee pool — SUPER only */}
+      {isSuper && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         {/* Today's volume */}
         <div className="card-glass rounded-2xl p-5 border border-cyan/20">
@@ -295,11 +334,16 @@ export default function AdminWithdrawals() {
           )}
         </div>
       </div>
+      )}
 
-      {/* Filter tabs */}
+      {/* Filter tabs — SUPER sees all 6 statuses, OPERATIONAL approver sees
+          only PENDING and FAILED. Other statuses are hidden to keep their
+          queue focused. If OPERATIONAL somehow lands on a different status
+          via stale state, we clamp it to PENDING on first render via the
+          state initializer above. */}
       <div className="card-glass rounded-2xl p-3 mb-4 border border-white/10">
         <div className="flex gap-2 flex-wrap">
-          {STATUS_FILTERS.map((s) => (
+          {(isSuper ? STATUS_FILTERS : ['PENDING', 'FAILED']).map((s) => (
             <button
               key={s}
               onClick={() => {
@@ -318,8 +362,8 @@ export default function AdminWithdrawals() {
         </div>
       </div>
 
-      {/* Bulk actions bar */}
-      {selectedIds.size > 0 && (
+      {/* Bulk actions bar — SUPER only; OPERATIONAL can't select anyway */}
+      {isSuper && selectedIds.size > 0 && (
         <div className="card-glass rounded-2xl p-4 mb-4 border border-green/30 bg-green/5 flex items-center justify-between flex-wrap gap-3">
           <div className="font-orbitron text-green text-[0.7rem]">
             ✓ {selectedIds.size} selected
@@ -367,19 +411,21 @@ export default function AdminWithdrawals() {
             <table className="w-full text-[0.65rem]">
               <thead className="bg-white/5 border-b border-white/10">
                 <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em]">
-                  <th className="py-3 px-3 w-8">
-                    {statusFilter === 'PENDING' && (
-                      <input
-                        type="checkbox"
-                        checked={
-                          selectedIds.size > 0 &&
-                          selectedIds.size === withdrawals.filter((w) => w.status === 'PENDING').length
-                        }
-                        onChange={toggleSelectAll}
-                        className="accent-green"
-                      />
-                    )}
-                  </th>
+                  {isSuper && (
+                    <th className="py-3 px-3 w-8">
+                      {statusFilter === 'PENDING' && (
+                        <input
+                          type="checkbox"
+                          checked={
+                            selectedIds.size > 0 &&
+                            selectedIds.size === withdrawals.filter((w) => w.status === 'PENDING').length
+                          }
+                          onChange={toggleSelectAll}
+                          className="accent-green"
+                        />
+                      )}
+                    </th>
+                  )}
                   <th className="py-3 px-3">USER</th>
                   <th className="py-3 px-3">FROM</th>
                   <th className="py-3 px-3">TO</th>
@@ -398,16 +444,18 @@ export default function AdminWithdrawals() {
                   const isFailed = w.status === 'FAILED';
                   return (
                     <tr key={w._id} className="border-b border-white/5 hover:bg-white/3">
-                      <td className="py-2.5 px-3">
-                        {isPending && (
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.has(w._id)}
-                            onChange={() => toggleSelect(w._id)}
-                            className="accent-green"
-                          />
-                        )}
-                      </td>
+                      {isSuper && (
+                        <td className="py-2.5 px-3">
+                          {isPending && (
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(w._id)}
+                              onChange={() => toggleSelect(w._id)}
+                              className="accent-green"
+                            />
+                          )}
+                        </td>
+                      )}
                       <td className="py-2.5 px-3 font-orbitron text-white/70">
                         {w.userId?.walletAddress
                           ? `${w.userId.walletAddress.slice(0, 6)}...${w.userId.walletAddress.slice(-4)}`
@@ -450,7 +498,13 @@ export default function AdminWithdrawals() {
                         {w.requestedAt ? new Date(w.requestedAt).toLocaleString() : '—'}
                       </td>
                       <td className="py-2.5 px-3">
-                        {isPending && canApprove && (
+                        {/* PENDING row actions:
+                              - Approve:  SUPER or OPERATIONAL-with-withdrawals-tab
+                              - Reject:   SUPER only (destructive, refunds user)
+                            FAILED row actions:
+                              - Retry:    SUPER or OPERATIONAL-with-withdrawals-tab
+                            Anyone with no permission gets the "SUPER ADMIN ONLY" stub. */}
+                        {isPending && canApproveOrRetry && (
                           <div className="flex gap-1 justify-center">
                             <button
                               disabled={busy}
@@ -459,22 +513,24 @@ export default function AdminWithdrawals() {
                             >
                               ✓ APPROVE
                             </button>
-                            <button
-                              disabled={busy}
-                              onClick={() => {
-                                setRejectingId(w._id);
-                                setRejectNote('');
-                              }}
-                              className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.65rem] hover:bg-pink/20 disabled:opacity-30"
-                            >
-                              ✗ REJECT
-                            </button>
+                            {canApprove && (
+                              <button
+                                disabled={busy}
+                                onClick={() => {
+                                  setRejectingId(w._id);
+                                  setRejectNote('');
+                                }}
+                                className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.65rem] hover:bg-pink/20 disabled:opacity-30"
+                              >
+                                ✗ REJECT
+                              </button>
+                            )}
                           </div>
                         )}
-                        {isPending && !canApprove && (
+                        {isPending && !canApproveOrRetry && (
                           <span className="text-[0.65rem] text-white/30 font-orbitron">SUPER ADMIN ONLY</span>
                         )}
-                        {isFailed && canApprove && (
+                        {isFailed && canApproveOrRetry && (
                           <div className="flex justify-center">
                             <button
                               disabled={busy}
@@ -486,7 +542,7 @@ export default function AdminWithdrawals() {
                             </button>
                           </div>
                         )}
-                        {isFailed && !canApprove && (
+                        {isFailed && !canApproveOrRetry && (
                           <span className="text-[0.65rem] text-white/30 font-orbitron">SUPER ADMIN ONLY</span>
                         )}
                         {w.adminNote && (

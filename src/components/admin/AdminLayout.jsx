@@ -1,21 +1,25 @@
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useAuthStore } from '../../store/authStore';
 import StarfieldCanvas from '../StarfieldCanvas';
 
+// Each link's tabKey must match the server's ADMIN_TABS list in admin.js
+// and the key used by hasTab() in authStore. Roles is SUPER-only and has
+// no tabKey (can't be granted to OPERATIONAL at all).
 const ADMIN_LINKS = [
-  { to: '/admin', label: 'Dashboard', icon: '📊' },
-  { to: '/admin/users', label: 'Users', icon: '👥' },
-  { to: '/admin/games', label: 'Games', icon: '🎯' },
-  { to: '/admin/withdrawals', label: 'Withdrawals', icon: '💸' },
-  { to: '/admin/pools', label: 'Pools', icon: '💧' },
-  { to: '/admin/deposits', label: 'Deposits', icon: '📥' },
-  { to: '/admin/config', label: 'Config', icon: '⚙️' },
-  { to: '/admin/luckydraw', label: 'Lucky Draw', icon: '🎰' },
-  { to: '/admin/club', label: 'Club', icon: '🏆' },
-  { to: '/admin/analytics', label: 'Analytics', icon: '📈' },
-  { to: '/admin/logs', label: 'Logs', icon: '📜' },
-  { to: '/admin/announcements', label: 'Announcements', icon: '📣' },
+  { to: '/admin', label: 'Dashboard', icon: '📊', tabKey: 'dashboard' },
+  { to: '/admin/users', label: 'Users', icon: '👥', tabKey: 'users' },
+  { to: '/admin/games', label: 'Games', icon: '🎯', tabKey: 'games' },
+  { to: '/admin/withdrawals', label: 'Withdrawals', icon: '💸', tabKey: 'withdrawals' },
+  { to: '/admin/pools', label: 'Pools', icon: '💧', tabKey: 'pools' },
+  { to: '/admin/deposits', label: 'Deposits', icon: '📥', tabKey: 'deposits' },
+  { to: '/admin/config', label: 'Config', icon: '⚙️', tabKey: 'config' },
+  { to: '/admin/luckydraw', label: 'Lucky Draw', icon: '🎰', tabKey: 'luckydraw' },
+  { to: '/admin/club', label: 'Club', icon: '🏆', tabKey: 'club' },
+  { to: '/admin/analytics', label: 'Analytics', icon: '📈', tabKey: 'analytics' },
+  { to: '/admin/logs', label: 'Logs', icon: '📜', tabKey: 'logs' },
+  { to: '/admin/announcements', label: 'Announcements', icon: '📣', tabKey: 'announcements' },
   { to: '/admin/roles', label: 'Roles', icon: '🔑', superOnly: true },
 ];
 
@@ -27,6 +31,7 @@ const ROLE_BADGE = {
 
 export default function AdminLayout({ children }) {
   const { isAuthenticated, isAdmin, isSuperAdmin, adminRole, address, logout } = useAuth();
+  const hasTab = useAuthStore((s) => s.hasTab);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,9 +56,15 @@ export default function AdminLayout({ children }) {
   const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
   const badge = ROLE_BADGE[adminRole] || ROLE_BADGE.NORMAL;
 
-  // Filter nav links by role
+  // Filter nav links by role + per-admin tab permissions
+  //  - SUPER sees every link (including superOnly ones like Roles)
+  //  - OPERATIONAL sees only the links matching tabs in their adminTabs list
+  //  - NORMAL sees every non-superOnly link (legacy view-only role, unchanged)
   const visibleLinks = ADMIN_LINKS.filter((link) => {
-    if (link.superOnly && !isSuperAdmin) return false;
+    if (link.superOnly) return isSuperAdmin;
+    // For OPERATIONAL, hasTab() checks the adminTabs list. For SUPER, it
+    // always returns true. For NORMAL (legacy), we fall through to allow all.
+    if (adminRole === 'OPERATIONAL') return hasTab(link.tabKey);
     return true;
   });
 

@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import api from '../../lib/axios';
 
 const ROLE_OPTIONS = [
-  { value: 'OPERATIONAL', label: 'Operational Admin', desc: 'Can edit config, ban users, trigger crons. Cannot approve withdrawals.' },
+  { value: 'OPERATIONAL', label: 'Operational Admin', desc: 'Can edit config, ban users, trigger crons. Starts with zero tab permissions — grant them below.' },
   { value: 'NORMAL', label: 'Normal Admin (View Only)', desc: 'Can view all admin pages but cannot change anything.' },
   { value: '', label: 'Remove Admin Access', desc: 'Revoke admin role. User becomes a regular user.' },
 ];
@@ -14,6 +14,24 @@ const ROLE_BADGE = {
   OPERATIONAL: { color: 'text-gold border-gold/30 bg-gold/10', label: 'OPS' },
   NORMAL: { color: 'text-cyan border-cyan/30 bg-cyan/10', label: 'VIEW' },
 };
+
+// 12 tab keys that can be assigned to OPERATIONAL admins. Must match the
+// ADMIN_TABS constant on the server (admin.js routes file) and the route
+// keys in App.jsx. Roles is deliberately excluded — always SUPER-only.
+const TAB_DEFINITIONS = [
+  { key: 'dashboard',     label: '📊 Dashboard',     desc: 'KPI cards, overview' },
+  { key: 'users',         label: '👥 Users',         desc: 'User list, profiles, ban/unban' },
+  { key: 'games',         label: '🎲 Games',         desc: 'Game history, pause/resume, force result' },
+  { key: 'withdrawals',   label: '💸 Withdrawals',   desc: 'APPROVE + RETRY withdrawals (real power)' },
+  { key: 'pools',         label: '🏦 Pools',         desc: 'Treasury & wallet pool metrics' },
+  { key: 'config',        label: '⚙️ Config',        desc: 'Edit system configuration' },
+  { key: 'luckydraw',     label: '🎰 Lucky Draw',    desc: 'Draw status, timer controls, history' },
+  { key: 'club',          label: '👑 Club',          desc: 'Club rankings' },
+  { key: 'analytics',     label: '📈 Analytics',     desc: 'User funnels, leaderboards' },
+  { key: 'logs',          label: '📜 Logs',          desc: 'Admin action audit trail' },
+  { key: 'deposits',      label: '💰 Deposits',      desc: 'Deposit distribution history' },
+  { key: 'announcements', label: '📢 Announcements', desc: 'Create/delete banner announcements' },
+];
 
 export default function AdminRoles() {
   const logout = useAuthStore((s) => s.logout);
@@ -271,6 +289,159 @@ export default function AdminRoles() {
           </div>
         )}
       </div>
+
+      {/* Tab permissions — only shown for OPERATIONAL admins */}
+      <div className="card-glass rounded-2xl p-6 border border-cyan/20 mt-6">
+        <div className="font-orbitron text-cyan text-[0.7rem] font-bold mb-1">
+          🔐 TAB PERMISSIONS (PER OPERATIONAL ADMIN)
+        </div>
+        <div className="text-[0.65rem] text-white/40 mb-4">
+          Tick the tabs each operational admin can see in their sidebar and access via URL. Unchecked tabs are hidden from their UI and they are bounced to the dashboard if they try to type the URL directly. The <span className="text-gold">Withdrawals</span> tab additionally grants real approve/retry power at the API level.
+        </div>
+
+        {admins.filter((a) => a.adminRole === 'OPERATIONAL').length === 0 ? (
+          <div className="text-center py-6 text-[0.68rem] text-white/30 italic">
+            No OPERATIONAL admins yet. Assign the Operational role above first.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {admins
+              .filter((a) => a.adminRole === 'OPERATIONAL')
+              .map((a) => (
+                <TabPermissionRow
+                  key={a._id}
+                  admin={a}
+                  onSaved={refresh}
+                  setFeedback={setFeedback}
+                />
+              ))}
+          </div>
+        )}
+      </div>
     </AdminLayout>
+  );
+}
+
+// One row per OPERATIONAL admin — 12 checkboxes + save button. Local draft
+// state so toggling is instant and only persists on explicit save.
+function TabPermissionRow({ admin, onSaved, setFeedback }) {
+  const [draft, setDraft] = useState(new Set(admin.adminTabs || []));
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  // If the server refreshes and returns a different adminTabs list, resync
+  // the draft so stale local state doesn't survive a parent refresh.
+  useEffect(() => {
+    setDraft(new Set(admin.adminTabs || []));
+    setDirty(false);
+  }, [admin._id, admin.adminTabs]);
+
+  const toggle = (key) => {
+    setDraft((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+    setDirty(true);
+  };
+
+  const setAll = (on) => {
+    setDraft(on ? new Set(TAB_DEFINITIONS.map((t) => t.key)) : new Set());
+    setDirty(true);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.post(`/api/admin/admins/${admin._id}/tabs`, {
+        tabs: Array.from(draft),
+      });
+      setFeedback({
+        type: 'success',
+        message: `✓ Tabs updated for ${admin.walletAddress.slice(0, 8)}... — they must log out and back in for changes to take effect`,
+      });
+      setDirty(false);
+      onSaved();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        message: err?.response?.data?.error || 'Failed to save tabs',
+      });
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/3 p-4">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <div>
+          <div className="font-orbitron text-gold text-[0.7rem]">
+            {admin.walletAddress?.slice(0, 10)}...{admin.walletAddress?.slice(-6)}
+          </div>
+          <div className="font-orbitron text-white/40 text-[0.55rem] mt-0.5">
+            {draft.size} / {TAB_DEFINITIONS.length} tabs granted
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setAll(true)}
+            disabled={saving}
+            className="px-2 py-1 rounded bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem] hover:border-cyan/30 disabled:opacity-30"
+          >
+            ALL
+          </button>
+          <button
+            onClick={() => setAll(false)}
+            disabled={saving}
+            className="px-2 py-1 rounded bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem] hover:border-pink/30 disabled:opacity-30"
+          >
+            NONE
+          </button>
+          <button
+            onClick={save}
+            disabled={saving || !dirty}
+            className={`px-3 py-1 rounded font-orbitron text-[0.6rem] font-bold border ${
+              dirty
+                ? 'bg-cyan/10 border-cyan/40 text-cyan hover:bg-cyan/20'
+                : 'bg-white/3 border-white/10 text-white/30'
+            } disabled:opacity-50`}
+          >
+            {saving ? '...' : dirty ? 'SAVE CHANGES' : 'SAVED'}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+        {TAB_DEFINITIONS.map((t) => {
+          const on = draft.has(t.key);
+          return (
+            <label
+              key={t.key}
+              className={`flex items-start gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+                on
+                  ? 'bg-cyan/5 border-cyan/30'
+                  : 'bg-white/3 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={on}
+                onChange={() => toggle(t.key)}
+                className="mt-0.5 accent-cyan flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <div className={`font-orbitron text-[0.6rem] font-bold ${on ? 'text-cyan' : 'text-white/60'}`}>
+                  {t.label}
+                </div>
+                <div className="text-[0.5rem] text-white/30 font-orbitron mt-0.5 leading-tight">
+                  {t.desc}
+                </div>
+              </div>
+            </label>
+          );
+        })}
+      </div>
+    </div>
   );
 }

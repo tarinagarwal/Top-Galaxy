@@ -13,6 +13,10 @@ export const useAuthStore = create(
       isAdmin: false,         // true if any admin role
       isSuperAdmin: false,    // true only for SUPER
       isOperationalAdmin: false, // true for SUPER or OPERATIONAL
+      // Per-admin tab list — empty array means "no tabs granted". SUPER admins
+      // bypass this entirely (see hasTab selector below). Updated on login and
+      // after any /api/auth/me sync.
+      adminTabs: [],
 
       setAuth: (user, token) => {
         localStorage.setItem('tg-token', token);
@@ -25,6 +29,7 @@ export const useAuthStore = create(
           isAdmin: !!role,
           isSuperAdmin: role === 'SUPER',
           isOperationalAdmin: role === 'SUPER' || role === 'OPERATIONAL',
+          adminTabs: user?.adminTabs || [],
         });
       },
 
@@ -36,6 +41,7 @@ export const useAuthStore = create(
           isAdmin: !!role,
           isSuperAdmin: role === 'SUPER',
           isOperationalAdmin: role === 'SUPER' || role === 'OPERATIONAL',
+          adminTabs: user?.adminTabs || [],
         });
       },
 
@@ -52,10 +58,21 @@ export const useAuthStore = create(
           isAdmin: false,
           isSuperAdmin: false,
           isOperationalAdmin: false,
+          adminTabs: [],
         });
       },
 
       getToken: () => get().token,
+
+      // Tab permission check — SUPER sees every tab; OPERATIONAL sees only
+      // tabs in their adminTabs list; anyone else sees nothing. Used by the
+      // sidebar filter and the <TabGuard> route wrapper.
+      hasTab: (tabKey) => {
+        const s = get();
+        if (s.adminRole === 'SUPER') return true;
+        if (s.adminRole === 'OPERATIONAL') return (s.adminTabs || []).includes(tabKey);
+        return false;
+      },
     }),
     {
       name: 'tg-auth',
@@ -67,6 +84,7 @@ export const useAuthStore = create(
         isAdmin: state.isAdmin,
         isSuperAdmin: state.isSuperAdmin,
         isOperationalAdmin: state.isOperationalAdmin,
+        adminTabs: state.adminTabs,
       }),
     }
   )

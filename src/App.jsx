@@ -66,20 +66,20 @@ function AppRoutes() {
       <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
       <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
 
-      {/* Admin */}
-      <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-      <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-      <Route path="/admin/games" element={<AdminRoute><AdminGames /></AdminRoute>} />
-      <Route path="/admin/withdrawals" element={<AdminRoute><AdminWithdrawals /></AdminRoute>} />
-      <Route path="/admin/pools" element={<AdminRoute><AdminPools /></AdminRoute>} />
-      <Route path="/admin/config" element={<AdminRoute><AdminConfig /></AdminRoute>} />
-      <Route path="/admin/luckydraw" element={<AdminRoute><AdminLuckyDraw /></AdminRoute>} />
-      <Route path="/admin/luckydraw/history" element={<AdminRoute><AdminLuckyDrawHistory /></AdminRoute>} />
-      <Route path="/admin/club" element={<AdminRoute><AdminClub /></AdminRoute>} />
-      <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
-      <Route path="/admin/logs" element={<AdminRoute><AdminLogs /></AdminRoute>} />
-      <Route path="/admin/deposits" element={<AdminRoute><AdminDeposits /></AdminRoute>} />
-        <Route path="/admin/announcements" element={<AdminRoute><AdminAnnouncements /></AdminRoute>} />
+      {/* Admin — each route gates on a tabKey; OPERATIONAL without that key gets bounced to /admin */}
+      <Route path="/admin" element={<AdminRoute tabKey="dashboard"><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin/users" element={<AdminRoute tabKey="users"><AdminUsers /></AdminRoute>} />
+      <Route path="/admin/games" element={<AdminRoute tabKey="games"><AdminGames /></AdminRoute>} />
+      <Route path="/admin/withdrawals" element={<AdminRoute tabKey="withdrawals"><AdminWithdrawals /></AdminRoute>} />
+      <Route path="/admin/pools" element={<AdminRoute tabKey="pools"><AdminPools /></AdminRoute>} />
+      <Route path="/admin/config" element={<AdminRoute tabKey="config"><AdminConfig /></AdminRoute>} />
+      <Route path="/admin/luckydraw" element={<AdminRoute tabKey="luckydraw"><AdminLuckyDraw /></AdminRoute>} />
+      <Route path="/admin/luckydraw/history" element={<AdminRoute tabKey="luckydraw"><AdminLuckyDrawHistory /></AdminRoute>} />
+      <Route path="/admin/club" element={<AdminRoute tabKey="club"><AdminClub /></AdminRoute>} />
+      <Route path="/admin/analytics" element={<AdminRoute tabKey="analytics"><AdminAnalytics /></AdminRoute>} />
+      <Route path="/admin/logs" element={<AdminRoute tabKey="logs"><AdminLogs /></AdminRoute>} />
+      <Route path="/admin/deposits" element={<AdminRoute tabKey="deposits"><AdminDeposits /></AdminRoute>} />
+        <Route path="/admin/announcements" element={<AdminRoute tabKey="announcements"><AdminAnnouncements /></AdminRoute>} />
         <Route path="/admin/roles" element={<SuperAdminRoute><AdminRoles /></SuperAdminRoute>} />
       </Routes>
     </>
