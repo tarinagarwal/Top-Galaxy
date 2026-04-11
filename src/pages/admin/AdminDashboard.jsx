@@ -88,8 +88,20 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Today's stats row */}
-      <div className="grid grid-cols-1 gap-3 mb-6">
+      {/* Extra stats row — Practice conversion + Withdrawals */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        {kpi && (
+          <KPICard
+            label="PRACTICE → REAL"
+            icon="🔄"
+            color="cyan"
+            today={kpi.practiceConversion?.today}
+            total={kpi.practiceConversion?.total}
+            todayCount={kpi.practiceConversion?.todayCount}
+            totalCount={kpi.practiceConversion?.totalCount}
+            countLabel="conversions"
+          />
+        )}
         <DashStatCard label="WITHDRAWALS TODAY" value={today.totalWithdrawals} color="pink" />
       </div>
 
@@ -431,7 +443,7 @@ function DashStatCard({ label, value, color, suffix = ' USDT' }) {
   );
 }
 
-function KPICard({ label, icon, color, today, total, suffix = ' USDT', tierBreakdown, todayCount, totalCount }) {
+function KPICard({ label, icon, color, today, total, suffix = ' USDT', tierBreakdown, todayCount, totalCount, countLabel = 'deposits' }) {
   const colorClass = {
     cyan: 'text-cyan border-cyan/20',
     green: 'text-green border-green/20',
@@ -453,7 +465,7 @@ function KPICard({ label, icon, color, today, total, suffix = ' USDT', tierBreak
             {fmtVal(today)}{!isCount && <span className="text-[0.6rem] text-white/20 ml-0.5">USDT</span>}
           </div>
           {todayCount !== undefined && (
-            <div className="text-[0.5rem] text-white/30 font-orbitron">{todayCount} deposits</div>
+            <div className="text-[0.5rem] text-white/30 font-orbitron">{todayCount} {countLabel}</div>
           )}
         </div>
         <div className="border-l border-white/10 pl-3">
@@ -462,7 +474,7 @@ function KPICard({ label, icon, color, today, total, suffix = ' USDT', tierBreak
             {fmtVal(total)}{!isCount && <span className="text-[0.6rem] text-white/20 ml-0.5">USDT</span>}
           </div>
           {totalCount !== undefined && (
-            <div className="text-[0.5rem] text-white/30 font-orbitron">{totalCount} deposits</div>
+            <div className="text-[0.5rem] text-white/30 font-orbitron">{totalCount} {countLabel}</div>
           )}
         </div>
       </div>
