@@ -7,13 +7,13 @@ import { useSocket } from './useSocket';
  *
  * Currently handled:
  *   - practice:expired — the user's practice account has been deleted
- *   - announcement     — admin announcement (global or targeted)
+ *
+ * Note: announcements are now handled by the <AnnouncementBanner /> component
+ * which shows a persistent sticky banner under the navbar.
  */
 export function useGlobalNotifications() {
   useSocket({
-    'practice:expired': (data) => {
-      // Use a browser alert as a simple, page-agnostic notification for now.
-      // (Can be upgraded to a toast system later.)
+    'practice:expired': () => {
       if (typeof window !== 'undefined') {
         setTimeout(() => {
           window.alert(
@@ -22,13 +22,6 @@ export function useGlobalNotifications() {
               'your practice balance has been removed and your downline was re-attached to your upline.\n\n' +
               'You can still register fresh with a real-cash deposit to continue.'
           );
-        }, 100);
-      }
-    },
-    announcement: (data) => {
-      if (typeof window !== 'undefined' && data?.message) {
-        setTimeout(() => {
-          window.alert(`📣 Announcement:\n\n${data.message}`);
         }, 100);
       }
     },

@@ -15,6 +15,7 @@ const ADMIN_LINKS = [
   { to: '/admin/club', label: 'Club', icon: '🏆' },
   { to: '/admin/analytics', label: 'Analytics', icon: '📈' },
   { to: '/admin/logs', label: 'Logs', icon: '📜' },
+  { to: '/admin/announcements', label: 'Announcements', icon: '📣' },
   { to: '/admin/roles', label: 'Roles', icon: '🔑', superOnly: true },
 ];
 

@@ -74,9 +74,7 @@ export default function AdminDashboard() {
       )}
 
       {/* Today's stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-        <DashStatCard label="NEW USERS TODAY" value={today.newUsers} color="cyan" suffix="" />
-        <DashStatCard label="DEPOSITS TODAY" value={today.totalDeposits} color="green" />
+      <div className="grid grid-cols-1 gap-3 mb-6">
         <DashStatCard label="WITHDRAWALS TODAY" value={today.totalWithdrawals} color="pink" />
       </div>
 
@@ -109,6 +107,51 @@ export default function AdminDashboard() {
               </div>
             );
           })}
+        </div>
+
+        {/* Game wins breakdown — separate because game wins are in Transaction, not IncomeDistribution */}
+        <div className="mt-5 pt-4 border-t border-white/10">
+          <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-3">
+            🎯 LIFETIME GAME WINS
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Total 8x */}
+            <div className="p-3 rounded-lg bg-gold/5 border border-gold/20 text-center">
+              <div className="text-gold font-orbitron text-[0.68rem] tracking-[0.1em] font-bold">
+                TOTAL PAYOUT (8×)
+              </div>
+              <div className="font-orbitron text-gold text-[1.1rem] font-bold mt-1">
+                {fmt(incomeTotals.GAME_WIN_TOTAL?.total || 0, 2)}
+              </div>
+              <div className="text-[0.6rem] text-white/40 font-orbitron mt-0.5">
+                {incomeTotals.GAME_WIN_DIRECT?.count || 0} winning entries
+              </div>
+            </div>
+            {/* 2x Direct */}
+            <div className="p-3 rounded-lg bg-green/5 border border-green/20 text-center">
+              <div className="text-green font-orbitron text-[0.68rem] tracking-[0.1em]">
+                DIRECT (2×)
+              </div>
+              <div className="font-orbitron text-green text-[1.1rem] font-bold mt-1">
+                {fmt(incomeTotals.GAME_WIN_DIRECT?.total || 0, 2)}
+              </div>
+              <div className="text-[0.6rem] text-white/40 font-orbitron mt-0.5">
+                → winningsWallet (withdrawable)
+              </div>
+            </div>
+            {/* 6x Compound */}
+            <div className="p-3 rounded-lg bg-purple/5 border border-purple/20 text-center">
+              <div className="text-purple font-orbitron text-[0.68rem] tracking-[0.1em]">
+                COMPOUND (6×)
+              </div>
+              <div className="font-orbitron text-purple text-[1.1rem] font-bold mt-1">
+                {fmt(incomeTotals.GAME_WIN_COMPOUND?.total || 0, 2)}
+              </div>
+              <div className="text-[0.6rem] text-white/40 font-orbitron mt-0.5">
+                → compound slot (locked)
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

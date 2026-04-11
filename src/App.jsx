@@ -28,7 +28,9 @@ import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminLogs from './pages/admin/AdminLogs';
 import AdminRoles from './pages/admin/AdminRoles';
 import AdminDeposits from './pages/admin/AdminDeposits';
+import AdminAnnouncements from './pages/admin/AdminAnnouncements';
 import { ProtectedRoute, AdminRoute, SuperAdminRoute } from './components/ProtectedRoute';
+import AnnouncementBanner from './components/AnnouncementBanner';
 import { useAccountWatcher } from './hooks/useAccountWatcher';
 import { useGlobalNotifications } from './hooks/useGlobalNotifications';
 // Eagerly import useSocket so its window-level disconnect helper is registered
@@ -45,9 +47,11 @@ function AppRoutes() {
   useGlobalNotifications();
 
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/register" element={<Register />} />
+    <>
+      <AnnouncementBanner />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
       <Route path="/practice" element={<ProtectedRoute><PracticeGame /></ProtectedRoute>} />
@@ -73,8 +77,10 @@ function AppRoutes() {
       <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
       <Route path="/admin/logs" element={<AdminRoute><AdminLogs /></AdminRoute>} />
       <Route path="/admin/deposits" element={<AdminRoute><AdminDeposits /></AdminRoute>} />
-      <Route path="/admin/roles" element={<SuperAdminRoute><AdminRoles /></SuperAdminRoute>} />
-    </Routes>
+        <Route path="/admin/announcements" element={<AdminRoute><AdminAnnouncements /></AdminRoute>} />
+        <Route path="/admin/roles" element={<SuperAdminRoute><AdminRoles /></SuperAdminRoute>} />
+      </Routes>
+    </>
   );
 }
 
