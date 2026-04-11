@@ -206,33 +206,90 @@ function AllTicketsTab({ drawType }) {
 // ============================================================================
 // TAB: Wins
 // ============================================================================
+// Prize brackets — matches server `goldenPrizes` table at admin.js
+// Same 8 brackets; Silver values shown are Golden ÷ 10.
+const PRIZE_BRACKETS = [
+  { key: 1, label: 'Rank 1',        golden: 10000, silver: 1000, count: 1,   ranks: '#1' },
+  { key: 2, label: 'Rank 2',        golden: 5000,  silver: 500,  count: 1,   ranks: '#2' },
+  { key: 3, label: 'Rank 3',        golden: 4000,  silver: 400,  count: 1,   ranks: '#3' },
+  { key: 4, label: 'Ranks 4–10',    golden: 1000,  silver: 100,  count: 7,   ranks: '#4–10' },
+  { key: 5, label: 'Ranks 11–50',   golden: 300,   silver: 30,   count: 40,  ranks: '#11–50' },
+  { key: 6, label: 'Ranks 51–100',  golden: 120,   silver: 12,   count: 50,  ranks: '#51–100' },
+  { key: 7, label: 'Ranks 101–500', golden: 40,    silver: 4,    count: 400, ranks: '#101–500' },
+  { key: 8, label: 'Ranks 501–1000',golden: 20,    silver: 2,    count: 500, ranks: '#501–1000' },
+];
+
 function WinsTab({ drawType }) {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [bracket, setBracket] = useState(0); // 0 = ALL brackets, 1..8 = specific
 
-  useEffect(() => { setPage(1); }, [drawType]);
+  // Reset to page 1 whenever filters change
+  useEffect(() => { setPage(1); }, [drawType, bracket]);
 
   useEffect(() => {
     setLoading(true);
-    // Server-side outcome=WIN filter — returns only winning tickets, correctly
-    // paginated across ALL wins in the filtered pool (not just wins-in-this-page).
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}&outcome=WIN`)
+    const bracketParam = bracket > 0 ? `&bracket=${bracket}` : '';
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}&outcome=WIN${bracketParam}`)
       .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page, drawType]);
+  }, [page, drawType, bracket]);
 
   const wins = data?.tickets || [];
-  const total = data?.total || 0; // lifetime win count (server-side, post-filter)
+  const total = data?.total || 0; // count of wins in the current (filtered) subset
   const lifetimePrize = data?.summary?.outcomeTotals?.totalPrize || 0;
   const totalPages = Math.max(1, Math.ceil(total / 100));
+  const prizeKey = drawType === 'SILVER' ? 'silver' : 'golden';
 
   return (
     <div className="card-glass rounded-2xl p-5 border border-green/20">
+      {/* Prize bracket filter — 8 tiers + ALL */}
+      <div className="mb-4">
+        <div className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.15em] mb-2">
+          PRIZE BRACKET:
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setBracket(0)}
+            className={`px-3 py-2 rounded-lg font-orbitron text-[0.6rem] font-bold border transition-all ${
+              bracket === 0
+                ? 'bg-green/15 border-green/50 text-green'
+                : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20'
+            }`}
+          >
+            ⚪ ALL WINNERS <span className="text-white/40 ml-1">(1000)</span>
+          </button>
+          {PRIZE_BRACKETS.map((b) => {
+            const isActive = bracket === b.key;
+            return (
+              <button
+                key={b.key}
+                onClick={() => setBracket(b.key)}
+                className={`px-3 py-2 rounded-lg font-orbitron text-[0.6rem] font-bold border transition-all text-left ${
+                  isActive
+                    ? 'bg-gold/15 border-gold/50 text-gold'
+                    : 'bg-white/3 border-white/10 text-white/40 hover:border-gold/20'
+                }`}
+                title={`${b.label} — ${b.count} winner${b.count > 1 ? 's' : ''}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={isActive ? 'text-gold' : 'text-white/60'}>{b.ranks}</span>
+                  <span className={isActive ? 'text-gold font-bold' : 'text-green/70'}>
+                    ${b[prizeKey].toLocaleString()}
+                  </span>
+                  <span className="text-white/30 text-[0.5rem]">×{b.count}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <Stat label="TOTAL WINS" value={total} color="green" type="count" />
-        <Stat label="LIFETIME PRIZE PAID" value={lifetimePrize} color="gold" />
+        <Stat label={bracket > 0 ? 'WINS IN BRACKET' : 'TOTAL WINS'} value={total} color="green" type="count" />
+        <Stat label={bracket > 0 ? 'BRACKET PRIZE SUM' : 'LIFETIME PRIZE PAID'} value={lifetimePrize} color="gold" />
         <Stat label="AVG PRIZE" value={total > 0 ? lifetimePrize / total : 0} color="cyan" />
       </div>
 
@@ -240,7 +297,9 @@ function WinsTab({ drawType }) {
         <div className="text-center py-8 text-white/40">Loading...</div>
       ) : wins.length === 0 ? (
         <div className="text-center py-8 text-white/30 font-orbitron text-[0.7rem]">
-          No wins in {drawType} pool yet. Wins appear once a draw is RESULTED.
+          {bracket > 0
+            ? `No wins in this bracket yet for ${drawType} pool.`
+            : `No wins in ${drawType} pool yet. Wins appear once a draw is RESULTED.`}
         </div>
       ) : (
         <>
