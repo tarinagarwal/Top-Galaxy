@@ -80,7 +80,8 @@ export default function Cashback() {
   const floorCap = num(s.floorCap);
   const otherIncome = num(s.otherIncome);
   const reductionApplied = num(s.reductionApplied);
-  const totalDeposited = num(s.totalDeposited);
+  const baseAmount = num(s.baseAmount);
+  const maxBase = num(s.maxBase || 2000);
   const cashbackEarned = num(s.cashbackTotalEarned);
   const capProgress = effectiveCap > 0 ? Math.min(100, (cashbackEarned / effectiveCap) * 100) : 0;
   const capPct = capProgress.toFixed(1);
@@ -262,12 +263,15 @@ export default function Cashback() {
                 </div>
               </div>
 
-              {/* Deposit base → Raw cap */}
+              {/* Net Loss base → Cap */}
               <div className="mb-4 p-3 rounded-lg bg-white/3 border border-white/5 text-[0.65rem]">
-                <div className="text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] mb-1">DEPOSIT BASE</div>
+                <div className="text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] mb-1">CAP BASE (today's effective net loss)</div>
                 <div className="font-orbitron text-white/80">
-                  {fmt(totalDeposited)} × {s.capMultiplier || 1}× ={' '}
-                  <span className="text-gold">{fmt(rawCap)} USDT</span>
+                  {fmt(baseAmount, 2)} × {s.capMultiplier || 1}× ={' '}
+                  <span className="text-gold">{fmt(rawCap, 2)} USDT</span>
+                </div>
+                <div className="text-[0.5rem] text-white/30 mt-1">
+                  Base capped at {fmt(maxBase, 0)} USDT max · recalculates daily
                 </div>
               </div>
 
