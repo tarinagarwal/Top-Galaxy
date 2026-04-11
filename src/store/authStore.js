@@ -50,6 +50,11 @@ export const useAuthStore = create(
         if (typeof window !== 'undefined' && typeof window.__tgDisconnectSocket === 'function') {
           try { window.__tgDisconnectSocket(); } catch {}
         }
+        // Reset the AdminRoute resync cache so the next login triggers a
+        // fresh blocking resync instead of reusing the stale 30s window.
+        if (typeof window !== 'undefined' && typeof window.__tgResetResync === 'function') {
+          try { window.__tgResetResync(); } catch {}
+        }
         set({
           user: null,
           token: null,

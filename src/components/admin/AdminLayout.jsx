@@ -2,6 +2,7 @@ import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthStore } from '../../store/authStore';
+import api from '../../lib/axios';
 import StarfieldCanvas from '../StarfieldCanvas';
 
 // Each link's tabKey must match the server's ADMIN_TABS list in admin.js
@@ -32,6 +33,7 @@ const ROLE_BADGE = {
 export default function AdminLayout({ children }) {
   const { isAuthenticated, isAdmin, isSuperAdmin, adminRole, address, logout } = useAuth();
   const hasTab = useAuthStore((s) => s.hasTab);
+  const updateUser = useAuthStore((s) => s.updateUser);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,6 +41,28 @@ export default function AdminLayout({ children }) {
       navigate('/');
     }
   }, [isAuthenticated, isAdmin, navigate]);
+
+  // Auto-resync the user's adminTabs from the server on every admin page mount.
+  // This ensures that when SUPER grants or revokes a tab, the affected admin's
+  // UI picks up the change on their next navigation — no re-login required.
+  // Fires exactly once per component mount, not on every render.
+  useEffect(() => {
+    if (!isAuthenticated || !isAdmin) return;
+    let cancelled = false;
+    api.get('/api/auth/me')
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (data?.user) {
+          updateUser(data.user);
+        }
+      })
+      .catch(() => {
+        // Network hiccup is fine — we already have a usable cached state.
+        // The next navigation will try again.
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!isAuthenticated || !isAdmin) {
     return (
