@@ -93,8 +93,8 @@ export default function Club() {
             </h1>
             <p className="text-white/40 text-[0.75rem] mt-2 max-w-[600px]">
               Reach a club rank by building balanced volume across your team. Earn a recurring
-              daily share of the entire platform's turnover. Each rank's percentage is applied
-              directly to the full daily turnover.
+              daily share of the entire platform's deposits. Each rank's percentage is applied
+              directly to the full daily deposits.
             </p>
           </div>
 
@@ -124,7 +124,7 @@ export default function Club() {
               <div className="text-[0.4rem] text-white/20">USDT</div>
             </div>
             <div className="card-glass rounded-2xl p-4 border border-cyan/20">
-              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S TURNOVER</div>
+              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S DEPOSITS</div>
               <div className="font-orbitron text-cyan text-[1.2rem] font-bold">{fmt(r.todayTurnover || 0, 0)}</div>
               <div className="text-[0.4rem] text-white/20">USDT platform-wide</div>
             </div>
@@ -172,7 +172,7 @@ export default function Club() {
                 💰 INCOME BREAKDOWN
               </div>
               <div className="text-[0.68rem] text-white/30 mb-4">
-                {currentRank === 0 ? 'Achieve Rank 1 to unlock Club Income' : `Earning ${ladder[currentRank - 1]?.percent}% of daily platform turnover`}
+                {currentRank === 0 ? 'Achieve Rank 1 to unlock Club Income' : `Earning ${ladder[currentRank - 1]?.percent}% of daily platform deposits`}
               </div>
 
               {currentRank === 0 ? (
@@ -185,7 +185,7 @@ export default function Club() {
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
-                    <span className="text-[0.6rem] text-white/50 font-orbitron">Today's Platform Turnover</span>
+                    <span className="text-[0.6rem] text-white/50 font-orbitron">Today's Platform Deposits</span>
                     <span className="font-orbitron text-cyan text-[0.7rem]">{fmt(r.todayTurnover || 0, 0)} USDT</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
@@ -275,7 +275,7 @@ export default function Club() {
                     <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em] border-b border-white/10">
                       <th className="py-2 px-2">DATE</th>
                       <th className="py-2 px-2">RANK</th>
-                      <th className="py-2 px-2 text-right">TURNOVER</th>
+                      <th className="py-2 px-2 text-right">DEPOSITS</th>
                       <th className="py-2 px-2 text-right">RANK POOL</th>
                       <th className="py-2 px-2 text-right">QUALIFIERS</th>
                       <th className="py-2 px-2 text-right">YOUR SHARE</th>

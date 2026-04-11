@@ -153,7 +153,7 @@ export default function AdminPools() {
           color="gold"
           balance={w.totalClubWallet}
           metrics={[
-            { label: "Today's turnover", value: fmt(today.totalTurnover) + ' USDT' },
+            { label: "Today's deposits", value: fmt(today.totalTurnover) + ' USDT' },
             { label: 'Lifetime club paid', value: fmt(incomeTotals.CLUB_INCOME?.total) + ' USDT' },
           ]}
         />

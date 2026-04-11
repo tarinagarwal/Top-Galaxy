@@ -62,7 +62,7 @@ export default function AdminClub() {
       {/* Distribution summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <SummaryCard
-          label={distribution ? `${distribution.date} TURNOVER` : 'NO DATA'}
+          label={distribution ? `${distribution.date} DEPOSITS` : 'NO DATA'}
           value={distribution?.totalTurnover}
           color="cyan"
         />

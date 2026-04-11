@@ -74,11 +74,10 @@ export default function AdminDashboard() {
       )}
 
       {/* Today's stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         <DashStatCard label="NEW USERS TODAY" value={today.newUsers} color="cyan" suffix="" />
         <DashStatCard label="DEPOSITS TODAY" value={today.totalDeposits} color="green" />
         <DashStatCard label="WITHDRAWALS TODAY" value={today.totalWithdrawals} color="pink" />
-        <DashStatCard label="TURNOVER TODAY" value={today.totalTurnover} color="gold" />
       </div>
 
       {/* Income totals row */}

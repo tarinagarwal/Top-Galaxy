@@ -67,16 +67,16 @@ export default function AdminAnalytics() {
             secondaryColor="purple"
           />
 
-          {/* Turnover chart */}
+          {/* Deposits chart */}
           <Chart
-            title="💰 DAILY TURNOVER (last 30 days)"
+            title="💰 DAILY DEPOSITS (last 30 days)"
             color="gold"
             data={chronological.map((s) => ({
               label: s.date,
               value: num(s.totalTurnover),
             }))}
             primaryKey="value"
-            primaryLabel="Turnover (USDT)"
+            primaryLabel="Deposits (USDT)"
             primaryColor="gold"
             isUsdt
           />
