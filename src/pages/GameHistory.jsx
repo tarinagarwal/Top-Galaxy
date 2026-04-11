@@ -49,7 +49,7 @@ export default function GameHistory() {
           {/* Header */}
           <div className="mb-4 flex items-start justify-between flex-wrap gap-4">
             <div>
-              <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-purple uppercase mb-1">
+              <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-purple uppercase mb-1">
                 MY HISTORY
               </div>
               <h1 className="font-russo text-[clamp(1.6rem,4vw,2.5rem)] text-gradient-gold">
@@ -90,7 +90,7 @@ export default function GameHistory() {
 
           {/* Date filter */}
           <div className="card-glass rounded-2xl p-3 mb-4 border border-white/10 flex items-center gap-3 flex-wrap">
-            <label className="font-orbitron text-[0.55rem] text-white/40 tracking-[0.1em]">DATE:</label>
+            <label className="font-orbitron text-[0.68rem] text-white/40 tracking-[0.1em]">DATE:</label>
             <input
               type="date"
               value={date}
@@ -99,14 +99,14 @@ export default function GameHistory() {
             />
             <button
               onClick={() => setDate(localToday())}
-              className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.5rem] hover:border-gold/30 hover:text-gold"
+              className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.65rem] hover:border-gold/30 hover:text-gold"
             >
               TODAY
             </button>
             {date && (
               <button
                 onClick={() => setDate('')}
-                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.5rem] hover:border-pink/30 hover:text-pink"
+                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.65rem] hover:border-pink/30 hover:text-pink"
               >
                 ALL DATES
               </button>
@@ -132,7 +132,7 @@ export default function GameHistory() {
             />
           </div>
           {(s.pending || 0) > 0 && (
-            <div className="text-[0.55rem] text-yellow-400 font-orbitron mb-4">
+            <div className="text-[0.68rem] text-yellow-400 font-orbitron mb-4">
               {s.pending} entries still pending result
             </div>
           )}
@@ -151,7 +151,7 @@ export default function GameHistory() {
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-[0.6rem]">
                     <thead className="bg-white/5 border-b border-white/10">
-                      <tr className="text-left text-white/40 font-orbitron text-[0.5rem] tracking-[0.1em]">
+                      <tr className="text-left text-white/40 font-orbitron text-[0.65rem] tracking-[0.1em]">
                         <th className="py-2.5 px-3">GAME</th>
                         <th className="py-2.5 px-3">TIME</th>
                         <th className="py-2.5 px-3 text-center">MY DIGIT</th>
@@ -176,9 +176,9 @@ export default function GameHistory() {
                           <tr key={e._id} className="border-b border-white/5 hover:bg-white/3">
                             <td className="py-2 px-3 font-orbitron text-white/70">
                               #{g.gameNumber}
-                              <span className="text-white/20 ml-1 text-[0.45rem]">{g.date}</span>
+                              <span className="text-white/20 ml-1 text-[0.6rem]">{g.date}</span>
                             </td>
-                            <td className="py-2 px-3 text-white/40 font-orbitron text-[0.5rem]">
+                            <td className="py-2 px-3 text-white/40 font-orbitron text-[0.65rem]">
                               {e.createdAt
                                 ? new Date(e.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                 : '-'}
@@ -196,20 +196,20 @@ export default function GameHistory() {
                               )}
                             </td>
                             <td className="py-2 px-3 font-orbitron text-gold text-right">{fmt(e.amount)}</td>
-                            <td className="py-2 px-3 font-orbitron text-[0.5rem] text-white/40">
+                            <td className="py-2 px-3 font-orbitron text-[0.65rem] text-white/40">
                               {walletLabel(e.walletType, e.digit)}
                             </td>
                             <td className="py-2 px-3 text-center">
                               {isPending ? (
-                                <span className="px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-orbitron text-[0.45rem]">
+                                <span className="px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-orbitron text-[0.6rem]">
                                   PENDING
                                 </span>
                               ) : isWin ? (
-                                <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/20 text-green font-orbitron text-[0.45rem]">
+                                <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/20 text-green font-orbitron text-[0.6rem]">
                                   WIN
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink font-orbitron text-[0.45rem]">
+                                <span className="px-2 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink font-orbitron text-[0.6rem]">
                                   LOSS
                                 </span>
                               )}
@@ -246,15 +246,15 @@ export default function GameHistory() {
                         isWin ? 'border-green/20 bg-green/5' : isLoss ? 'border-pink/20 bg-pink/5' : 'border-white/10 bg-white/3'
                       }`}>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-orbitron text-white/60 text-[0.55rem]">
+                          <span className="font-orbitron text-white/60 text-[0.68rem]">
                             Game #{g.gameNumber} · {g.date}
                           </span>
                           {isPending ? (
-                            <span className="px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-orbitron text-[0.45rem]">PENDING</span>
+                            <span className="px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-orbitron text-[0.6rem]">PENDING</span>
                           ) : isWin ? (
-                            <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/20 text-green font-orbitron text-[0.45rem]">WIN</span>
+                            <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/20 text-green font-orbitron text-[0.6rem]">WIN</span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink font-orbitron text-[0.45rem]">LOSS</span>
+                            <span className="px-2 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink font-orbitron text-[0.6rem]">LOSS</span>
                           )}
                         </div>
                         <div className="flex items-center gap-4 mb-2">
@@ -279,13 +279,13 @@ export default function GameHistory() {
                           </div>
                         </div>
                         {isWin && (
-                          <div className="flex gap-3 text-[0.55rem] font-orbitron">
+                          <div className="flex gap-3 text-[0.68rem] font-orbitron">
                             <span className="text-green">Direct: +{fmt(e.directPayout || 0)}</span>
                             <span className="text-purple">Compound: +{fmt(e.compoundPayout || 0)}</span>
                           </div>
                         )}
                         <div className="flex items-center justify-between mt-1">
-                          <span className="text-[0.45rem] text-white/30 font-orbitron">{walletLabel(e.walletType, e.digit)}</span>
+                          <span className="text-[0.6rem] text-white/30 font-orbitron">{walletLabel(e.walletType, e.digit)}</span>
                           <span className={`font-orbitron text-[0.7rem] font-bold ${
                             isPending ? 'text-yellow-400' : net >= 0 ? 'text-green' : 'text-pink'
                           }`}>
@@ -303,17 +303,17 @@ export default function GameHistory() {
                     <button
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page <= 1}
-                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.5rem] disabled:opacity-30"
+                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.65rem] disabled:opacity-30"
                     >
                       PREV
                     </button>
-                    <span className="font-orbitron text-[0.55rem] text-white/40">
+                    <span className="font-orbitron text-[0.68rem] text-white/40">
                       {page} / {totalPages}
                     </span>
                     <button
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page >= totalPages}
-                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.5rem] disabled:opacity-30"
+                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.65rem] disabled:opacity-30"
                     >
                       NEXT
                     </button>
@@ -353,10 +353,10 @@ function StatCard({ label, value, color, type = 'usdt', signed }) {
   }
   return (
     <div className={`card-glass rounded-2xl p-3 border ${colorClass}`}>
-      <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">{label}</div>
+      <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">{label}</div>
       <div className={`font-orbitron font-bold text-[1rem] ${colorClass.split(' ')[0]}`}>
         {display}
-        {type !== 'count' && <span className="text-[0.45rem] text-white/30 ml-1">USDT</span>}
+        {type !== 'count' && <span className="text-[0.6rem] text-white/30 ml-1">USDT</span>}
       </div>
     </div>
   );

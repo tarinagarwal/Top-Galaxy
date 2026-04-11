@@ -50,7 +50,7 @@ export default function AdminClub() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Club</h1>
@@ -101,20 +101,20 @@ export default function AdminClub() {
               >
                 <div className="text-[1.4rem] mb-1">{RANK_ICONS[r]}</div>
                 <div className="font-orbitron text-gold text-[0.65rem] font-bold">RANK {r}</div>
-                <div className="text-[0.55rem] text-white/40 font-orbitron mt-1">
+                <div className="text-[0.68rem] text-white/40 font-orbitron mt-1">
                   {count} {count === 1 ? 'user' : 'users'}
                 </div>
                 {rankData ? (
                   <>
-                    <div className="text-[0.55rem] text-cyan font-orbitron mt-2">
+                    <div className="text-[0.68rem] text-cyan font-orbitron mt-2">
                       Pool: {fmt(rankData.rankPoolAmount, 0)}
                     </div>
-                    <div className="text-[0.55rem] text-green font-orbitron">
+                    <div className="text-[0.68rem] text-green font-orbitron">
                       Per user: {fmt(rankData.perUserAmount)}
                     </div>
                   </>
                 ) : (
-                  <div className="text-[0.55rem] text-white/20 font-orbitron mt-2">No data</div>
+                  <div className="text-[0.68rem] text-white/20 font-orbitron mt-2">No data</div>
                 )}
               </div>
             );
@@ -130,7 +130,7 @@ export default function AdminClub() {
             <button
               key={r}
               onClick={() => setMinRank(r)}
-              className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.55rem] border ${
+              className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.68rem] border ${
                 minRank === r
                   ? 'bg-gold/10 border-gold/40 text-gold'
                   : 'bg-white/3 border-white/10 text-white/40 hover:border-gold/20 hover:text-gold'
@@ -154,7 +154,7 @@ export default function AdminClub() {
           <div className="overflow-x-auto">
             <table className="w-full text-[0.65rem]">
               <thead className="bg-white/5 border-b border-white/10">
-                <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em]">
+                <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em]">
                   <th className="py-3 px-3">RANK</th>
                   <th className="py-3 px-3">WALLET</th>
                   <th className="py-3 px-3">REF CODE</th>
@@ -227,13 +227,13 @@ function SummaryCard({ label, value, color, type = 'usdt' }) {
   else display = fmt(value);
   return (
     <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
-      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
+      <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
         {label}
       </div>
       <div className={`font-orbitron font-bold text-[1.1rem] ${colorClass.split(' ')[0]}`}>
         {display}
         {type !== 'count' && type !== 'text' && (
-          <span className="text-[0.55rem] text-white/30 ml-1">USDT</span>
+          <span className="text-[0.68rem] text-white/30 ml-1">USDT</span>
         )}
       </div>
     </div>

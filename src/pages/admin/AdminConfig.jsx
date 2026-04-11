@@ -273,7 +273,7 @@ export default function AdminConfig() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Config</h1>
@@ -489,9 +489,9 @@ function ConfigRow({
         <div className="flex-1 min-w-[200px]">
           <div className="font-orbitron text-[0.65rem] text-white/80">{friendlyLabel}</div>
           {friendlyDesc && (
-            <div className="text-[0.5rem] text-white/25 mt-0.5 leading-relaxed">{friendlyDesc}</div>
+            <div className="text-[0.65rem] text-white/25 mt-0.5 leading-relaxed">{friendlyDesc}</div>
           )}
-          <div className="text-[0.55rem] text-white/40 font-orbitron mt-1">
+          <div className="text-[0.68rem] text-white/40 font-orbitron mt-1">
             Value: <span className="text-cyan">{friendlyValue}</span>
             <span className="text-white/20 ml-2">({configKey})</span>
           </div>
@@ -523,14 +523,14 @@ function ConfigRow({
               <button
                 onClick={() => onConfirmSave(configKey, value)}
                 disabled={isSaving}
-                className="px-3 py-1.5 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.55rem] font-bold hover:bg-green/20 disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.68rem] font-bold hover:bg-green/20 disabled:opacity-50"
               >
                 {isSaving ? '⏳' : '✓ CONFIRM'}
               </button>
               <button
                 onClick={() => onCancel(configKey)}
                 disabled={isSaving}
-                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem]"
+                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.68rem]"
               >
                 CANCEL
               </button>
@@ -538,7 +538,7 @@ function ConfigRow({
           ) : !readOnly ? (
             <button
               onClick={() => onRequestSave(configKey)}
-              className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.55rem] font-bold hover:bg-gold/20"
+              className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.68rem] font-bold hover:bg-gold/20"
             >
               💾 SAVE
             </button>

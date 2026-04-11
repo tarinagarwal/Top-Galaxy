@@ -61,7 +61,7 @@ export default function Navbar() {
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((v) => !v)}
-            className="md:hidden w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors"
+            className="xl:hidden w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors"
           >
             <div className="relative w-4 h-3">
               <span
@@ -88,14 +88,14 @@ export default function Navbar() {
         </div>
 
         {/* Desktop nav (md+) */}
-        <ul className="hidden md:flex gap-[22px] list-none">
+        <ul className="hidden xl:flex gap-[14px] list-none">
           {visibleLinks.map((link) => {
             const isActive = location.pathname === link.to;
             return (
               <li key={link.to}>
                 <Link
                   to={link.to}
-                  className={`font-orbitron text-[0.55rem] tracking-[0.15em] no-underline uppercase transition-colors duration-300 ${
+                  className={`font-orbitron text-[0.6rem] tracking-[0.1em] no-underline uppercase transition-colors duration-300 ${
                     isActive ? 'text-gold' : 'text-white/40 hover:text-gold'
                   }`}
                 >
@@ -113,14 +113,14 @@ export default function Navbar() {
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="md:hidden fixed inset-0 z-[990] bg-black/60 backdrop-blur-sm"
+          className="xl:hidden fixed inset-0 z-[990] bg-black/60 backdrop-blur-sm"
           aria-hidden="true"
         />
       )}
 
       {/* Mobile drawer panel — slides down from top */}
       <div
-        className={`md:hidden fixed top-[60px] left-0 right-0 z-[995] bg-[rgba(3,0,16,0.97)] backdrop-blur-[20px] border-b border-gold/20 transition-all duration-300 origin-top ${
+        className={`xl:hidden fixed top-[60px] left-0 right-0 z-[995] bg-[rgba(3,0,16,0.97)] backdrop-blur-[20px] border-b border-gold/20 transition-all duration-300 origin-top ${
           mobileOpen
             ? 'opacity-100 scale-y-100 pointer-events-auto'
             : 'opacity-0 scale-y-95 pointer-events-none'

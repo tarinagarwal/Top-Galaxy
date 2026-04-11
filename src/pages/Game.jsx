@@ -183,7 +183,7 @@ export default function Game() {
             </div>
             {game && (
               <div className="text-right">
-                <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
+                <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
                   GAME #{game.gameNumber} · {game.date}
                 </div>
                 <div className="font-orbitron text-[0.7rem] text-cyan mt-1">
@@ -199,26 +199,26 @@ export default function Game() {
               {/* Wallet balance card */}
               <div className="card-glass rounded-2xl p-4 border border-gold/20 flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">GAME WALLET</div>
-                  <div className="font-orbitron text-gold text-[1.4rem] font-bold">{fmt(walletData.gameWallet || 0, 3)} <span className="text-[0.55rem] text-white/30">USDT</span></div>
+                  <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">GAME WALLET</div>
+                  <div className="font-orbitron text-gold text-[1.4rem] font-bold">{fmt(walletData.gameWallet || 0, 3)} <span className="text-[0.68rem] text-white/30">USDT</span></div>
                 </div>
                 <div>
-                  <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">WINNINGS</div>
-                  <div className="font-orbitron text-green text-[1.4rem] font-bold">{fmt(walletData.winningsWallet || 0, 3)} <span className="text-[0.55rem] text-white/30">USDT</span></div>
+                  <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">WINNINGS</div>
+                  <div className="font-orbitron text-green text-[1.4rem] font-bold">{fmt(walletData.winningsWallet || 0, 3)} <span className="text-[0.68rem] text-white/30">USDT</span></div>
                 </div>
               </div>
 
               {/* Compound slots */}
               {Object.values(compoundSlots).some((v) => v > 0) && (
                 <div className="card-glass rounded-2xl p-4 border border-white/20">
-                  <div className="text-[0.5rem] text-white font-orbitron tracking-[0.15em] mb-2">🔒 COMPOUND SLOTS</div>
+                  <div className="text-[0.65rem] text-white font-orbitron tracking-[0.15em] mb-2">🔒 COMPOUND SLOTS</div>
                   <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
                     {DIGITS.map((d) => {
                       const val = compoundSlots[String(d)] || 0;
                       return (
                         <div key={d} className={`text-center p-2 rounded-lg ${val > 0 ? 'bg-white/10 border border-white/30' : 'bg-white/3 border border-white/5'}`}>
                           <div className="font-russo text-[1rem] text-white/60">{d}</div>
-                          <div className={`font-orbitron text-[0.5rem] ${val > 0 ? 'text-white' : 'text-white/20'}`}>{fmt(val, 3)}</div>
+                          <div className={`font-orbitron text-[0.65rem] ${val > 0 ? 'text-white' : 'text-white/20'}`}>{fmt(val, 3)}</div>
                         </div>
                       );
                     })}
@@ -243,7 +243,7 @@ export default function Game() {
               {/* Countdown */}
               <div className="card-glass rounded-3xl p-6 mb-6 border border-gold/20">
                 <div className="text-center">
-                  <div className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.2em] mb-3">
+                  <div className="text-[0.68rem] text-white/40 font-orbitron tracking-[0.2em] mb-3">
                     {cutoffPassed ? '⏳ AWAITING RESULT' : '⏱️ ENTRIES CLOSE IN'}
                   </div>
                   <div className="flex items-center justify-center gap-3 md:gap-6">
@@ -289,7 +289,7 @@ export default function Game() {
                         >
                           {d}
                           {hasSlot && (
-                            <div className="absolute bottom-0.5 left-0 right-0 text-[0.5rem] font-orbitron text-white bg-deep/80 px-1">
+                            <div className="absolute bottom-0.5 left-0 right-0 text-[0.65rem] font-orbitron text-white bg-deep/80 px-1">
                               🔒 {fmt(slotBal, 0)}
                             </div>
                           )}
@@ -304,7 +304,7 @@ export default function Game() {
 
                   {/* Wallet selector */}
                   <div className="mb-4">
-                    <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+                    <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
                       PLAY FROM
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -330,7 +330,7 @@ export default function Game() {
 
                   <form onSubmit={handleEnter} className="space-y-3">
                     <div>
-                      <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+                      <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
                         BET AMOUNT (USDT)
                       </label>
                       <input
@@ -395,7 +395,7 @@ export default function Game() {
                 <div className="space-y-4">
                   {/* My entries this round */}
                   <div className="card-glass rounded-2xl p-5">
-                    <div className="text-[0.55rem] text-cyan font-orbitron tracking-[0.15em] mb-3">
+                    <div className="text-[0.68rem] text-cyan font-orbitron tracking-[0.15em] mb-3">
                       🎟️ MY ENTRIES THIS ROUND
                     </div>
                     {current?.myEntries?.length > 0 ? (
@@ -414,7 +414,7 @@ export default function Game() {
 
                   {/* Recent results */}
                   <div className="card-glass rounded-2xl p-5">
-                    <div className="text-[0.55rem] text-purple font-orbitron tracking-[0.15em] mb-3">
+                    <div className="text-[0.68rem] text-purple font-orbitron tracking-[0.15em] mb-3">
                       📜 LAST 10 RESULTS
                     </div>
                     {history.length > 0 ? (
@@ -422,7 +422,7 @@ export default function Game() {
                         {history.map((g) => (
                           <div key={g._id} className="flex items-center justify-between text-[0.65rem] p-2 rounded bg-white/3">
                             <span className="text-white/40 font-orbitron">#{g.gameNumber}</span>
-                            <span className="text-white/30 font-orbitron text-[0.55rem]">{g.date}</span>
+                            <span className="text-white/30 font-orbitron text-[0.68rem]">{g.date}</span>
                             <span className="font-russo text-[1rem] text-gold">{g.winningDigit}</span>
                           </div>
                         ))}
@@ -446,7 +446,7 @@ export default function Game() {
             <div className="font-orbitron text-purple text-[0.75rem] font-bold">
               📊 VIEW MY GAME HISTORY
             </div>
-            <div className="text-[0.5rem] text-white/30 mt-1">
+            <div className="text-[0.65rem] text-white/30 mt-1">
               Win/Loss · Payouts · P&L
             </div>
           </Link>
@@ -462,7 +462,7 @@ function CountdownBox({ label, value }) {
       <div className="font-russo text-[2.5rem] md:text-[4rem] text-gold leading-none tabular-nums">
         {value}
       </div>
-      <div className="font-orbitron text-[0.5rem] text-white/40 tracking-[0.2em] mt-1">{label}</div>
+      <div className="font-orbitron text-[0.65rem] text-white/40 tracking-[0.2em] mt-1">{label}</div>
     </div>
   );
 }

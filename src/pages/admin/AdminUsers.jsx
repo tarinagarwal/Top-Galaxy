@@ -35,7 +35,7 @@ export default function AdminUsers() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Users</h1>
@@ -53,7 +53,7 @@ export default function AdminUsers() {
           placeholder="🔍 Search by wallet address or referral code..."
           className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.7rem] focus:outline-none focus:border-gold/50"
         />
-        <div className="mt-2 text-[0.55rem] text-white/30 font-orbitron">
+        <div className="mt-2 text-[0.68rem] text-white/30 font-orbitron">
           {total} total users · page {page} / {totalPages}
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function AdminUsers() {
           <div className="overflow-x-auto">
             <table className="w-full text-[0.65rem]">
               <thead className="bg-white/5 border-b border-white/10">
-                <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em]">
+                <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em]">
                   <th className="py-3 px-3">WALLET</th>
                   <th className="py-3 px-3">REF CODE</th>
                   <th className="py-3 px-3">TIER</th>
@@ -94,14 +94,14 @@ export default function AdminUsers() {
                     <td className="py-2.5 px-3 font-orbitron text-cyan">{u.referralCode || '—'}</td>
                     <td className="py-2.5 px-3">
                       {u.fullActivated ? (
-                        <span className="text-green text-[0.55rem] font-orbitron">PRO</span>
+                        <span className="text-green text-[0.68rem] font-orbitron">PRO</span>
                       ) : u.realCashActivated ? (
-                        <span className="text-cyan text-[0.55rem] font-orbitron">BASIC</span>
+                        <span className="text-cyan text-[0.68rem] font-orbitron">BASIC</span>
                       ) : (
-                        <span className="text-white/30 text-[0.55rem] font-orbitron">—</span>
+                        <span className="text-white/30 text-[0.68rem] font-orbitron">—</span>
                       )}
                     </td>
-                    <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.55rem]">
+                    <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.68rem]">
                       {u.registeredAt ? new Date(u.registeredAt).toLocaleDateString() : '—'}
                     </td>
                     <td className="py-2.5 px-3 font-orbitron text-gold text-right">
@@ -115,11 +115,11 @@ export default function AdminUsers() {
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       {u.isBanned ? (
-                        <span className="px-2 py-0.5 rounded-full bg-pink/10 text-pink text-[0.5rem] font-orbitron border border-pink/30">
+                        <span className="px-2 py-0.5 rounded-full bg-pink/10 text-pink text-[0.65rem] font-orbitron border border-pink/30">
                           BANNED
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-green/10 text-green text-[0.5rem] font-orbitron border border-green/30">
+                        <span className="px-2 py-0.5 rounded-full bg-green/10 text-green text-[0.65rem] font-orbitron border border-green/30">
                           ACTIVE
                         </span>
                       )}
@@ -226,14 +226,14 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
-            <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">USER DETAIL</div>
+            <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">USER DETAIL</div>
             <div className="font-orbitron text-gold text-[0.85rem] mt-1 break-all">
               {u.walletAddress}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem] hover:border-pink/40 hover:text-pink"
+            className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.68rem] hover:border-pink/40 hover:text-pink"
           >
             ✕ CLOSE
           </button>
@@ -257,7 +257,7 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
 
             {/* Wallets */}
             <div>
-              <div className="text-[0.55rem] font-orbitron text-cyan tracking-[0.15em] mb-2">💎 WALLETS</div>
+              <div className="text-[0.68rem] font-orbitron text-cyan tracking-[0.15em] mb-2">💎 WALLETS</div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {[
                   ['Game', w.gameWallet, 'gold'],
@@ -280,7 +280,7 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
 
             {/* Income totals by stream */}
             <div>
-              <div className="text-[0.55rem] font-orbitron text-purple tracking-[0.15em] mb-2">💰 LIFETIME INCOME</div>
+              <div className="text-[0.68rem] font-orbitron text-purple tracking-[0.15em] mb-2">💰 LIFETIME INCOME</div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {[
                   'DIRECT_REFERRAL', 'WINNERS_REFERRAL', 'CASHBACK',
@@ -289,7 +289,7 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
                   const t = incomeTotals[type] || { total: 0, count: 0 };
                   return (
                     <div key={type} className="p-2 rounded-lg bg-white/3 border border-white/5 text-[0.6rem]">
-                      <div className="text-white/40 font-orbitron text-[0.5rem]">{type}</div>
+                      <div className="text-white/40 font-orbitron text-[0.65rem]">{type}</div>
                       <div className="font-orbitron text-white mt-0.5">
                         {fmt(t.total)} <span className="text-white/30">({t.count})</span>
                       </div>
@@ -302,7 +302,7 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
             {/* Direct referrals */}
             {data?.directs?.length > 0 && (
               <div>
-                <div className="text-[0.55rem] font-orbitron text-gold tracking-[0.15em] mb-2">
+                <div className="text-[0.68rem] font-orbitron text-gold tracking-[0.15em] mb-2">
                   ⭐ DIRECT REFERRALS ({data.directs.length})
                 </div>
                 <div className="max-h-[200px] overflow-y-auto space-y-1">
@@ -312,13 +312,13 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
                         <div className="font-orbitron text-white/70">
                           {d.walletAddress?.slice(0, 8)}...{d.walletAddress?.slice(-4)}
                         </div>
-                        <div className="text-white/30 text-[0.5rem]">
+                        <div className="text-white/30 text-[0.65rem]">
                           {d.fullActivated ? 'PRO' : d.realCashActivated ? 'BASIC' : '—'} · {d.referralCode}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-orbitron text-gold">{fmt(d.totalDeposited)}</div>
-                        <div className="text-white/30 text-[0.5rem]">deposited</div>
+                        <div className="text-white/30 text-[0.65rem]">deposited</div>
                       </div>
                     </div>
                   ))}
@@ -329,7 +329,7 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
             {/* Recent transactions */}
             {data?.recentTransactions?.length > 0 && (
               <div>
-                <div className="text-[0.55rem] font-orbitron text-cyan tracking-[0.15em] mb-2">
+                <div className="text-[0.68rem] font-orbitron text-cyan tracking-[0.15em] mb-2">
                   📜 RECENT TRANSACTIONS
                 </div>
                 <div className="max-h-[240px] overflow-y-auto space-y-1">
@@ -337,7 +337,7 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
                     <div key={t._id} className="flex items-center justify-between p-2 rounded-lg bg-white/3 border border-white/5 text-[0.6rem]">
                       <div>
                         <div className="font-orbitron text-white/70">{t.type}</div>
-                        <div className="text-white/30 text-[0.5rem]">
+                        <div className="text-white/30 text-[0.65rem]">
                           {new Date(t.createdAt).toLocaleString()}
                         </div>
                       </div>
@@ -350,7 +350,7 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
 
             {/* Action buttons */}
             <div className="border-t border-white/10 pt-4">
-              <div className="text-[0.55rem] font-orbitron text-pink tracking-[0.15em] mb-3">⚙️ ACTIONS</div>
+              <div className="text-[0.68rem] font-orbitron text-pink tracking-[0.15em] mb-3">⚙️ ACTIONS</div>
               {!canEdit && (
                 <div className="text-[0.6rem] text-white/30 font-orbitron mb-3">VIEW ONLY — actions require Operational or Super Admin role</div>
               )}
@@ -462,7 +462,7 @@ function Stat({ label, value, color, type = 'usdt' }) {
   else display = fmt(value);
   return (
     <div className="p-3 rounded-lg bg-white/3 border border-white/5">
-      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.1em]">{label}</div>
+      <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.1em]">{label}</div>
       <div className={`font-orbitron font-bold text-[0.85rem] mt-1 ${colorClass}`}>{display}</div>
     </div>
   );

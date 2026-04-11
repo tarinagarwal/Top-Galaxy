@@ -34,7 +34,7 @@ export default function AdminAnalytics() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Analytics</h1>
@@ -154,7 +154,7 @@ function ActivationFunnel({ funnel }) {
                 <div className="font-orbitron flex items-center gap-3">
                   <span className="text-white">{num(s.value).toLocaleString()} users</span>
                   {conversionFromPrev !== null && (
-                    <span className="text-white/40 text-[0.55rem]">
+                    <span className="text-white/40 text-[0.68rem]">
                       ({fmt(conversionFromPrev, 1)}% conv)
                     </span>
                   )}
@@ -206,7 +206,7 @@ function Chart({ title, color, data, primaryKey, secondaryKey, primaryColor, sec
     <div className="card-glass rounded-2xl p-5 mb-4 border border-white/10">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className={`font-orbitron text-${color} text-[0.7rem] font-bold`}>{title}</div>
-        <div className="flex items-center gap-3 text-[0.55rem] font-orbitron">
+        <div className="flex items-center gap-3 text-[0.68rem] font-orbitron">
           <div className="flex items-center gap-1">
             <div className={`w-3 h-3 rounded ${primaryClass}`} />
             <span className="text-white/50">{primaryLabel}</span>
@@ -233,7 +233,7 @@ function Chart({ title, color, data, primaryKey, secondaryKey, primaryColor, sec
             >
               {/* Tooltip */}
               <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 whitespace-nowrap">
-                <div className="bg-deep border border-white/20 rounded px-2 py-1 text-[0.55rem] font-orbitron">
+                <div className="bg-deep border border-white/20 rounded px-2 py-1 text-[0.68rem] font-orbitron">
                   <div className="text-white">{d.label}</div>
                   <div className={`text-${primaryColor}`}>
                     {primaryLabel}: {isUsdt ? fmt(d[primaryKey]) : num(d[primaryKey]).toLocaleString()}
@@ -265,7 +265,7 @@ function Chart({ title, color, data, primaryKey, secondaryKey, primaryColor, sec
       </div>
 
       {/* X-axis labels (sample every Nth) */}
-      <div className="flex justify-between text-[0.5rem] text-white/30 font-orbitron mt-2">
+      <div className="flex justify-between text-[0.65rem] text-white/30 font-orbitron mt-2">
         {data.length > 0 && (
           <>
             <span>{data[0].label}</span>
@@ -326,7 +326,7 @@ function PayoutsBreakdown({ stats }) {
         <div className="font-orbitron text-pink text-[0.7rem] font-bold">
           💸 PAYOUTS PER STREAM (last 30 days)
         </div>
-        <div className="flex items-center gap-2 text-[0.5rem] font-orbitron flex-wrap">
+        <div className="flex items-center gap-2 text-[0.65rem] font-orbitron flex-wrap">
           {streams.map((s) => (
             <div key={s.key} className="flex items-center gap-1">
               <div className={`w-2.5 h-2.5 rounded ${colorBg[s.color]}`} />
@@ -349,7 +349,7 @@ function PayoutsBreakdown({ stats }) {
             >
               {/* Tooltip */}
               <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 whitespace-nowrap">
-                <div className="bg-deep border border-white/20 rounded px-2 py-1 text-[0.55rem] font-orbitron space-y-0.5">
+                <div className="bg-deep border border-white/20 rounded px-2 py-1 text-[0.68rem] font-orbitron space-y-0.5">
                   <div className="text-white">{s.date}</div>
                   <div className="text-gold">Total: {fmt(total)}</div>
                   {streams.map((st) => {
@@ -387,7 +387,7 @@ function PayoutsBreakdown({ stats }) {
         })}
       </div>
 
-      <div className="flex justify-between text-[0.5rem] text-white/30 font-orbitron mt-2">
+      <div className="flex justify-between text-[0.65rem] text-white/30 font-orbitron mt-2">
         {stats.length > 0 && (
           <>
             <span>{stats[0].date}</span>
@@ -444,7 +444,7 @@ function Leaderboard({ title, color, users, valueKey, valueLabel }) {
         <div className="max-h-[500px] overflow-y-auto">
           <table className="w-full text-[0.6rem]">
             <thead className="bg-white/5 border-b border-white/10 sticky top-0">
-              <tr className="text-left text-white/40 font-orbitron text-[0.5rem] tracking-[0.1em]">
+              <tr className="text-left text-white/40 font-orbitron text-[0.65rem] tracking-[0.1em]">
                 <th className="py-2 px-3">#</th>
                 <th className="py-2 px-3">USER</th>
                 <th className="py-2 px-3 text-right">{valueLabel}</th>
@@ -459,7 +459,7 @@ function Leaderboard({ title, color, users, valueKey, valueLabel }) {
                       ? `${u.walletAddress.slice(0, 6)}...${u.walletAddress.slice(-4)}`
                       : '—'}
                     {u.referralCode && (
-                      <div className="text-[0.5rem] text-cyan">{u.referralCode}</div>
+                      <div className="text-[0.65rem] text-cyan">{u.referralCode}</div>
                     )}
                   </td>
                   <td className={`py-1.5 px-3 font-orbitron text-right ${colorClass.split(' ')[1]}`}>

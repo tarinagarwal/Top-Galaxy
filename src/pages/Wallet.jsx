@@ -220,7 +220,7 @@ export default function Wallet() {
                   >
                     <div>
                       <div className={`text-${color} font-orbitron text-[0.7rem] font-bold`}>{label}</div>
-                      <div className="text-white/30 text-[0.55rem]">{hint}</div>
+                      <div className="text-white/30 text-[0.68rem]">{hint}</div>
                     </div>
                     <div className="font-orbitron text-white text-[0.85rem]">
                       {fmt(value, 3)}
@@ -248,7 +248,7 @@ export default function Wallet() {
                         : 'bg-white/2 border-white/5'
                     }`}
                   >
-                    <div className="font-orbitron text-[0.55rem] text-white/40">DIGIT</div>
+                    <div className="font-orbitron text-[0.68rem] text-white/40">DIGIT</div>
                     <div className="font-russo text-[1.4rem] text-white">{i}</div>
                     <div className="font-orbitron text-[0.6rem] text-white">{fmt(slotValue, 3)}</div>
                   </div>
@@ -389,7 +389,7 @@ function WithdrawalForm({ walletData, userAddress, dailyUsage, onSuccess }) {
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+          <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
             FROM WALLET
           </label>
           <select
@@ -407,7 +407,7 @@ function WithdrawalForm({ walletData, userAddress, dailyUsage, onSuccess }) {
         </div>
 
         <div>
-          <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+          <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
             AMOUNT (USDT)
           </label>
           <input
@@ -424,14 +424,14 @@ function WithdrawalForm({ walletData, userAddress, dailyUsage, onSuccess }) {
             type="button"
             onClick={() => setAmount(String(sourceBalance))}
             disabled={submitting || sourceBalance <= 0}
-            className="mt-1 text-[0.55rem] text-pink font-orbitron hover:underline disabled:opacity-30"
+            className="mt-1 text-[0.68rem] text-pink font-orbitron hover:underline disabled:opacity-30"
           >
             MAX: {fmt(sourceBalance)} USDT
           </button>
         </div>
 
         <div>
-          <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+          <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
             DESTINATION ADDRESS
           </label>
           <input
@@ -443,7 +443,7 @@ function WithdrawalForm({ walletData, userAddress, dailyUsage, onSuccess }) {
             className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-pink/50 disabled:opacity-50"
           />
           {toAddress === userAddress && (
-            <div className="text-[0.55rem] text-cyan mt-1 font-orbitron">
+            <div className="text-[0.68rem] text-cyan mt-1 font-orbitron">
               ✓ Your connected wallet
             </div>
           )}
@@ -492,7 +492,7 @@ function WithdrawalForm({ walletData, userAddress, dailyUsage, onSuccess }) {
                 }}
               />
             </div>
-            <div className="flex items-center justify-between text-[0.55rem] font-orbitron mt-1 text-white/40">
+            <div className="flex items-center justify-between text-[0.68rem] font-orbitron mt-1 text-white/40">
               <span>Min: 5 USDT</span>
               <span>
                 Remaining today:{' '}
@@ -565,10 +565,10 @@ function WithdrawalHistory({ history, loading }) {
                 className="p-3 rounded-lg bg-white/3 border border-white/5"
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className={`px-2 py-0.5 rounded-full text-[0.5rem] font-orbitron border ${style.color}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[0.65rem] font-orbitron border ${style.color}`}>
                     {style.label}
                   </span>
-                  <span className="text-[0.55rem] text-white/30 font-orbitron">
+                  <span className="text-[0.68rem] text-white/30 font-orbitron">
                     {new Date(w.requestedAt).toLocaleString()}
                   </span>
                 </div>
@@ -577,7 +577,7 @@ function WithdrawalHistory({ history, loading }) {
                     <div className="font-orbitron text-white">
                       {fmt(w.netAmount)} USDT
                     </div>
-                    <div className="text-[0.55rem] text-white/30">
+                    <div className="text-[0.68rem] text-white/30">
                       from {w.fromWallet} · fee {fmt(w.fee)}
                     </div>
                   </div>
@@ -586,14 +586,14 @@ function WithdrawalHistory({ history, loading }) {
                       href={`https://testnet.bscscan.com/tx/${w.txHash}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[0.55rem] text-cyan font-orbitron underline hover:text-gold"
+                      className="text-[0.68rem] text-cyan font-orbitron underline hover:text-gold"
                     >
                       BSCScan ↗
                     </a>
                   )}
                 </div>
                 {w.adminNote && (
-                  <div className="mt-1.5 text-[0.55rem] text-white/40 italic">
+                  <div className="mt-1.5 text-[0.68rem] text-white/40 italic">
                     Note: {w.adminNote}
                   </div>
                 )}

@@ -84,7 +84,7 @@ export default function Referrals() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Code */}
                   <div>
-                    <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.1em] mb-1">
+                    <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.1em] mb-1">
                       REFERRAL CODE
                     </div>
                     <div className="flex gap-2">
@@ -102,11 +102,11 @@ export default function Referrals() {
 
                   {/* Link */}
                   <div>
-                    <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.1em] mb-1">
+                    <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.1em] mb-1">
                       REFERRAL LINK
                     </div>
                     <div className="flex gap-2">
-                      <code className="flex-1 px-3 py-3 rounded-lg bg-white/5 border border-white/10 text-cyan font-orbitron text-[0.55rem] truncate">
+                      <code className="flex-1 px-3 py-3 rounded-lg bg-white/5 border border-white/10 text-cyan font-orbitron text-[0.68rem] truncate">
                         {referralLink}
                       </code>
                       <button
@@ -128,13 +128,33 @@ export default function Referrals() {
               </div>
 
               {/* Stats grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
-                <StatCard
-                  label="DIRECT REFERRALS"
-                  value={num(stats?.directReferralCount)}
-                  color="gold"
-                  type="count"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                {/* Direct referrals with tier breakdown */}
+                <div className="card-glass rounded-2xl p-4 border border-gold/20">
+                  <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
+                    DIRECT REFERRALS
+                  </div>
+                  <div className="font-orbitron font-bold text-[1.4rem] text-gold">
+                    {num(stats?.directReferralCount)}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap text-[0.6rem]">
+                    <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/30 text-green font-orbitron">
+                      {num(stats?.directBreakdown?.pro)} PRO
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-gold/10 border border-gold/30 text-gold font-orbitron">
+                      {num(stats?.directBreakdown?.basic)} BASIC
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-cyan/10 border border-cyan/30 text-cyan font-orbitron">
+                      {num(stats?.directBreakdown?.practice)} PRAC
+                    </span>
+                    {num(stats?.directBreakdown?.expired) > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-pink/10 border border-pink/30 text-pink font-orbitron">
+                        {num(stats?.directBreakdown?.expired)} EXP
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 <StatCard
                   label="TOTAL TEAM"
                   value={num(stats?.totalTeamCount)}
@@ -153,7 +173,7 @@ export default function Referrals() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="font-orbitron text-white text-[0.75rem] font-bold">👥 TEAM BREAKDOWN</div>
-                    <div className="text-[0.5rem] text-white/30 font-orbitron mt-0.5">Team members by activation tier</div>
+                    <div className="text-[0.65rem] text-white/30 font-orbitron mt-0.5">Team members by activation tier</div>
                   </div>
                   <div className="font-orbitron text-white/40 text-[0.6rem]">
                     TOTAL: <span className="text-white font-bold">{num(stats?.totalTeamCount)}</span>
@@ -211,7 +231,7 @@ export default function Referrals() {
                       An "<span className="text-gold">active direct</span>" is a direct referral who deposited 100+ USDT (PRO).
                       Each active direct unlocks one more level — 4 directs = L4, 5 = L5, up to 10 directs = L10-L15.
                     </div>
-                    <div className="text-white/30 text-[0.55rem] italic">
+                    <div className="text-white/30 text-[0.68rem] italic">
                       Note: Unlocking a level doesn't automatically put people there. Team depth grows when your downline refers new users.
                     </div>
                   </div>
@@ -236,7 +256,7 @@ export default function Referrals() {
                           {levels.activeLevels} Active Levels
                         </span>
                       </div>
-                      <div className="text-[0.5rem] text-white/40 font-orbitron mt-1">
+                      <div className="text-[0.65rem] text-white/40 font-orbitron mt-1">
                         {levels.activeDirects || 0} active direct{levels.activeDirects !== 1 ? 's' : ''}
                       </div>
                     </div>
@@ -244,7 +264,7 @@ export default function Referrals() {
 
                   {/* Progress bar */}
                   <div className="mb-4">
-                    <div className="flex items-center justify-between text-[0.5rem] font-orbitron mb-1">
+                    <div className="flex items-center justify-between text-[0.65rem] font-orbitron mb-1">
                       <span className="text-white/40">LEVELS UNLOCKED</span>
                       <span className="text-gold">{levels.activeLevels} / 15</span>
                     </div>
@@ -260,11 +280,11 @@ export default function Referrals() {
 
                   {/* Header row — desktop */}
                   <div className="hidden md:grid grid-cols-[1fr_0.7fr_0.7fr_0.8fr_0.8fr] gap-2 mb-2 px-3">
-                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em]">TIER</div>
-                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em]">TOTAL TEAM</div>
-                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em]">PRACTICE BONUS</div>
-                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em] text-center">DIRECT REFERRAL</div>
-                    <div className="text-[0.5rem] text-white/40 font-orbitron tracking-[0.1em] text-center">WINNER REFERRAL</div>
+                    <div className="text-[0.65rem] text-white/40 font-orbitron tracking-[0.1em]">TIER</div>
+                    <div className="text-[0.65rem] text-white/40 font-orbitron tracking-[0.1em]">TOTAL TEAM</div>
+                    <div className="text-[0.65rem] text-white/40 font-orbitron tracking-[0.1em]">PRACTICE BONUS</div>
+                    <div className="text-[0.65rem] text-white/40 font-orbitron tracking-[0.1em] text-center">DIRECT REFERRAL</div>
+                    <div className="text-[0.65rem] text-white/40 font-orbitron tracking-[0.1em] text-center">WINNER REFERRAL</div>
                   </div>
 
                   <div className="space-y-2">
@@ -297,15 +317,15 @@ export default function Referrals() {
                               <div>
                                 <div className="font-orbitron text-white/80 text-[0.65rem]">LEVEL {lv.level}</div>
                                 {lv.unlocked ? (
-                                  <div className={`text-[0.45rem] font-orbitron ${isEmptyUnlocked ? 'text-cyan' : 'text-green'}`}>
+                                  <div className={`text-[0.6rem] font-orbitron ${isEmptyUnlocked ? 'text-cyan' : 'text-green'}`}>
                                     {isEmptyUnlocked ? `UNLOCKED · EMPTY · ${commPct}` : `UNLOCKED · ${commPct}`}
                                   </div>
                                 ) : isDirectsOnly ? (
-                                  <div className="text-[0.45rem] text-green font-orbitron">
+                                  <div className="text-[0.6rem] text-green font-orbitron">
                                     ✅ PRO Active
                                   </div>
                                 ) : (
-                                  <div className="text-[0.45rem] text-pink font-orbitron">
+                                  <div className="text-[0.6rem] text-pink font-orbitron">
                                     🔒 {lv.lockReason || 'LOCKED'}
                                   </div>
                                 )}
@@ -314,17 +334,17 @@ export default function Referrals() {
                             {/* Team + Practice always visible */}
                             <div>
                               <span className={`font-orbitron text-[0.85rem] font-bold ${isEmptyUnlocked ? 'text-white/30' : 'text-white'}`}>{lv.teamCount}</span>
-                              <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">users</span>
+                              <span className="text-[0.65rem] text-white/30 font-orbitron ml-1">users</span>
                             </div>
                             <div>
                               <span className="font-orbitron text-white/60 text-[0.75rem]">{fmt(lv.practiceBonus, 3)}</span>
-                              <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">USDT</span>
+                              <span className="text-[0.65rem] text-white/30 font-orbitron ml-1">USDT</span>
                             </div>
                             {/* Direct + Winner: show values if unlocked, lock message if not */}
                             {lv.unlocked ? (
                               isEmptyUnlocked ? (
                                 <div className="col-span-2 text-center">
-                                  <span className="font-orbitron text-cyan/70 text-[0.5rem]">
+                                  <span className="font-orbitron text-cyan/70 text-[0.65rem]">
                                     💤 No team at this depth yet · Earnings will appear when someone joins here
                                   </span>
                                 </div>
@@ -332,19 +352,19 @@ export default function Referrals() {
                                 <>
                                   <div className="text-center">
                                     <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-cyan text-[0.7rem]">
-                                      +{fmt(lv.directReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                                      +{fmt(lv.directReferral, 3)} <span className="text-[0.6rem] text-white/30">USDT</span>
                                     </span>
                                   </div>
                                   <div className="text-center">
                                     <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-pink text-[0.7rem]">
-                                      +{fmt(lv.winnersReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                                      +{fmt(lv.winnersReferral, 3)} <span className="text-[0.6rem] text-white/30">USDT</span>
                                     </span>
                                   </div>
                                 </>
                               )
                             ) : (
                               <div className="col-span-2 text-center">
-                                <span className="font-orbitron text-pink/60 text-[0.55rem]">
+                                <span className="font-orbitron text-pink/60 text-[0.68rem]">
                                   🔒 {lv.lockReason || 'LOCKED'}
                                 </span>
                               </div>
@@ -364,16 +384,16 @@ export default function Referrals() {
                               <div className="flex-1">
                                 <div className="font-orbitron text-white/80 text-[0.65rem]">LEVEL {lv.level}</div>
                                 {lv.unlocked ? (
-                                  <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
+                                  <div className="text-[0.6rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
                                 ) : (
-                                  <div className={`text-[0.45rem] font-orbitron ${isDirectsOnly ? 'text-green' : 'text-pink'}`}>
+                                  <div className={`text-[0.6rem] font-orbitron ${isDirectsOnly ? 'text-green' : 'text-pink'}`}>
                                     {isDirectsOnly ? '✅ PRO Active' : '🔒 LOCKED'}
                                   </div>
                                 )}
                               </div>
                               <div className="text-right">
                                 <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
-                                <span className="text-[0.45rem] text-white/30 ml-1">users</span>
+                                <span className="text-[0.6rem] text-white/30 ml-1">users</span>
                               </div>
                             </div>
                             <div className="flex gap-2">
@@ -440,8 +460,8 @@ function TreeRoot({ me }) {
         <span className="text-[1.4rem]">👤</span>
         <div>
           <div className="font-orbitron text-gold text-[0.7rem] font-bold">YOU</div>
-          <div className="text-[0.55rem] text-white/50 font-orbitron">{shortAddr}</div>
-          <div className="text-[0.5rem] text-white/30 font-orbitron">
+          <div className="text-[0.68rem] text-white/50 font-orbitron">{shortAddr}</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">
             {me.directReferralCount} directs · {me.totalTeamCount} total team
           </div>
         </div>
@@ -540,24 +560,24 @@ function TreeNode({ user, depth }) {
               {expanded ? '▼' : '▶'}
             </span>
           ) : (
-            <span className="text-white/20 text-[0.55rem] w-4 text-center">·</span>
+            <span className="text-white/20 text-[0.68rem] w-4 text-center">·</span>
           )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-orbitron text-white/80 text-[0.65rem]">{shortAddr}</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[0.5rem] font-orbitron border ${tierStyle.color}`}
+                className={`px-2 py-0.5 rounded-full text-[0.65rem] font-orbitron border ${tierStyle.color}`}
               >
                 {tierStyle.label}
               </span>
               {user.rank > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[0.5rem] font-orbitron bg-gold/10 border border-gold/30 text-gold">
+                <span className="px-2 py-0.5 rounded-full text-[0.65rem] font-orbitron bg-gold/10 border border-gold/30 text-gold">
                   R{user.rank}
                 </span>
               )}
             </div>
-            <div className="text-[0.5rem] text-white/30 font-orbitron mt-0.5">
+            <div className="text-[0.65rem] text-white/30 font-orbitron mt-0.5">
               {user.referralCode} · {user.directReferralCount} directs · L{depth}
             </div>
           </div>
@@ -567,11 +587,11 @@ function TreeNode({ user, depth }) {
           <div className="font-orbitron text-gold text-[0.65rem]">
             {fmt(user.totalBusinessVolume)}
           </div>
-          <div className="text-[0.5rem] text-white/30 font-orbitron">team vol</div>
-          <div className="font-orbitron text-green text-[0.55rem] mt-0.5">
+          <div className="text-[0.65rem] text-white/30 font-orbitron">team vol</div>
+          <div className="font-orbitron text-green text-[0.68rem] mt-0.5">
             +{fmt(user.commissionGenerated, 4)}
           </div>
-          <div className="text-[0.5rem] text-white/30 font-orbitron">my commission</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">my commission</div>
         </div>
       </div>
 
@@ -579,7 +599,7 @@ function TreeNode({ user, depth }) {
         <TreeNodeChildren parentId={user._id} depth={depth + 1} />
       )}
       {expanded && depth >= MAX_DEPTH && (
-        <div className="pl-6 text-[0.55rem] text-white/30 font-orbitron italic mt-1">
+        <div className="pl-6 text-[0.68rem] text-white/30 font-orbitron italic mt-1">
           Max depth (L{MAX_DEPTH}) reached
         </div>
       )}
@@ -600,10 +620,10 @@ function TierBox({ label, value, color, desc }) {
   return (
     <div className={`p-3 rounded-xl border ${classes}`}>
       <div className="flex items-baseline justify-between">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.1em] font-bold">{label}</div>
+        <div className="font-orbitron text-[0.68rem] tracking-[0.1em] font-bold">{label}</div>
         <div className="font-orbitron text-[1.4rem] font-bold">{value}</div>
       </div>
-      <div className="text-[0.45rem] text-white/30 font-orbitron mt-1">{desc}</div>
+      <div className="text-[0.6rem] text-white/30 font-orbitron mt-1">{desc}</div>
     </div>
   );
 }
@@ -620,13 +640,13 @@ function StatCard({ label, value, color, type = 'usdt' }) {
 
   return (
     <div className={`card-glass rounded-2xl p-4 border ${colorClass.split(' ')[1]}`}>
-      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
+      <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
         {label}
       </div>
       <div className={`font-orbitron font-bold text-[1.4rem] ${colorClass.split(' ')[0]}`}>
         {display}
       </div>
-      {type !== 'count' && <div className="text-[0.5rem] text-white/30 font-orbitron">USDT</div>}
+      {type !== 'count' && <div className="text-[0.65rem] text-white/30 font-orbitron">USDT</div>}
     </div>
   );
 }
@@ -651,21 +671,21 @@ function CommissionCard({ icon, title, description, lifetime, today, color }) {
           <div className={`font-orbitron text-[0.65rem] font-bold ${colorClass.split(' ')[1]}`}>
             {title}
           </div>
-          <div className="text-[0.55rem] text-white/40 mt-1 leading-relaxed">{description}</div>
+          <div className="text-[0.68rem] text-white/40 mt-1 leading-relaxed">{description}</div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="p-2 rounded-lg bg-white/3 border border-white/5 text-center">
-          <div className="text-[0.5rem] text-white/30 font-orbitron">LIFETIME</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">LIFETIME</div>
           <div className={`font-orbitron text-[1rem] font-bold ${colorClass.split(' ')[1]}`}>
             {fmt(lifetime)}
           </div>
-          <div className="text-[0.5rem] text-white/30 font-orbitron">USDT</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">USDT</div>
         </div>
         <div className="p-2 rounded-lg bg-green/5 border border-green/20 text-center">
-          <div className="text-[0.5rem] text-white/30 font-orbitron">TODAY</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">TODAY</div>
           <div className="font-orbitron text-green text-[1rem] font-bold">{fmt(today)}</div>
-          <div className="text-[0.5rem] text-white/30 font-orbitron">USDT</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">USDT</div>
         </div>
       </div>
     </div>

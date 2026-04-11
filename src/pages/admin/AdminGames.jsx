@@ -97,7 +97,7 @@ export default function AdminGames() {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
         <div>
-          <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+          <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
             🛡️ ADMIN
           </div>
           <h1 className="font-russo text-[2rem] text-gradient-gold">Games</h1>
@@ -169,7 +169,7 @@ export default function AdminGames() {
         />
         <button
           onClick={() => setDate(todayString())}
-          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem] hover:border-gold/30 hover:text-gold"
+          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.68rem] hover:border-gold/30 hover:text-gold"
         >
           TODAY
         </button>
@@ -196,7 +196,7 @@ export default function AdminGames() {
           <div className="overflow-x-auto">
             <table className="w-full text-[0.65rem]">
               <thead className="bg-white/5 border-b border-white/10">
-                <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em]">
+                <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em]">
                   <th className="py-3 px-3">#</th>
                   <th className="py-3 px-3">SCHEDULED</th>
                   <th className="py-3 px-3">STATUS</th>
@@ -218,7 +218,7 @@ export default function AdminGames() {
                   return (
                     <tr key={g._id} className="border-b border-white/5 hover:bg-white/3 cursor-pointer" onClick={() => setDetailGame(g)}>
                       <td className="py-2.5 px-3 font-orbitron text-white/70">#{g.gameNumber}</td>
-                      <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.55rem]">
+                      <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.68rem]">
                         {g.scheduledAt
                           ? new Date(g.scheduledAt).toLocaleTimeString([], {
                               hour: '2-digit',
@@ -227,7 +227,7 @@ export default function AdminGames() {
                           : '—'}
                       </td>
                       <td className="py-2.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.5rem] ${style.color}`}>
+                        <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.65rem] ${style.color}`}>
                           {style.label}
                         </span>
                       </td>
@@ -259,7 +259,7 @@ export default function AdminGames() {
                         {g.status !== 'RESULTED' && canOps && ((b.cashEntries || 0) + (b.practiceEntries || 0)) > 0 && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setForceGame(g); }}
-                            className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.5rem] hover:bg-pink/20"
+                            className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.65rem] hover:bg-pink/20"
                           >
                             🎯 FORCE
                           </button>
@@ -339,13 +339,13 @@ function ForceResultModal({ game, onClose, onDone }) {
         {/* Cash / Practice toggle */}
         <div className="flex gap-2 mb-3">
           <button onClick={() => setViewMode('cash')}
-            className={`flex-1 py-1.5 rounded-lg font-orbitron text-[0.5rem] border transition-all ${
+            className={`flex-1 py-1.5 rounded-lg font-orbitron text-[0.65rem] border transition-all ${
               viewMode === 'cash' ? 'bg-gold/10 border-gold/40 text-gold' : 'bg-white/3 border-white/10 text-white/40'
             }`}>
             💰 CASH — {detail?.breakdown?.cash?.entries || 0} entries · {fmt(detail?.breakdown?.cash?.amount || 0)} USDT
           </button>
           <button onClick={() => setViewMode('practice')}
-            className={`flex-1 py-1.5 rounded-lg font-orbitron text-[0.5rem] border transition-all ${
+            className={`flex-1 py-1.5 rounded-lg font-orbitron text-[0.65rem] border transition-all ${
               viewMode === 'practice' ? 'bg-cyan/10 border-cyan/40 text-cyan' : 'bg-white/3 border-white/10 text-white/40'
             }`}>
             🎮 PRACTICE — {detail?.breakdown?.practice?.entries || 0} entries · {fmt(detail?.breakdown?.practice?.amount || 0)} USDT
@@ -358,7 +358,7 @@ function ForceResultModal({ game, onClose, onDone }) {
 
         {/* Digit picker with per-digit amounts */}
         <div className="mb-4">
-          <div className="text-[0.55rem] text-white/40 font-orbitron mb-2">SELECT WINNING DIGIT</div>
+          <div className="text-[0.68rem] text-white/40 font-orbitron mb-2">SELECT WINNING DIGIT</div>
           <div className="grid grid-cols-5 gap-2">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => {
               const info = perDigit.find((p) => p.digit === d) || {};
@@ -379,7 +379,7 @@ function ForceResultModal({ game, onClose, onDone }) {
                   }`}
                 >
                   <div className="font-russo text-[1.3rem]">{d}</div>
-                  <div className={`text-[0.45rem] font-orbitron mt-0.5 ${amt > 0 ? 'text-pink' : 'text-green'}`}>
+                  <div className={`text-[0.6rem] font-orbitron mt-0.5 ${amt > 0 ? 'text-pink' : 'text-green'}`}>
                     {cnt > 0 ? `${fmt(amt)}` : '—'}
                   </div>
                   {cnt > 0 && <div className="text-[0.4rem] text-white/30">{cnt} bet{cnt > 1 ? 's' : ''}</div>}
@@ -387,7 +387,7 @@ function ForceResultModal({ game, onClose, onDone }) {
               );
             })}
           </div>
-          <div className="flex items-center gap-3 mt-2 text-[0.5rem] text-white/30">
+          <div className="flex items-center gap-3 mt-2 text-[0.65rem] text-white/30">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-green/30 border border-green/30"></span> No bets (max profit)</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-pink/30 border border-pink/30"></span> Has bets (payout required)</span>
           </div>
@@ -460,7 +460,7 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full border font-orbitron text-[0.55rem] ${style.color}`}>
+            <span className={`px-3 py-1 rounded-full border font-orbitron text-[0.68rem] ${style.color}`}>
               {style.label}
             </span>
             {g.status === 'RESULTED' && (
@@ -476,7 +476,7 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
         <div className="flex gap-1 mb-4 border-b border-white/10 pb-2">
           {['overview', 'entries'].map((t) => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-lg font-orbitron text-[0.55rem] transition-all ${
+              className={`px-4 py-2 rounded-lg font-orbitron text-[0.68rem] transition-all ${
                 tab === t ? 'bg-gold/10 border border-gold/30 text-gold' : 'text-white/40 hover:text-white/60'
               }`}>
               {t === 'overview' ? '📊 OVERVIEW' : '📋 ENTRIES'}
@@ -507,7 +507,7 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
 
                 {/* Per-digit breakdown */}
                 <div className="mb-5">
-                  <div className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.1em] mb-3">PER-DIGIT BREAKDOWN</div>
+                  <div className="text-[0.68rem] text-white/40 font-orbitron tracking-[0.1em] mb-3">PER-DIGIT BREAKDOWN</div>
                   <div className="space-y-1.5">
                     {perDigit.map((p) => {
                       const total = (p.cashAmount || 0) + (p.practiceAmount || 0);
@@ -527,12 +527,12 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
                             </div>
                           </div>
                           <div className="text-right min-w-[120px]">
-                            <span className="font-orbitron text-[0.55rem] text-gold">{fmt(p.cashAmount || 0, 3)}</span>
+                            <span className="font-orbitron text-[0.68rem] text-gold">{fmt(p.cashAmount || 0, 3)}</span>
                             <span className="text-white/20 mx-1">|</span>
-                            <span className="font-orbitron text-[0.55rem] text-cyan">{fmt(p.practiceAmount || 0, 3)}</span>
+                            <span className="font-orbitron text-[0.68rem] text-cyan">{fmt(p.practiceAmount || 0, 3)}</span>
                           </div>
                           <div className="text-right min-w-[40px]">
-                            <span className="font-orbitron text-[0.45rem] text-white/30">
+                            <span className="font-orbitron text-[0.6rem] text-white/30">
                               {(p.cashCount || 0) + (p.practiceCount || 0)} bets
                             </span>
                           </div>
@@ -541,7 +541,7 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
                       );
                     })}
                   </div>
-                  <div className="flex gap-4 mt-2 text-[0.45rem] text-white/30 font-orbitron">
+                  <div className="flex gap-4 mt-2 text-[0.6rem] text-white/30 font-orbitron">
                     <span><span className="text-gold">Gold</span> = Cash</span>
                     <span><span className="text-cyan">Cyan</span> = Practice</span>
                   </div>
@@ -551,19 +551,19 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   <div className="p-2 rounded-lg bg-white/3">
                     <div className="text-[0.4rem] text-white/30 font-orbitron">SCHEDULED</div>
-                    <div className="text-[0.55rem] text-white/60 font-orbitron">{g.scheduledAt ? new Date(g.scheduledAt).toLocaleString() : '—'}</div>
+                    <div className="text-[0.68rem] text-white/60 font-orbitron">{g.scheduledAt ? new Date(g.scheduledAt).toLocaleString() : '—'}</div>
                   </div>
                   <div className="p-2 rounded-lg bg-white/3">
                     <div className="text-[0.4rem] text-white/30 font-orbitron">CUTOFF</div>
-                    <div className="text-[0.55rem] text-white/60 font-orbitron">{g.cutoffAt ? new Date(g.cutoffAt).toLocaleString() : '—'}</div>
+                    <div className="text-[0.68rem] text-white/60 font-orbitron">{g.cutoffAt ? new Date(g.cutoffAt).toLocaleString() : '—'}</div>
                   </div>
                   <div className="p-2 rounded-lg bg-white/3">
                     <div className="text-[0.4rem] text-white/30 font-orbitron">RESULTED</div>
-                    <div className="text-[0.55rem] text-white/60 font-orbitron">{g.resultAt ? new Date(g.resultAt).toLocaleString() : '—'}</div>
+                    <div className="text-[0.68rem] text-white/60 font-orbitron">{g.resultAt ? new Date(g.resultAt).toLocaleString() : '—'}</div>
                   </div>
                   <div className="p-2 rounded-lg bg-white/3">
                     <div className="text-[0.4rem] text-white/30 font-orbitron">CREATED</div>
-                    <div className="text-[0.55rem] text-white/60 font-orbitron">{g.createdAt ? new Date(g.createdAt).toLocaleString() : '—'}</div>
+                    <div className="text-[0.68rem] text-white/60 font-orbitron">{g.createdAt ? new Date(g.createdAt).toLocaleString() : '—'}</div>
                   </div>
                 </div>
               </>
@@ -577,7 +577,7 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
                 <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                   <table className="w-full text-[0.6rem]">
                     <thead className="bg-white/5 border-b border-white/10 sticky top-0">
-                      <tr className="text-left text-white/40 font-orbitron text-[0.5rem] tracking-[0.08em]">
+                      <tr className="text-left text-white/40 font-orbitron text-[0.65rem] tracking-[0.08em]">
                         <th className="py-2 px-2">USER</th>
                         <th className="py-2 px-2 text-center">DIGIT</th>
                         <th className="py-2 px-2 text-right">AMOUNT</th>
@@ -599,12 +599,12 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
                         const short = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '—';
                         return (
                           <tr key={e._id} className={`border-b border-white/5 ${isWin ? 'bg-green/3' : isLoss ? 'bg-pink/3' : ''}`}>
-                            <td className="py-2 px-2 font-orbitron text-cyan text-[0.5rem]">{short}</td>
+                            <td className="py-2 px-2 font-orbitron text-cyan text-[0.65rem]">{short}</td>
                             <td className="py-2 px-2 text-center">
                               <span className={`font-russo text-[0.9rem] ${isWin ? 'text-green' : isLoss ? 'text-pink' : 'text-white'}`}>{e.digit}</span>
                             </td>
                             <td className="py-2 px-2 font-orbitron text-gold text-right">{fmt(e.amount, 3)}</td>
-                            <td className="py-2 px-2 font-orbitron text-white/40 text-[0.45rem]">
+                            <td className="py-2 px-2 font-orbitron text-white/40 text-[0.6rem]">
                               {e.walletType === 'GAME_WALLET' ? 'Game' : e.walletType === 'COMPOUND_SLOT' ? `Cmpd#${e.digit}` : 'Practice'}
                             </td>
                             <td className="py-2 px-2 text-center">
@@ -616,13 +616,13 @@ function GameDetailModal({ game, onClose, onForce, canOps }) {
                                 <span className="px-1.5 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink font-orbitron text-[0.4rem]">LOSS</span>
                               )}
                             </td>
-                            <td className="py-2 px-2 font-orbitron text-green text-right text-[0.5rem]">
+                            <td className="py-2 px-2 font-orbitron text-green text-right text-[0.65rem]">
                               {isWin ? `+${fmt(e.directPayout || 0, 3)}` : '—'}
                             </td>
-                            <td className="py-2 px-2 font-orbitron text-purple text-right text-[0.5rem]">
+                            <td className="py-2 px-2 font-orbitron text-purple text-right text-[0.65rem]">
                               {isWin ? `+${fmt(e.compoundPayout || 0, 3)}` : '—'}
                             </td>
-                            <td className={`py-2 px-2 font-orbitron text-right font-bold text-[0.5rem] ${
+                            <td className={`py-2 px-2 font-orbitron text-right font-bold text-[0.65rem] ${
                               isPending ? 'text-yellow-400' : net >= 0 ? 'text-green' : 'text-pink'
                             }`}>
                               {isPending ? 'TBD' : `${net >= 0 ? '+' : ''}${fmt(net, 3)}`}
@@ -681,10 +681,10 @@ function StatCard({ label, value, color, type = 'usdt' }) {
   const display = type === 'count' ? value || 0 : fmt(value);
   return (
     <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
-      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">{label}</div>
+      <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">{label}</div>
       <div className={`font-orbitron font-bold text-[1.3rem] ${colorClass.split(' ')[0]}`}>
         {display}
-        {type !== 'count' && <span className="text-[0.55rem] text-white/30 ml-1">USDT</span>}
+        {type !== 'count' && <span className="text-[0.68rem] text-white/30 ml-1">USDT</span>}
       </div>
     </div>
   );

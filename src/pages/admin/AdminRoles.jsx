@@ -97,7 +97,7 @@ export default function AdminRoles() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ SUPER ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Role Management</h1>
@@ -112,7 +112,7 @@ export default function AdminRoles() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
-            <div className="text-[0.55rem] text-white/40 font-orbitron mb-1">WALLET ADDRESS</div>
+            <div className="text-[0.68rem] text-white/40 font-orbitron mb-1">WALLET ADDRESS</div>
             <input
               type="text"
               value={wallet}
@@ -122,7 +122,7 @@ export default function AdminRoles() {
             />
           </div>
           <div>
-            <div className="text-[0.55rem] text-white/40 font-orbitron mb-1">ROLE</div>
+            <div className="text-[0.68rem] text-white/40 font-orbitron mb-1">ROLE</div>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
@@ -134,7 +134,7 @@ export default function AdminRoles() {
                 </option>
               ))}
             </select>
-            <div className="text-[0.5rem] text-white/30 mt-1">
+            <div className="text-[0.65rem] text-white/30 mt-1">
               {ROLE_OPTIONS.find((o) => o.value === role)?.desc}
             </div>
           </div>
@@ -165,12 +165,12 @@ export default function AdminRoles() {
       {/* Transfer Super Admin */}
       <div className="card-glass rounded-2xl p-6 border border-pink/20 mb-6">
         <div className="font-orbitron text-pink text-[0.7rem] font-bold mb-1">TRANSFER SUPER ADMIN</div>
-        <div className="text-[0.55rem] text-white/30 mb-4">
+        <div className="text-[0.68rem] text-white/30 mb-4">
           Transfer your SUPER role to another user. You will lose all admin access and be logged out immediately.
         </div>
         <div className="flex gap-3 items-end flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <div className="text-[0.55rem] text-white/40 font-orbitron mb-1">NEW SUPER ADMIN WALLET</div>
+            <div className="text-[0.68rem] text-white/40 font-orbitron mb-1">NEW SUPER ADMIN WALLET</div>
             <input
               type="text"
               value={superWallet}
@@ -219,7 +219,7 @@ export default function AdminRoles() {
           <div className="overflow-x-auto">
             <table className="w-full text-[0.7rem]">
               <thead>
-                <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] border-b border-white/10">
+                <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em] border-b border-white/10">
                   <th className="py-2 px-3">WALLET</th>
                   <th className="py-2 px-3">ROLE</th>
                   <th className="py-2 px-3 text-right">DIRECTS</th>
@@ -238,7 +238,7 @@ export default function AdminRoles() {
                       </td>
                       <td className="py-2.5 px-3">
                         <span
-                          className={`px-2 py-0.5 rounded-full font-orbitron text-[0.5rem] border ${badge.color || 'text-white/30'}`}
+                          className={`px-2 py-0.5 rounded-full font-orbitron text-[0.65rem] border ${badge.color || 'text-white/30'}`}
                         >
                           {badge.label || a.adminRole}
                         </span>
@@ -249,7 +249,7 @@ export default function AdminRoles() {
                       <td className="py-2.5 px-3 font-orbitron text-white/40 text-right">
                         {a.rank || 0}
                       </td>
-                      <td className="py-2.5 px-3 font-orbitron text-white/30 text-[0.5rem]">
+                      <td className="py-2.5 px-3 font-orbitron text-white/30 text-[0.65rem]">
                         {a.registeredAt ? new Date(a.registeredAt).toLocaleDateString() : '—'}
                       </td>
                       <td className="py-2.5 px-3 text-center">
@@ -257,7 +257,7 @@ export default function AdminRoles() {
                           <button
                             onClick={() => handleRemoveAdmin(a.walletAddress)}
                             disabled={busy}
-                            className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.45rem] hover:bg-pink/20 disabled:opacity-30"
+                            className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.6rem] hover:bg-pink/20 disabled:opacity-30"
                           >
                             REMOVE
                           </button>

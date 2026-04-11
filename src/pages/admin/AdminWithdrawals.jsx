@@ -186,7 +186,7 @@ export default function AdminWithdrawals() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Withdrawals</h1>
@@ -210,7 +210,7 @@ export default function AdminWithdrawals() {
               style={{ width: `${dailyPct}%` }}
             />
           </div>
-          <div className="text-[0.55rem] text-white/30 font-orbitron mt-1">
+          <div className="text-[0.68rem] text-white/30 font-orbitron mt-1">
             Indicator only — per-user cap is 5,000 USDT/day enforced server-side. Currently visible: {withdrawals.length} of {total}.
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function AdminWithdrawals() {
             <div className="text-[0.6rem] text-white/30">Loading...</div>
           ) : (
             <>
-              <div className="text-[0.55rem] text-white/30 font-orbitron mb-3 break-all">
+              <div className="text-[0.68rem] text-white/30 font-orbitron mb-3 break-all">
                 Treasury: {treasuryBalance.contractAddress}
               </div>
               <div className="flex gap-2">
@@ -251,7 +251,7 @@ export default function AdminWithdrawals() {
                 <button
                   onClick={() => setFeeAmount(String(treasuryBalance.balance))}
                   disabled={withdrawingFee || treasuryBalance.balance <= 0}
-                  className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.55rem] hover:border-gold/30 disabled:opacity-30"
+                  className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.68rem] hover:border-gold/30 disabled:opacity-30"
                 >
                   MAX
                 </button>
@@ -263,7 +263,7 @@ export default function AdminWithdrawals() {
                   {withdrawingFee ? '⏳' : '💸 WITHDRAW'}
                 </button>
               </div>
-              <div className="text-[0.5rem] text-white/30 font-orbitron mt-1">
+              <div className="text-[0.65rem] text-white/30 font-orbitron mt-1">
                 Sends from Treasury → admin wallet on-chain
               </div>
             </>
@@ -281,7 +281,7 @@ export default function AdminWithdrawals() {
                 setStatusFilter(s);
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.55rem] tracking-[0.1em] border transition-all ${
+              className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.68rem] tracking-[0.1em] border transition-all ${
                 statusFilter === s
                   ? 'bg-gold/10 border-gold/40 text-gold'
                   : 'bg-white/3 border-white/10 text-white/40 hover:border-gold/20 hover:text-gold'
@@ -302,7 +302,7 @@ export default function AdminWithdrawals() {
           <div className="flex gap-2">
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem] hover:border-white/30"
+              className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.68rem] hover:border-white/30"
             >
               CLEAR
             </button>
@@ -341,7 +341,7 @@ export default function AdminWithdrawals() {
           <div className="overflow-x-auto">
             <table className="w-full text-[0.65rem]">
               <thead className="bg-white/5 border-b border-white/10">
-                <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em]">
+                <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em]">
                   <th className="py-3 px-3 w-8">
                     {statusFilter === 'PENDING' && (
                       <input
@@ -387,13 +387,13 @@ export default function AdminWithdrawals() {
                           ? `${w.userId.walletAddress.slice(0, 6)}...${w.userId.walletAddress.slice(-4)}`
                           : '—'}
                         {w.userId?.referralCode && (
-                          <div className="text-[0.5rem] text-cyan">{w.userId.referralCode}</div>
+                          <div className="text-[0.65rem] text-cyan">{w.userId.referralCode}</div>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 font-orbitron text-purple text-[0.55rem]">
+                      <td className="py-2.5 px-3 font-orbitron text-purple text-[0.68rem]">
                         {w.fromWallet}
                       </td>
-                      <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.55rem]">
+                      <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.68rem]">
                         {w.toAddress?.slice(0, 6)}...{w.toAddress?.slice(-4)}
                       </td>
                       <td className="py-2.5 px-3 font-orbitron text-gold text-right">
@@ -406,7 +406,7 @@ export default function AdminWithdrawals() {
                         {fmt(w.netAmount)}
                       </td>
                       <td className="py-2.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.5rem] ${style.color}`}>
+                        <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.65rem] ${style.color}`}>
                           {style.label}
                         </span>
                         {w.txHash && (
@@ -414,13 +414,13 @@ export default function AdminWithdrawals() {
                             href={`https://testnet.bscscan.com/tx/${w.txHash}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="block text-[0.5rem] text-cyan font-orbitron underline mt-0.5"
+                            className="block text-[0.65rem] text-cyan font-orbitron underline mt-0.5"
                           >
                             BSCScan ↗
                           </a>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 font-orbitron text-white/30 text-[0.5rem]">
+                      <td className="py-2.5 px-3 font-orbitron text-white/30 text-[0.65rem]">
                         {w.requestedAt ? new Date(w.requestedAt).toLocaleString() : '—'}
                       </td>
                       <td className="py-2.5 px-3">
@@ -429,7 +429,7 @@ export default function AdminWithdrawals() {
                             <button
                               disabled={busy}
                               onClick={() => handleApprove(w._id)}
-                              className="px-2 py-1 rounded bg-green/10 border border-green/30 text-green font-orbitron text-[0.5rem] hover:bg-green/20 disabled:opacity-30"
+                              className="px-2 py-1 rounded bg-green/10 border border-green/30 text-green font-orbitron text-[0.65rem] hover:bg-green/20 disabled:opacity-30"
                             >
                               ✓ APPROVE
                             </button>
@@ -439,17 +439,17 @@ export default function AdminWithdrawals() {
                                 setRejectingId(w._id);
                                 setRejectNote('');
                               }}
-                              className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.5rem] hover:bg-pink/20 disabled:opacity-30"
+                              className="px-2 py-1 rounded bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.65rem] hover:bg-pink/20 disabled:opacity-30"
                             >
                               ✗ REJECT
                             </button>
                           </div>
                         )}
                         {isPending && !canApprove && (
-                          <span className="text-[0.5rem] text-white/30 font-orbitron">SUPER ADMIN ONLY</span>
+                          <span className="text-[0.65rem] text-white/30 font-orbitron">SUPER ADMIN ONLY</span>
                         )}
                         {w.adminNote && (
-                          <div className="text-[0.5rem] text-white/40 italic mt-1 max-w-[150px] truncate">
+                          <div className="text-[0.65rem] text-white/40 italic mt-1 max-w-[150px] truncate">
                             {w.adminNote}
                           </div>
                         )}

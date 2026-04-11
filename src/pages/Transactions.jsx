@@ -90,7 +90,7 @@ export default function Transactions() {
           <div className="card-glass rounded-2xl p-4 mb-4 border border-white/10">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
-                <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
+                <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
                   TYPE
                 </label>
                 <select
@@ -110,7 +110,7 @@ export default function Transactions() {
                 </select>
               </div>
               <div>
-                <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
+                <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
                   FROM
                 </label>
                 <input
@@ -124,7 +124,7 @@ export default function Transactions() {
                 />
               </div>
               <div>
-                <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
+                <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
                   TO
                 </label>
                 <input
@@ -162,7 +162,7 @@ export default function Transactions() {
               <div className="overflow-x-auto">
                 <table className="w-full text-[0.65rem]">
                   <thead className="bg-white/5 border-b border-white/10">
-                    <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em]">
+                    <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em]">
                       <th className="py-3 px-3">DATE / TIME</th>
                       <th className="py-3 px-3">TYPE</th>
                       <th className="py-3 px-3 text-right">AMOUNT</th>
@@ -230,11 +230,11 @@ function TransactionRow({ t }) {
 
   return (
     <tr className="border-b border-white/5 hover:bg-white/3">
-      <td className="py-2.5 px-3 font-orbitron text-white/50 text-[0.55rem] whitespace-nowrap">
+      <td className="py-2.5 px-3 font-orbitron text-white/50 text-[0.68rem] whitespace-nowrap">
         {new Date(t.createdAt).toLocaleString()}
       </td>
       <td className="py-2.5 px-3">
-        <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.5rem] whitespace-nowrap ${colorClass}`}>
+        <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.65rem] whitespace-nowrap ${colorClass}`}>
           {meta.label}
         </span>
       </td>
@@ -242,11 +242,11 @@ function TransactionRow({ t }) {
         {amountSign}
         {fmt(t.amount)}
       </td>
-      <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.55rem]">{wallet}</td>
+      <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.68rem]">{wallet}</td>
       <td className="py-2.5 px-3">
         {t.status ? (
           <span
-            className={`px-1.5 py-0.5 rounded font-orbitron text-[0.5rem] ${
+            className={`px-1.5 py-0.5 rounded font-orbitron text-[0.65rem] ${
               t.status === 'COMPLETED'
                 ? 'text-green'
                 : t.status === 'FAILED'
@@ -266,7 +266,7 @@ function TransactionRow({ t }) {
             href={`https://testnet.bscscan.com/tx/${t.txHash}`}
             target="_blank"
             rel="noreferrer"
-            className="text-cyan font-orbitron text-[0.55rem] hover:text-gold underline"
+            className="text-cyan font-orbitron text-[0.68rem] hover:text-gold underline"
           >
             BSCScan ↗
           </a>

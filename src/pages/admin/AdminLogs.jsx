@@ -56,7 +56,7 @@ export default function AdminLogs() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Logs</h1>
@@ -69,7 +69,7 @@ export default function AdminLogs() {
       <div className="card-glass rounded-2xl p-4 mb-4 border border-white/10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
-            <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
+            <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
               ACTION TYPE
             </label>
             <select
@@ -86,7 +86,7 @@ export default function AdminLogs() {
             </select>
           </div>
           <div>
-            <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
+            <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
               FROM DATE
             </label>
             <input
@@ -100,7 +100,7 @@ export default function AdminLogs() {
             />
           </div>
           <div>
-            <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
+            <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.1em]">
               TO DATE
             </label>
             <input
@@ -136,7 +136,7 @@ export default function AdminLogs() {
           <div className="overflow-x-auto">
             <table className="w-full text-[0.65rem]">
               <thead className="bg-white/5 border-b border-white/10 sticky top-0">
-                <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em]">
+                <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em]">
                   <th className="py-3 px-3">TIMESTAMP</th>
                   <th className="py-3 px-3">ADMIN</th>
                   <th className="py-3 px-3">ACTION</th>
@@ -147,10 +147,10 @@ export default function AdminLogs() {
               <tbody>
                 {logs.map((log) => (
                   <tr key={log._id} className="border-b border-white/5 hover:bg-white/3 align-top">
-                    <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.55rem] whitespace-nowrap">
+                    <td className="py-2.5 px-3 font-orbitron text-white/40 text-[0.68rem] whitespace-nowrap">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
-                    <td className="py-2.5 px-3 font-orbitron text-cyan text-[0.55rem]">
+                    <td className="py-2.5 px-3 font-orbitron text-cyan text-[0.68rem]">
                       {log.adminWallet
                         ? `${log.adminWallet.slice(0, 6)}...${log.adminWallet.slice(-4)}`
                         : '—'}
@@ -158,10 +158,10 @@ export default function AdminLogs() {
                     <td className="py-2.5 px-3">
                       <ActionBadge action={log.action} />
                     </td>
-                    <td className="py-2.5 px-3 font-orbitron text-white/60 text-[0.55rem] max-w-[150px] truncate">
+                    <td className="py-2.5 px-3 font-orbitron text-white/60 text-[0.68rem] max-w-[150px] truncate">
                       {log.target || '—'}
                     </td>
-                    <td className="py-2.5 px-3 text-[0.55rem] max-w-[400px]">
+                    <td className="py-2.5 px-3 text-[0.68rem] max-w-[400px]">
                       {log.oldValue !== undefined && log.oldValue !== null && (
                         <div>
                           <span className="text-pink font-orbitron">old: </span>
@@ -233,7 +233,7 @@ function ActionBadge({ action }) {
   };
   const style = styles[action] || 'bg-white/5 border-white/20 text-white/60';
   return (
-    <span className={`px-2 py-0.5 rounded-full font-orbitron text-[0.5rem] border whitespace-nowrap ${style}`}>
+    <span className={`px-2 py-0.5 rounded-full font-orbitron text-[0.65rem] border whitespace-nowrap ${style}`}>
       {action}
     </span>
   );

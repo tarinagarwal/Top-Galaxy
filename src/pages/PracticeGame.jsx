@@ -150,27 +150,27 @@ export default function PracticeGame() {
           {/* Stats grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="card-glass rounded-2xl p-6">
-              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">PRACTICE BALANCE</div>
+              <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">PRACTICE BALANCE</div>
               <div className="font-orbitron text-cyan text-[1.8rem] font-bold">
                 {fmt(status?.practiceWallet)}
               </div>
-              <div className="text-[0.55rem] text-white/30 mt-1">USDT (non-withdrawable)</div>
+              <div className="text-[0.68rem] text-white/30 mt-1">USDT (non-withdrawable)</div>
             </div>
             <div className="card-glass rounded-2xl p-6">
-              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">DAYS REMAINING</div>
+              <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">DAYS REMAINING</div>
               <div className="font-orbitron text-gold text-[1.8rem] font-bold">
                 {status?.daysRemaining ?? '—'}
               </div>
-              <div className="text-[0.55rem] text-white/30 mt-1">
+              <div className="text-[0.68rem] text-white/30 mt-1">
                 Expires {status?.practiceExpiry ? new Date(status.practiceExpiry).toLocaleDateString() : '—'}
               </div>
             </div>
             <div className="card-glass rounded-2xl p-6">
-              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">WIN MULTIPLIER</div>
+              <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">WIN MULTIPLIER</div>
               <div className="font-orbitron text-green text-[1.8rem] font-bold">
                 {status?.winMultiplier || 8}×
               </div>
-              <div className="text-[0.55rem] text-white/30 mt-1">On every winning entry</div>
+              <div className="text-[0.68rem] text-white/30 mt-1">On every winning entry</div>
             </div>
           </div>
 
@@ -179,7 +179,7 @@ export default function PracticeGame() {
             <div className="card-glass rounded-2xl p-5 mb-6 border border-cyan/20">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
+                  <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
                     GAME #{currentGame.gameNumber} · {currentGame.date}
                   </div>
                   <div className="font-orbitron text-cyan text-[0.65rem] mt-1">
@@ -210,7 +210,7 @@ export default function PracticeGame() {
                 </div>
               </div>
               {cutoffPassed && (
-                <div className="mt-2 text-[0.55rem] text-yellow-400 font-orbitron">
+                <div className="mt-2 text-[0.68rem] text-yellow-400 font-orbitron">
                   Entries closed — result will be announced shortly
                 </div>
               )}
@@ -254,7 +254,7 @@ export default function PracticeGame() {
                 </div>
               </div>
               <div
-                className={`px-3 py-1.5 rounded-full text-[0.55rem] font-orbitron border whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-full text-[0.68rem] font-orbitron border whitespace-nowrap ${
                   isPro
                     ? 'bg-green/10 border-green/40 text-green'
                     : 'bg-white/5 border-white/20 text-white/40'
@@ -267,7 +267,7 @@ export default function PracticeGame() {
             {!isPro && (
               <div className="p-3 rounded-lg bg-pink/5 border border-pink/20 text-[0.65rem] text-pink mb-4">
                 ⚠️ Auto-conversion only activates when you reach PRO tier. Deposit 100+ USDT total to unlock.
-                <div className="text-white/40 mt-1 text-[0.55rem]">
+                <div className="text-white/40 mt-1 text-[0.68rem]">
                   Current: {fmt(status?.conversionRequirements?.totalDepositedCurrent)} / {fmt(status?.conversionRequirements?.proThreshold || 100)} USDT deposited
                 </div>
               </div>
@@ -281,17 +281,17 @@ export default function PracticeGame() {
                   <div className="font-orbitron text-cyan text-[0.6rem] tracking-[0.1em]">
                     🎮 PRACTICE BALANCE
                   </div>
-                  <div className="text-[0.5rem] text-white/30 font-orbitron">→ Game + Referral Wallet</div>
+                  <div className="text-[0.65rem] text-white/30 font-orbitron">→ Game + Referral Wallet</div>
                 </div>
                 <div className="flex items-end justify-between mb-2">
                   <div>
-                    <div className="text-[0.5rem] text-white/30 font-orbitron">REMAINING</div>
+                    <div className="text-[0.65rem] text-white/30 font-orbitron">REMAINING</div>
                     <div className="font-orbitron text-cyan text-[1.4rem] font-bold leading-none">
                       {fmt(practiceRemaining)}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[0.5rem] text-white/30 font-orbitron">CONVERTED</div>
+                    <div className="text-[0.65rem] text-white/30 font-orbitron">CONVERTED</div>
                     <div className="font-orbitron text-gold text-[0.95rem] font-bold leading-none">
                       {fmt(lifetimeConverted)}
                     </div>
@@ -303,7 +303,7 @@ export default function PracticeGame() {
                     style={{ width: `${practiceProgress}%` }}
                   />
                 </div>
-                <div className="text-[0.5rem] text-white/30 font-orbitron mt-1 text-right">
+                <div className="text-[0.65rem] text-white/30 font-orbitron mt-1 text-right">
                   {fmt(practiceProgress, 1)}% converted
                 </div>
               </div>
@@ -313,7 +313,7 @@ export default function PracticeGame() {
               <span>
                 Total lifetime conversions: <span className="text-gold font-orbitron">{fmt(lifetimeConverted)} USDT</span> across <span className="text-cyan font-orbitron">{num(status?.autoConversionCount)}</span> events
               </span>
-              <span className="text-[0.55rem] italic">
+              <span className="text-[0.68rem] italic">
                 Refer + deposit teammates to grow this 🚀
               </span>
             </div>
@@ -345,7 +345,7 @@ export default function PracticeGame() {
 
               <form onSubmit={handleEnter} className="space-y-3">
                 <div>
-                  <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+                  <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
                     BET AMOUNT (PRACTICE USDT)
                   </label>
                   <input
@@ -399,7 +399,7 @@ export default function PracticeGame() {
             {/* Side panel — quick stats + rules */}
             <div className="space-y-4">
               <div className="card-glass rounded-2xl p-5">
-                <div className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.15em] mb-2">
+                <div className="text-[0.68rem] text-white/40 font-orbitron tracking-[0.15em] mb-2">
                   ⚠️ PRACTICE RULES
                 </div>
                 <ul className="text-[0.65rem] text-white/50 space-y-1.5 leading-relaxed">
@@ -413,7 +413,7 @@ export default function PracticeGame() {
               </div>
 
               <div className="card-glass rounded-2xl p-5 border border-cyan/20">
-                <div className="text-[0.55rem] text-cyan font-orbitron tracking-[0.15em] mb-2">
+                <div className="text-[0.68rem] text-cyan font-orbitron tracking-[0.15em] mb-2">
                   💡 HOW AUTO-CONVERSION WORKS
                 </div>
                 <ol className="text-[0.6rem] text-white/50 space-y-1.5 leading-relaxed list-decimal list-inside">
@@ -435,7 +435,7 @@ export default function PracticeGame() {
             <div className="font-orbitron text-cyan text-[0.75rem] font-bold">
               📊 VIEW PRACTICE HISTORY
             </div>
-            <div className="text-[0.5rem] text-white/30 mt-1">
+            <div className="text-[0.65rem] text-white/30 mt-1">
               Win/Loss · Payouts · P&L
             </div>
           </Link>

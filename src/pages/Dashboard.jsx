@@ -137,7 +137,7 @@ export default function Dashboard() {
                 </span>
               )}
               {u.rank > 0 && (
-                <span className="px-3 py-1 rounded-full bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.55rem] tracking-[0.15em]">
+                <span className="px-3 py-1 rounded-full bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.68rem] tracking-[0.15em]">
                   🏆 RANK {u.rank}
                 </span>
               )}
@@ -150,13 +150,13 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
             {/* Total withdrawable */}
             <div className="lg:col-span-1 card-glass rounded-2xl p-6 border border-green/30">
-              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-2">
+              <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-2">
                 💰 TOTAL WITHDRAWABLE BALANCE
               </div>
               <div className="font-orbitron text-green text-[2.4rem] font-bold leading-none">
                 {fmt(totalWithdrawable)}
               </div>
-              <div className="text-[0.55rem] text-white/30 mt-1 font-orbitron">USDT</div>
+              <div className="text-[0.68rem] text-white/30 mt-1 font-orbitron">USDT</div>
               <Link
                 to="/wallet"
                 className="mt-4 inline-block px-4 py-2 rounded-lg bg-green/10 border border-green/30 text-green font-orbitron text-[0.6rem] hover:bg-green/20"
@@ -167,7 +167,7 @@ export default function Dashboard() {
 
             {/* Quick actions */}
             <div className="lg:col-span-2 card-glass rounded-2xl p-6 border border-white/10">
-              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-3">
+              <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-3">
                 ⚡ QUICK ACTIONS
               </div>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
@@ -215,7 +215,7 @@ export default function Dashboard() {
                 <Row label="Cap Multiplier" value={`${num(cashbackStatus?.capMultiplier) || 1}×`} color="gold" />
               </div>
               <div className="mt-3">
-                <div className="flex items-center justify-between text-[0.55rem] font-orbitron mb-1">
+                <div className="flex items-center justify-between text-[0.68rem] font-orbitron mb-1">
                   <span className="text-white/40">CAP USED</span>
                   <span className="text-gold">{fmt(capProgress, 1)}%</span>
                 </div>
@@ -230,7 +230,7 @@ export default function Dashboard() {
               </div>
               <Link
                 to="/cashback"
-                className="mt-3 block text-center text-[0.55rem] text-green font-orbitron hover:text-cyan"
+                className="mt-3 block text-center text-[0.68rem] text-green font-orbitron hover:text-cyan"
               >
                 VIEW CASHBACK →
               </Link>
@@ -249,14 +249,14 @@ export default function Dashboard() {
               </div>
               {u.referralCode && (
                 <div className="mt-3">
-                  <div className="text-[0.5rem] text-white/30 font-orbitron mb-1">YOUR CODE</div>
+                  <div className="text-[0.65rem] text-white/30 font-orbitron mb-1">YOUR CODE</div>
                   <div className="flex gap-1">
                     <code className="flex-1 px-2 py-1 rounded bg-white/5 border border-white/10 text-cyan font-orbitron text-[0.65rem]">
                       {u.referralCode}
                     </code>
                     <button
                       onClick={() => copy(u.referralCode, 'code')}
-                      className="px-2 py-1 rounded bg-cyan/10 border border-cyan/30 text-cyan font-orbitron text-[0.5rem] hover:bg-cyan/20"
+                      className="px-2 py-1 rounded bg-cyan/10 border border-cyan/30 text-cyan font-orbitron text-[0.65rem] hover:bg-cyan/20"
                     >
                       {copied === 'code' ? '✓' : 'COPY'}
                     </button>
@@ -275,7 +275,7 @@ export default function Dashboard() {
               <DrawProgress draw={silver} type="SILVER" icon="🥈" color="silver" />
               <Link
                 to="/lucky-draw"
-                className="mt-3 block text-center text-[0.55rem] text-gold font-orbitron hover:text-cyan"
+                className="mt-3 block text-center text-[0.68rem] text-gold font-orbitron hover:text-cyan"
               >
                 BUY TICKETS →
               </Link>
@@ -302,7 +302,7 @@ export default function Dashboard() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="font-orbitron text-white/70">{t.type}</div>
-                      <div className="text-[0.55rem] text-white/30">
+                      <div className="text-[0.68rem] text-white/30">
                         {new Date(t.createdAt).toLocaleString()}
                       </div>
                     </div>
@@ -337,7 +337,7 @@ function StreamCard({ meta, stream }) {
       <div className="flex items-center justify-between mb-2">
         <span className="text-[1.4rem]">{meta.icon}</span>
         {num(stream.today) > 0 && (
-          <span className={`text-[0.5rem] font-orbitron px-1.5 py-0.5 rounded-full bg-green/10 border border-green/30 text-green`}>
+          <span className={`text-[0.65rem] font-orbitron px-1.5 py-0.5 rounded-full bg-green/10 border border-green/30 text-green`}>
             +{fmt(stream.today)} today
           </span>
         )}
@@ -345,11 +345,11 @@ function StreamCard({ meta, stream }) {
       <div className={`font-orbitron text-[0.6rem] font-bold tracking-[0.05em] ${colorClass.split(' ')[1]}`}>
         {meta.name}
       </div>
-      <div className="text-[0.5rem] text-white/30 mb-2">{meta.description}</div>
+      <div className="text-[0.65rem] text-white/30 mb-2">{meta.description}</div>
       <div className="font-orbitron text-white text-[1.1rem] font-bold">
         {fmt(stream.lifetime)}
       </div>
-      <div className="text-[0.5rem] text-white/30 font-orbitron">USDT lifetime</div>
+      <div className="text-[0.65rem] text-white/30 font-orbitron">USDT lifetime</div>
     </div>
   );
 }
@@ -387,7 +387,7 @@ function DrawProgress({ draw, type, icon, color }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between text-[0.55rem] font-orbitron mb-1">
+      <div className="flex items-center justify-between text-[0.68rem] font-orbitron mb-1">
         <span className={textColor}>
           {icon} {type}
         </span>
@@ -417,7 +417,7 @@ function ActionButton({ to, onClick, icon, label, color }) {
   const inner = (
     <div className={`p-3 rounded-xl border text-center ${colorClass} transition-all`}>
       <div className="text-[1.5rem]">{icon}</div>
-      <div className="font-orbitron text-[0.5rem] tracking-[0.1em] mt-1">{label}</div>
+      <div className="font-orbitron text-[0.65rem] tracking-[0.1em] mt-1">{label}</div>
     </div>
   );
 

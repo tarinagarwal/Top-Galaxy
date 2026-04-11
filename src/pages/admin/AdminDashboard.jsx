@@ -57,7 +57,7 @@ export default function AdminDashboard() {
     <AdminLayout>
       {/* Header */}
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN PANEL
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Dashboard</h1>
@@ -98,13 +98,13 @@ export default function AdminDashboard() {
             const data = incomeTotals[s.key] || { total: 0, count: 0 };
             return (
               <div key={s.key} className="p-3 rounded-lg bg-white/3 border border-white/5 text-center">
-                <div className={`text-${s.color} font-orbitron text-[0.55rem] tracking-[0.1em]`}>
+                <div className={`text-${s.color} font-orbitron text-[0.68rem] tracking-[0.1em]`}>
                   {s.label}
                 </div>
                 <div className="font-orbitron text-white text-[0.85rem] font-bold mt-1">
                   {fmt(data.total)}
                 </div>
-                <div className="text-[0.5rem] text-white/30 font-orbitron mt-0.5">
+                <div className="text-[0.65rem] text-white/30 font-orbitron mt-0.5">
                   {data.count} payouts
                 </div>
               </div>
@@ -238,11 +238,11 @@ function SystemStatusCard({ data }) {
                   {listener.isHealthy ? '✓ SYNCED' : '⚠️ STALE'}
                 </span>
               </div>
-              <div className="text-[0.55rem] font-orbitron text-white/40">
+              <div className="text-[0.68rem] font-orbitron text-white/40">
                 {listener.blocksBehind} blocks behind ({listener.secondsBehind}s)
               </div>
             </div>
-            <div className="mt-2 text-[0.55rem] text-white/30 font-orbitron grid grid-cols-2 gap-2">
+            <div className="mt-2 text-[0.68rem] text-white/30 font-orbitron grid grid-cols-2 gap-2">
               <div>
                 Last block:{' '}
                 <span className="text-cyan">{listener.lastProcessedBlock}</span>
@@ -313,9 +313,9 @@ function CronRow({ job, status }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span className="font-orbitron text-white/70 text-[0.65rem]">{job.label}</span>
-          <span className={`font-orbitron text-[0.5rem] ${badgeColor}`}>{badge}</span>
+          <span className={`font-orbitron text-[0.65rem] ${badgeColor}`}>{badge}</span>
         </div>
-        <div className="text-white/30 text-[0.55rem] mt-0.5 truncate">{detail}</div>
+        <div className="text-white/30 text-[0.68rem] mt-0.5 truncate">{detail}</div>
       </div>
     </div>
   );
@@ -332,10 +332,10 @@ function DashStatCard({ label, value, color, suffix = ' USDT' }) {
   const display = isCount ? num(value) : fmt(value);
   return (
     <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
-      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">{label}</div>
+      <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">{label}</div>
       <div className={`font-orbitron font-bold text-[1.3rem] ${colorClass.split(' ')[0]}`}>
         {display}
-        {!isCount && <span className="text-[0.55rem] text-white/30 ml-1">USDT</span>}
+        {!isCount && <span className="text-[0.68rem] text-white/30 ml-1">USDT</span>}
       </div>
     </div>
   );
@@ -354,19 +354,19 @@ function KPICard({ label, icon, color, today, total, suffix = ' USDT' }) {
     <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
       <div className="flex items-center gap-1.5 mb-2">
         <span className="text-[1rem]">{icon}</span>
-        <span className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">{label}</span>
+        <span className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">{label}</span>
       </div>
       <div className="flex items-baseline gap-3">
         <div>
-          <div className="text-[0.45rem] text-white/30 font-orbitron mb-0.5">TODAY</div>
+          <div className="text-[0.6rem] text-white/30 font-orbitron mb-0.5">TODAY</div>
           <div className={`font-orbitron font-bold text-[1.1rem] ${colorClass.split(' ')[0]}`}>
-            {fmtVal(today)}{!isCount && <span className="text-[0.45rem] text-white/20 ml-0.5">USDT</span>}
+            {fmtVal(today)}{!isCount && <span className="text-[0.6rem] text-white/20 ml-0.5">USDT</span>}
           </div>
         </div>
         <div className="border-l border-white/10 pl-3">
-          <div className="text-[0.45rem] text-white/30 font-orbitron mb-0.5">TOTAL</div>
+          <div className="text-[0.6rem] text-white/30 font-orbitron mb-0.5">TOTAL</div>
           <div className="font-orbitron text-[0.85rem] text-white/60">
-            {fmtVal(total)}{!isCount && <span className="text-[0.45rem] text-white/20 ml-0.5">USDT</span>}
+            {fmtVal(total)}{!isCount && <span className="text-[0.6rem] text-white/20 ml-0.5">USDT</span>}
           </div>
         </div>
       </div>
@@ -406,7 +406,7 @@ function HealthBadge({ value }) {
     label = '🚨 CRITICAL';
   }
   return (
-    <span className={`px-3 py-1 rounded-full border font-orbitron text-[0.55rem] ${color}`}>
+    <span className={`px-3 py-1 rounded-full border font-orbitron text-[0.68rem] ${color}`}>
       {label} ({fmt(value * 100, 0)}%)
     </span>
   );

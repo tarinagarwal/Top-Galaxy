@@ -70,12 +70,12 @@ export default function AdminLayout({ children }) {
         <div className="flex items-center gap-2">
           <Link
             to="/dashboard"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan/10 border border-cyan/30 text-cyan font-orbitron text-[0.55rem] tracking-[0.1em] hover:bg-cyan/20 transition-all"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan/10 border border-cyan/30 text-cyan font-orbitron text-[0.68rem] tracking-[0.1em] hover:bg-cyan/20 transition-all"
           >
             ← USER DASHBOARD
           </Link>
           {/* Role badge */}
-          <div className={`px-3 py-1.5 rounded-full border font-orbitron text-[0.55rem] tracking-[0.15em] ${badge.color}`}>
+          <div className={`px-3 py-1.5 rounded-full border font-orbitron text-[0.68rem] tracking-[0.15em] ${badge.color}`}>
             🛡️ {badge.label}
           </div>
           <span className="hidden md:inline font-orbitron text-[0.6rem] text-gold">{shortAddress}</span>
@@ -84,7 +84,7 @@ export default function AdminLayout({ children }) {
               logout();
               navigate('/');
             }}
-            className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem] hover:border-pink/40 hover:text-pink transition-all"
+            className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.68rem] hover:border-pink/40 hover:text-pink transition-all"
           >
             LOGOUT
           </button>
@@ -133,7 +133,7 @@ export default function AdminLayout({ children }) {
                 to={link.to}
                 end={link.to === '/admin'}
                 className={({ isActive }) =>
-                  `flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-orbitron text-[0.55rem] whitespace-nowrap ${
+                  `flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-orbitron text-[0.68rem] whitespace-nowrap ${
                     isActive ? 'bg-gold/10 text-gold border border-gold/30' : 'text-white/40 border border-transparent'
                   }`
                 }

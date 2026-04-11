@@ -178,11 +178,11 @@ export default function Cashback() {
                 )}
               </div>
               <div className="text-center md:text-right">
-                <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">NEXT PAYOUT IN</div>
+                <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">NEXT PAYOUT IN</div>
                 <div className={`font-russo text-[1.8rem] leading-none ${s.eligible ? 'text-green' : 'text-white/20'}`}>
                   {nextPayout}
                 </div>
-                <div className="text-[0.45rem] text-white/20 mt-1">Daily at 01:30 server time</div>
+                <div className="text-[0.6rem] text-white/20 mt-1">Daily at 01:30 server time</div>
                 {isAdmin && (
                   <button
                     onClick={async () => {
@@ -198,7 +198,7 @@ export default function Cashback() {
                       setTriggering(false);
                     }}
                     disabled={triggering}
-                    className="mt-2 px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20 disabled:opacity-40"
+                    className="mt-2 px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.65rem] hover:bg-gold/20 disabled:opacity-40"
                   >
                     {triggering ? '...' : 'TRIGGER NOW'}
                   </button>
@@ -261,7 +261,7 @@ export default function Cashback() {
               </div>
 
               <div className="text-center mb-4">
-                <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">CURRENT TIER</div>
+                <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">CURRENT TIER</div>
                 <div className="font-russo text-[3rem] text-gold leading-none">
                   {s.capMultiplier || 1}×
                 </div>
@@ -272,12 +272,12 @@ export default function Cashback() {
 
               {/* Net Loss base → Cap */}
               <div className="mb-4 p-3 rounded-lg bg-white/3 border border-white/5 text-[0.65rem]">
-                <div className="text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] mb-1">CAP BASE (today's effective net loss)</div>
+                <div className="text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em] mb-1">CAP BASE (today's effective net loss)</div>
                 <div className="font-orbitron text-white/80">
                   {fmt(baseAmount, 2)} × {s.capMultiplier || 1}× ={' '}
                   <span className="text-gold">{fmt(rawCap, 2)} USDT</span>
                 </div>
-                <div className="text-[0.5rem] text-white/30 mt-1">
+                <div className="text-[0.65rem] text-white/30 mt-1">
                   Base capped at {fmt(maxBase, 0)} USDT max · recalculates daily
                 </div>
               </div>
@@ -285,7 +285,7 @@ export default function Cashback() {
               {/* Income deduction card — only for 8× tier with reduction */}
               {hasReduction && (
                 <div className="mb-4 p-3 rounded-lg bg-pink/5 border border-pink/20 text-[0.65rem] space-y-1">
-                  <div className="text-pink font-orbitron text-[0.55rem] tracking-[0.1em] mb-1">
+                  <div className="text-pink font-orbitron text-[0.68rem] tracking-[0.1em] mb-1">
                     📉 INCOME DEDUCTION (8× TIER)
                   </div>
                   <div className="text-white/60">
@@ -316,7 +316,7 @@ export default function Cashback() {
                     style={{ width: `${capProgress}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[0.55rem] font-orbitron mt-1.5 text-white/30">
+                <div className="flex items-center justify-between text-[0.68rem] font-orbitron mt-1.5 text-white/30">
                   <span>{fmt(cashbackEarned)} USDT</span>
                   <span>{fmt(effectiveCap)} USDT</span>
                 </div>
@@ -349,7 +349,7 @@ export default function Cashback() {
               <div className="overflow-x-auto">
                 <table className="w-full text-[0.7rem]">
                   <thead>
-                    <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] border-b border-white/10">
+                    <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em] border-b border-white/10">
                       <th className="py-2 px-2">DATE</th>
                       <th className="py-2 px-2 text-right">EFFECTIVE NET LOSS</th>
                       <th className="py-2 px-2 text-right">RATE</th>
@@ -376,7 +376,7 @@ export default function Cashback() {
                         </td>
                         <td className="py-2 px-2 text-center">
                           {row.capHit ? (
-                            <span className="text-pink font-orbitron text-[0.55rem]">⚠️ HIT</span>
+                            <span className="text-pink font-orbitron text-[0.68rem]">⚠️ HIT</span>
                           ) : (
                             <span className="text-white/20">—</span>
                           )}
@@ -423,11 +423,11 @@ function NetLossRangeBar({ current, min, max }) {
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="font-orbitron text-white text-[0.7rem] font-bold">NET LOSS RANGE</div>
-          <div className={`text-[0.55rem] font-orbitron mt-0.5 ${statusColor}`}>{status}</div>
+          <div className={`text-[0.68rem] font-orbitron mt-0.5 ${statusColor}`}>{status}</div>
         </div>
         <div className="text-right">
-          <div className="text-[0.45rem] text-white/30 font-orbitron">CURRENT</div>
-          <div className="font-orbitron text-[1.1rem] font-bold text-white">{fmt(safe, 2)} <span className="text-[0.5rem] text-white/30">USDT</span></div>
+          <div className="text-[0.6rem] text-white/30 font-orbitron">CURRENT</div>
+          <div className="font-orbitron text-[1.1rem] font-bold text-white">{fmt(safe, 2)} <span className="text-[0.65rem] text-white/30">USDT</span></div>
         </div>
       </div>
 
@@ -453,7 +453,7 @@ function NetLossRangeBar({ current, min, max }) {
       </div>
 
       {/* Labels under bar */}
-      <div className="flex items-center justify-between mt-2 text-[0.5rem] font-orbitron">
+      <div className="flex items-center justify-between mt-2 text-[0.65rem] font-orbitron">
         <div>
           <div className="text-white/30">0</div>
         </div>
@@ -466,7 +466,7 @@ function NetLossRangeBar({ current, min, max }) {
       </div>
 
       {inRange && (
-        <div className="mt-3 p-2 rounded-lg bg-green/5 border border-green/20 text-[0.55rem] text-white/50">
+        <div className="mt-3 p-2 rounded-lg bg-green/5 border border-green/20 text-[0.68rem] text-white/50">
           ✅ You qualify for daily cashback on <span className="text-green font-orbitron">{fmt(safe, 2)} USDT</span> × rate
         </div>
       )}
@@ -493,14 +493,14 @@ function StatCard({ label, value, suffix = '', color = 'white', highlight = fals
         highlight ? 'border border-green/30' : 'border border-white/10'
       }`}
     >
-      <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
+      <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
         {label}
       </div>
       <div className={`font-orbitron ${colorClass} text-[1.6rem] font-bold`}>
         {display}
         {suffix}
       </div>
-      <div className="text-[0.55rem] text-white/30 mt-1">{unit}</div>
+      <div className="text-[0.68rem] text-white/30 mt-1">{unit}</div>
     </div>
   );
 }

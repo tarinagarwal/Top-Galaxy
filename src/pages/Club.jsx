@@ -101,17 +101,17 @@ export default function Club() {
           {/* Top: Big stat — Total Club Income */}
           <div className="card-glass rounded-2xl p-6 mb-6 border border-green/30 flex items-center justify-between flex-wrap gap-4">
             <div>
-              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">TOTAL CLUB INCOME</div>
+              <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">TOTAL CLUB INCOME</div>
               <div className="font-orbitron text-green text-[2.2rem] font-bold leading-none mt-1">
                 ${fmt(r.lifetimeClubIncome || 0, 3)}
               </div>
-              <div className="text-[0.5rem] text-white/20 font-orbitron mt-1">{r.lifetimeClubPayments || 0} payouts received</div>
+              <div className="text-[0.65rem] text-white/20 font-orbitron mt-1">{r.lifetimeClubPayments || 0} payouts received</div>
             </div>
             <div className="text-right">
               <div className="text-[3rem] leading-none">{RANK_ICONS[currentRank]}</div>
               <div className="font-russo text-[1rem] text-gradient-gold">{RANK_NAMES[currentRank]}</div>
               {currentRank > 0 && ladder[currentRank - 1] && (
-                <div className="text-[0.5rem] text-white/30 font-orbitron">{ladder[currentRank - 1].percent}% share</div>
+                <div className="text-[0.65rem] text-white/30 font-orbitron">{ladder[currentRank - 1].percent}% share</div>
               )}
             </div>
           </div>
@@ -119,22 +119,22 @@ export default function Club() {
           {/* Stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="card-glass rounded-2xl p-4 border border-gold/20">
-              <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S EARNING</div>
+              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S EARNING</div>
               <div className="font-orbitron text-gold text-[1.2rem] font-bold">{fmt(todayEarning, 3)}</div>
               <div className="text-[0.4rem] text-white/20">USDT</div>
             </div>
             <div className="card-glass rounded-2xl p-4 border border-cyan/20">
-              <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S TURNOVER</div>
+              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S TURNOVER</div>
               <div className="font-orbitron text-cyan text-[1.2rem] font-bold">{fmt(r.todayTurnover || 0, 0)}</div>
               <div className="text-[0.4rem] text-white/20">USDT platform-wide</div>
             </div>
             <div className="card-glass rounded-2xl p-4 border border-purple/20">
-              <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TEAM VOLUME</div>
+              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TEAM VOLUME</div>
               <div className="font-orbitron text-purple text-[1.2rem] font-bold">{fmt(r.teamVolume || 0, 0)}</div>
               <div className="text-[0.4rem] text-white/20">USDT total</div>
             </div>
             <div className="card-glass rounded-2xl p-4 border border-white/10">
-              <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">DIRECT REFERRALS</div>
+              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">DIRECT REFERRALS</div>
               <div className="font-orbitron text-white text-[1.2rem] font-bold">{r.directReferralCount || 0}</div>
               <div className="text-[0.4rem] text-white/20">active downline</div>
             </div>
@@ -147,7 +147,7 @@ export default function Club() {
               <div className="font-orbitron text-gold text-[0.75rem] font-bold mb-1">
                 {RANK_ICONS[currentRank]} {RANK_NAMES[currentRank]} → {next ? RANK_NAMES[next.rank] : '👑 MAX'}
               </div>
-              <div className="text-[0.55rem] text-white/30 mb-4">
+              <div className="text-[0.68rem] text-white/30 mb-4">
                 {next
                   ? `Target: ${fmt(next.totalVolume, 0)} USDT total volume`
                   : 'You have reached the highest rank'}
@@ -171,7 +171,7 @@ export default function Club() {
               <div className="font-orbitron text-white text-[0.75rem] font-bold mb-1">
                 💰 INCOME BREAKDOWN
               </div>
-              <div className="text-[0.55rem] text-white/30 mb-4">
+              <div className="text-[0.68rem] text-white/30 mb-4">
                 {currentRank === 0 ? 'Achieve Rank 1 to unlock Club Income' : `Earning ${ladder[currentRank - 1]?.percent}% of daily platform turnover`}
               </div>
 
@@ -215,7 +215,7 @@ export default function Club() {
             <div className="overflow-x-auto">
               <table className="w-full text-[0.6rem]">
                 <thead className="bg-white/5 border-b border-white/10">
-                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] tracking-[0.1em]">
+                  <tr className="text-left text-white/40 font-orbitron text-[0.65rem] tracking-[0.1em]">
                     <th className="py-2.5 px-3">RANK</th>
                     <th className="py-2.5 px-3 text-right">VOLUME REQUIRED</th>
                     <th className="py-2.5 px-3 text-right">STRONG LEG</th>
@@ -244,11 +244,11 @@ export default function Club() {
                         <td className="py-3 px-3 font-orbitron text-gold text-right">{tier.percent}%</td>
                         <td className="py-3 px-3 text-center">
                           {isCurrent ? (
-                            <span className="px-2 py-0.5 rounded-full bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.45rem]">CURRENT</span>
+                            <span className="px-2 py-0.5 rounded-full bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.6rem]">CURRENT</span>
                           ) : isAchieved ? (
-                            <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/30 text-green font-orbitron text-[0.45rem]">ACHIEVED</span>
+                            <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/30 text-green font-orbitron text-[0.6rem]">ACHIEVED</span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/30 font-orbitron text-[0.45rem]">LOCKED</span>
+                            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/30 font-orbitron text-[0.6rem]">LOCKED</span>
                           )}
                         </td>
                       </tr>
@@ -272,7 +272,7 @@ export default function Club() {
               <div className="overflow-x-auto">
                 <table className="w-full text-[0.7rem]">
                   <thead>
-                    <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] border-b border-white/10">
+                    <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em] border-b border-white/10">
                       <th className="py-2 px-2">DATE</th>
                       <th className="py-2 px-2">RANK</th>
                       <th className="py-2 px-2 text-right">TURNOVER</th>
@@ -342,7 +342,7 @@ function VolumeBar({ label, current, required, color }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="text-[0.55rem] text-white/30 font-orbitron mt-0.5 text-right">
+      <div className="text-[0.68rem] text-white/30 font-orbitron mt-0.5 text-right">
         {fmt(pct, 1)}% complete
       </div>
     </div>

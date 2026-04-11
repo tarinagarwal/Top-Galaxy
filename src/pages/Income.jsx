@@ -134,8 +134,8 @@ export default function Income() {
                     <div className="flex items-center gap-2">
                       <span className="text-[1rem]">{s.icon}</span>
                       <div>
-                        <div className="font-orbitron text-[0.55rem] tracking-[0.1em]">{s.name}</div>
-                        <div className="font-orbitron text-[0.55rem] opacity-70">{fmt(lifetime)}</div>
+                        <div className="font-orbitron text-[0.68rem] tracking-[0.1em]">{s.name}</div>
+                        <div className="font-orbitron text-[0.68rem] opacity-70">{fmt(lifetime)}</div>
                       </div>
                     </div>
                   </button>
@@ -168,9 +168,9 @@ export default function Income() {
 
           {/* Date range filter */}
           <div className="card-glass rounded-2xl p-3 mb-4 border border-white/10 flex items-center gap-3 flex-wrap">
-            <span className="font-orbitron text-[0.55rem] text-white/40 tracking-[0.15em]">FILTER:</span>
+            <span className="font-orbitron text-[0.68rem] text-white/40 tracking-[0.15em]">FILTER:</span>
             <div className="flex items-center gap-2">
-              <label className="text-[0.55rem] text-white/40 font-orbitron">From</label>
+              <label className="text-[0.68rem] text-white/40 font-orbitron">From</label>
               <input
                 type="date"
                 value={from}
@@ -182,7 +182,7 @@ export default function Income() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-[0.55rem] text-white/40 font-orbitron">To</label>
+              <label className="text-[0.68rem] text-white/40 font-orbitron">To</label>
               <input
                 type="date"
                 value={to}
@@ -200,7 +200,7 @@ export default function Income() {
                   setTo('');
                   setPage(1);
                 }}
-                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem] hover:border-pink/30 hover:text-pink"
+                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.68rem] hover:border-pink/30 hover:text-pink"
               >
                 CLEAR
               </button>
@@ -221,7 +221,7 @@ export default function Income() {
               <div className="overflow-x-auto">
                 <table className="w-full text-[0.65rem]">
                   <thead className="bg-white/5 border-b border-white/10">
-                    <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em]">
+                    <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em]">
                       <th className="py-3 px-3">DATE</th>
                       <th className="py-3 px-3">SOURCE</th>
                       <th className="py-3 px-3 text-center">LEVEL</th>
@@ -233,10 +233,10 @@ export default function Income() {
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r._id} className="border-b border-white/5 hover:bg-white/3">
-                        <td className="py-2.5 px-3 font-orbitron text-white/50 text-[0.55rem]">
+                        <td className="py-2.5 px-3 font-orbitron text-white/50 text-[0.68rem]">
                           {new Date(r.createdAt).toLocaleString()}
                         </td>
-                        <td className="py-2.5 px-3 font-orbitron text-cyan text-[0.55rem]">
+                        <td className="py-2.5 px-3 font-orbitron text-cyan text-[0.68rem]">
                           {activeStream === 'GAME_WINNINGS'
                             ? (r.meta?.gameId ? `Game` : '—')
                             : r.fromUserId?.walletAddress
@@ -310,9 +310,9 @@ function AggCard({ label, value, color }) {
 
   return (
     <div className="p-3 rounded-lg bg-white/3 border border-white/5">
-      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.1em]">{label}</div>
+      <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.1em]">{label}</div>
       <div className={`font-orbitron text-[1rem] font-bold ${colorClass} mt-1`}>{fmt(value)}</div>
-      <div className="text-[0.5rem] text-white/30 font-orbitron">USDT</div>
+      <div className="text-[0.65rem] text-white/30 font-orbitron">USDT</div>
     </div>
   );
 }

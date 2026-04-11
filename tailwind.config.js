@@ -22,6 +22,8 @@ export default {
         orbitron: ['Orbitron', 'monospace'],
         chakra: ['Chakra Petch', 'sans-serif'],
         russo: ['Russo One', 'sans-serif'],
+        ui: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

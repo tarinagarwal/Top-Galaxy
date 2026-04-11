@@ -68,7 +68,7 @@ export default function Register() {
               <div className="mb-6 p-4 rounded-xl bg-cyan/5 border border-cyan/20">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
-                    <div className="text-[0.55rem] font-orbitron text-cyan tracking-[0.15em] mb-1">
+                    <div className="text-[0.68rem] font-orbitron text-cyan tracking-[0.15em] mb-1">
                       ACTIVE METAMASK ACCOUNT
                     </div>
                     <div className="font-orbitron text-white text-[0.85rem]">
@@ -82,7 +82,7 @@ export default function Register() {
                   </div>
                   <button
                     onClick={handleSwitchAccount}
-                    className="px-3 py-1.5 rounded-lg text-[0.55rem] font-orbitron text-pink border border-pink/30 bg-pink/5 hover:bg-pink/10 transition-colors"
+                    className="px-3 py-1.5 rounded-lg text-[0.68rem] font-orbitron text-pink border border-pink/30 bg-pink/5 hover:bg-pink/10 transition-colors"
                   >
                     SWITCH ACCOUNT
                   </button>

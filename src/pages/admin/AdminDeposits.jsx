@@ -34,7 +34,7 @@ export default function AdminDeposits() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Deposit Distributions</h1>
@@ -66,7 +66,7 @@ export default function AdminDeposits() {
           </div>
           <button
             onClick={refresh}
-            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem] hover:border-gold/30 hover:text-gold"
+            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.68rem] hover:border-gold/30 hover:text-gold"
           >
             ↻ REFRESH
           </button>
@@ -83,7 +83,7 @@ export default function AdminDeposits() {
             <div className="overflow-x-auto">
               <table className="w-full text-[0.65rem]">
                 <thead>
-                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] tracking-[0.1em] border-b border-white/10">
+                  <tr className="text-left text-white/40 font-orbitron text-[0.65rem] tracking-[0.1em] border-b border-white/10">
                     <th className="py-2 px-2">DATE</th>
                     <th className="py-2 px-2">USER</th>
                     <th className="py-2 px-2 text-right">TOTAL</th>
@@ -100,10 +100,10 @@ export default function AdminDeposits() {
                 <tbody>
                   {distributions.map((d) => (
                     <tr key={d._id} className="border-b border-white/5 hover:bg-white/3">
-                      <td className="py-2 px-2 font-orbitron text-white/50 text-[0.55rem]">
+                      <td className="py-2 px-2 font-orbitron text-white/50 text-[0.68rem]">
                         {d.createdAt ? new Date(d.createdAt).toLocaleString() : '—'}
                       </td>
-                      <td className="py-2 px-2 font-orbitron text-cyan text-[0.55rem]">
+                      <td className="py-2 px-2 font-orbitron text-cyan text-[0.68rem]">
                         {d.userId?.walletAddress
                           ? `${d.userId.walletAddress.slice(0, 6)}...${d.userId.walletAddress.slice(-4)}`
                           : '—'}
@@ -147,17 +147,17 @@ export default function AdminDeposits() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem] disabled:opacity-30"
+                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.68rem] disabled:opacity-30"
                 >
                   ← PREV
                 </button>
-                <span className="font-orbitron text-[0.55rem] text-white/40">
+                <span className="font-orbitron text-[0.68rem] text-white/40">
                   {page} / {totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem] disabled:opacity-30"
+                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.68rem] disabled:opacity-30"
                 >
                   NEXT →
                 </button>
@@ -186,7 +186,7 @@ function SplitCard({ label, color, icon, value = 0 }) {
       <div className={`font-orbitron font-bold text-[1rem] mb-1 ${colorClass.split(' ')[1]}`}>
         {fmt(value)}
       </div>
-      <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.08em]">
+      <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.08em]">
         {label}
       </div>
     </div>

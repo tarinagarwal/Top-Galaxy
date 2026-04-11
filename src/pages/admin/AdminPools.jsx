@@ -60,7 +60,7 @@ export default function AdminPools() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <div className="font-orbitron text-[0.55rem] tracking-[0.3em] text-pink uppercase mb-1">
+        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
           🛡️ ADMIN
         </div>
         <h1 className="font-russo text-[2rem] text-gradient-gold">Pools</h1>
@@ -250,14 +250,14 @@ function PoolCard({ title, icon, color, balance, metrics, health }) {
           </span>
         </div>
         {healthBadge && (
-          <span className={`px-2 py-0.5 rounded-full font-orbitron text-[0.5rem] border ${healthBadge.color}`}>
+          <span className={`px-2 py-0.5 rounded-full font-orbitron text-[0.65rem] border ${healthBadge.color}`}>
             {healthBadge.label}
           </span>
         )}
       </div>
       <div className={`font-orbitron font-bold text-[1.5rem] mb-3 ${colorClass.split(' ')[1]}`}>
         {fmt(balance)}
-        <span className="text-[0.55rem] text-white/30 ml-1">USDT</span>
+        <span className="text-[0.68rem] text-white/30 ml-1">USDT</span>
       </div>
       <div className="space-y-1 pt-2 border-t border-white/5">
         {metrics.map((m, i) => (
@@ -286,7 +286,7 @@ function MoneyFlowDiagram() {
         <div className="font-orbitron text-cyan text-[0.75rem] font-bold">
           💧 MONEY FLOW
         </div>
-        <div className="text-[0.55rem] text-white/30 font-orbitron">
+        <div className="text-[0.68rem] text-white/30 font-orbitron">
           how funds move through the system
         </div>
       </div>
@@ -385,7 +385,7 @@ function FlowDiagram({ number, title, source, via, destinations }) {
     <div className="rounded-xl p-3 bg-white/2 border border-white/5 hover:border-white/10 transition-colors">
       {/* Title bar */}
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center font-orbitron text-[0.55rem] text-gold font-bold">
+        <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center font-orbitron text-[0.68rem] text-gold font-bold">
           {number}
         </div>
         <div className="font-orbitron text-[0.6rem] text-white/70 tracking-[0.15em]">{title}</div>
@@ -439,7 +439,7 @@ function FlowNode({ icon, label, sub, color, small }) {
           {label}
         </div>
         {sub && (
-          <div className="text-[0.5rem] text-white/40 font-orbitron truncate">{sub}</div>
+          <div className="text-[0.65rem] text-white/40 font-orbitron truncate">{sub}</div>
         )}
       </div>
     </div>
@@ -450,8 +450,8 @@ function ViaNode({ icon, label, sub }) {
   return (
     <div className="rounded-lg border border-white/15 bg-white/3 px-2.5 py-1.5 flex-shrink-0 text-center min-w-[110px]">
       <div className="text-[0.85rem] leading-none">{icon}</div>
-      <div className="font-orbitron text-[0.55rem] text-white/70 mt-1 whitespace-nowrap">{label}</div>
-      {sub && <div className="text-[0.45rem] text-white/30 font-orbitron whitespace-nowrap">{sub}</div>}
+      <div className="font-orbitron text-[0.68rem] text-white/70 mt-1 whitespace-nowrap">{label}</div>
+      {sub && <div className="text-[0.6rem] text-white/30 font-orbitron whitespace-nowrap">{sub}</div>}
     </div>
   );
 }

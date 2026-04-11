@@ -171,7 +171,7 @@ export default function LuckyDraw() {
               <div className="overflow-x-auto mt-4">
                 <table className="w-full text-[0.7rem]">
                   <thead>
-                    <tr className="text-left text-white/40 font-orbitron text-[0.55rem] tracking-[0.1em] border-b border-white/10">
+                    <tr className="text-left text-white/40 font-orbitron text-[0.68rem] tracking-[0.1em] border-b border-white/10">
                       <th className="py-2 px-2">RANK</th>
                       <th className="py-2 px-2 text-right">GOLDEN PRIZE</th>
                       <th className="py-2 px-2 text-right">SILVER PRIZE</th>
@@ -222,7 +222,7 @@ export default function LuckyDraw() {
             <div className="font-orbitron text-purple text-[0.75rem] font-bold">
               📊 VIEW FULL LUCKY DRAW HISTORY
             </div>
-            <div className="text-[0.5rem] text-white/30 mt-1">
+            <div className="text-[0.65rem] text-white/30 mt-1">
               All Tickets · Wins · Losses · Stats · P&L
             </div>
           </Link>
@@ -271,40 +271,40 @@ function AutoFundEstimate({ cashbackStats, myStats }) {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="text-center px-3 py-2 rounded-lg bg-gold/5 border border-gold/20">
-            <div className="text-[0.45rem] font-orbitron text-white/30 tracking-[0.1em]">
+            <div className="text-[0.6rem] font-orbitron text-white/30 tracking-[0.1em]">
               GOLDEN/DAY
             </div>
             <div className="font-orbitron text-gold text-[0.85rem] font-bold">
               +{fmt(halfFund, 4)}
             </div>
-            <div className="text-[0.45rem] text-white/30">from cashback+ROI</div>
+            <div className="text-[0.6rem] text-white/30">from cashback+ROI</div>
           </div>
           <div className="text-center px-3 py-2 rounded-lg bg-white/3 border border-white/10">
-            <div className="text-[0.45rem] font-orbitron text-white/30 tracking-[0.1em]">
+            <div className="text-[0.6rem] font-orbitron text-white/30 tracking-[0.1em]">
               SILVER/DAY
             </div>
             <div className="font-orbitron text-white/60 text-[0.85rem] font-bold">
               +{fmt(halfFund, 4)}
             </div>
-            <div className="text-[0.45rem] text-white/30">from cashback+ROI</div>
+            <div className="text-[0.6rem] text-white/30">from cashback+ROI</div>
           </div>
           <div className="text-center px-3 py-2 rounded-lg bg-gold/5 border border-gold/20">
-            <div className="text-[0.45rem] font-orbitron text-white/30 tracking-[0.1em]">
+            <div className="text-[0.6rem] font-orbitron text-white/30 tracking-[0.1em]">
               GOLDEN FROM DEPOSITS
             </div>
             <div className="font-orbitron text-gold text-[0.85rem] font-bold">
               {fmt(myStats?.goldenFromDeposits || 0)}
             </div>
-            <div className="text-[0.45rem] text-white/30">1% of your deposits</div>
+            <div className="text-[0.6rem] text-white/30">1% of your deposits</div>
           </div>
           <div className="text-center px-3 py-2 rounded-lg bg-white/3 border border-white/10">
-            <div className="text-[0.45rem] font-orbitron text-white/30 tracking-[0.1em]">
+            <div className="text-[0.6rem] font-orbitron text-white/30 tracking-[0.1em]">
               SILVER FROM DEPOSITS
             </div>
             <div className="font-orbitron text-white/60 text-[0.85rem] font-bold">
               {fmt(myStats?.silverFromDeposits || 0)}
             </div>
-            <div className="text-[0.45rem] text-white/30">1% of your deposits</div>
+            <div className="text-[0.6rem] text-white/30">1% of your deposits</div>
           </div>
         </div>
       </div>
@@ -388,16 +388,16 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
           <div className={`font-orbitron font-bold text-[1rem] ${accentColors.text}`}>
             {type} DRAW
           </div>
-          <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
+          <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
             DRAW #{draw.drawNumber}
           </div>
         </div>
         <div className="text-right">
-          <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">PRIZE POOL</div>
+          <div className="text-[0.68rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">PRIZE POOL</div>
           <div className={`font-russo text-[1.8rem] ${accentColors.text}`}>
             {fmt(type === 'GOLDEN' ? 70000 : 7000, 0)}
           </div>
-          <div className="text-[0.55rem] text-white/30">USDT</div>
+          <div className="text-[0.68rem] text-white/30">USDT</div>
         </div>
       </div>
 
@@ -408,7 +408,7 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
       {draw.status === 'PAUSED' && (
         <div className="text-center py-3 mb-3 rounded-lg bg-yellow-400/5 border border-yellow-400/20">
           <div className="font-orbitron text-yellow-400 text-[0.65rem]">⏸️ DRAW PAUSED</div>
-          <div className="text-[0.5rem] text-white/30 mt-1">Ticket sales temporarily suspended</div>
+          <div className="text-[0.65rem] text-white/30 mt-1">Ticket sales temporarily suspended</div>
         </div>
       )}
 
@@ -426,7 +426,7 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
             style={{ width: `${progressPct}%` }}
           />
         </div>
-        <div className="text-[0.55rem] text-white/30 font-orbitron mt-1 text-right">
+        <div className="text-[0.68rem] text-white/30 font-orbitron mt-1 text-right">
           {fmt(progressPct, 1)}% filled
         </div>
       </div>
@@ -434,17 +434,17 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-2 mb-4 text-center">
         <div className={`p-2 rounded-lg ${accentColors.bg}`}>
-          <div className="text-[0.5rem] text-white/30 font-orbitron">ENTRY FEE</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">ENTRY FEE</div>
           <div className={`font-orbitron text-[0.85rem] ${accentColors.text}`}>
             {fmt(draw.entryFee, 0)}
           </div>
         </div>
         <div className={`p-2 rounded-lg ${accentColors.bg}`}>
-          <div className="text-[0.5rem] text-white/30 font-orbitron">WIN ODDS</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">WIN ODDS</div>
           <div className={`font-orbitron text-[0.85rem] ${accentColors.text}`}>10%</div>
         </div>
         <div className={`p-2 rounded-lg ${accentColors.bg}`}>
-          <div className="text-[0.5rem] text-white/30 font-orbitron">REMAINING</div>
+          <div className="text-[0.65rem] text-white/30 font-orbitron">REMAINING</div>
           <div className={`font-orbitron text-[0.85rem] ${accentColors.text}`}>
             {draw.remainingTickets}
           </div>
@@ -454,7 +454,7 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
       {/* Purchase form */}
       <form onSubmit={handlePurchase} className="space-y-3">
         <div>
-          <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+          <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
             QUANTITY
           </label>
           <input
@@ -469,7 +469,7 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
         </div>
 
         <div>
-          <label className="block text-[0.55rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
+          <label className="block text-[0.68rem] font-orbitron text-white/40 mb-1 tracking-[0.15em]">
             PAY FROM
           </label>
           <select
@@ -533,7 +533,7 @@ function UserCountdownTimer({ timerEndsAt, accent }) {
 
   return (
     <div className="text-center py-3 mb-3 rounded-xl bg-gold/5 border border-gold/20">
-      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.2em]">DRAW IN</div>
+      <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.2em]">DRAW IN</div>
       <div className={`font-russo text-[2rem] ${accent} leading-none mt-1`}>
         {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
       </div>
@@ -583,7 +583,7 @@ function HistoryTabs({ myTickets, history }) {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex-1 min-w-[100px] px-4 py-3 font-orbitron text-[0.55rem] tracking-[0.1em] transition-all whitespace-nowrap ${
+            className={`flex-1 min-w-[100px] px-4 py-3 font-orbitron text-[0.68rem] tracking-[0.1em] transition-all whitespace-nowrap ${
               tab === t.key
                 ? `text-${t.color} border-b-2 border-${t.color} bg-${t.color}/5`
                 : 'text-white/40 hover:text-white/60'
@@ -607,18 +607,18 @@ function HistoryTabs({ myTickets, history }) {
                   t.outcome === 'LOSS' ? 'bg-pink/5 border-pink/20' :
                   t.drawId?.type === 'GOLDEN' ? 'bg-gold/5 border-gold/20' : 'bg-white/3 border-white/10'
                 }`}>
-                  <div className="text-[0.45rem] font-orbitron text-white/30">
+                  <div className="text-[0.6rem] font-orbitron text-white/30">
                     {t.drawId?.type || '—'} #{t.drawId?.drawNumber || '—'}
                   </div>
                   <div className="font-orbitron text-[0.85rem] text-white">#{t.ticketNumber}</div>
                   {t.outcome === 'WIN' && (
-                    <div className="text-[0.45rem] text-green font-orbitron mt-0.5">🏆 WON {fmt(t.prizeAmount)}</div>
+                    <div className="text-[0.6rem] text-green font-orbitron mt-0.5">🏆 WON {fmt(t.prizeAmount)}</div>
                   )}
                   {t.outcome === 'LOSS' && (
-                    <div className="text-[0.45rem] text-pink font-orbitron mt-0.5">LOSS</div>
+                    <div className="text-[0.6rem] text-pink font-orbitron mt-0.5">LOSS</div>
                   )}
                   {t.outcome === 'PENDING' && t.purchaseType === 'AUTO_CASHBACK' && (
-                    <div className="text-[0.45rem] text-purple font-orbitron mt-0.5">AUTO</div>
+                    <div className="text-[0.6rem] text-purple font-orbitron mt-0.5">AUTO</div>
                   )}
                 </div>
               ))}
@@ -636,7 +636,7 @@ function HistoryTabs({ myTickets, history }) {
             <div className="overflow-x-auto">
               <table className="w-full text-[0.65rem]">
                 <thead>
-                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] border-b border-white/10">
+                  <tr className="text-left text-white/40 font-orbitron text-[0.65rem] border-b border-white/10">
                     <th className="py-2 px-2">TYPE</th>
                     <th className="py-2 px-2">DRAW #</th>
                     <th className="py-2 px-2 text-right">TICKET #</th>
@@ -647,11 +647,11 @@ function HistoryTabs({ myTickets, history }) {
                 <tbody>
                   {wins.map((w) => (
                     <tr key={w._id} className="border-b border-white/5 hover:bg-white/3">
-                      <td className="py-2 px-2 font-orbitron text-gold text-[0.55rem]">{w.drawId?.type || '—'}</td>
+                      <td className="py-2 px-2 font-orbitron text-gold text-[0.68rem]">{w.drawId?.type || '—'}</td>
                       <td className="py-2 px-2 font-orbitron text-white/70">#{w.drawId?.drawNumber || '—'}</td>
                       <td className="py-2 px-2 font-orbitron text-cyan text-right">#{w.ticketNumber}</td>
                       <td className="py-2 px-2 font-orbitron text-green text-right">{fmt(w.prizeAmount)} USDT</td>
-                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.5rem]">
+                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.65rem]">
                         {w.drawResultedAt ? new Date(w.drawResultedAt).toLocaleDateString() : '—'}
                       </td>
                     </tr>
@@ -672,7 +672,7 @@ function HistoryTabs({ myTickets, history }) {
             <div className="overflow-x-auto">
               <table className="w-full text-[0.65rem]">
                 <thead>
-                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] border-b border-white/10">
+                  <tr className="text-left text-white/40 font-orbitron text-[0.65rem] border-b border-white/10">
                     <th className="py-2 px-2">TYPE</th>
                     <th className="py-2 px-2">DRAW #</th>
                     <th className="py-2 px-2 text-right">TICKET #</th>
@@ -683,11 +683,11 @@ function HistoryTabs({ myTickets, history }) {
                 <tbody>
                   {losses.map((l) => (
                     <tr key={l._id} className="border-b border-white/5 hover:bg-white/3">
-                      <td className="py-2 px-2 font-orbitron text-white/50 text-[0.55rem]">{l.drawId?.type || '—'}</td>
+                      <td className="py-2 px-2 font-orbitron text-white/50 text-[0.68rem]">{l.drawId?.type || '—'}</td>
                       <td className="py-2 px-2 font-orbitron text-white/70">#{l.drawId?.drawNumber || '—'}</td>
                       <td className="py-2 px-2 font-orbitron text-cyan text-right">#{l.ticketNumber}</td>
                       <td className="py-2 px-2 font-orbitron text-pink text-right">{fmt(l.amount)} USDT</td>
-                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.5rem]">
+                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.65rem]">
                         {l.drawResultedAt ? new Date(l.drawResultedAt).toLocaleDateString() : '—'}
                       </td>
                     </tr>
@@ -706,7 +706,7 @@ function HistoryTabs({ myTickets, history }) {
             <div className="overflow-x-auto">
               <table className="w-full text-[0.65rem]">
                 <thead>
-                  <tr className="text-left text-white/40 font-orbitron text-[0.5rem] border-b border-white/10">
+                  <tr className="text-left text-white/40 font-orbitron text-[0.65rem] border-b border-white/10">
                     <th className="py-2 px-2">TYPE</th>
                     <th className="py-2 px-2">DRAW #</th>
                     <th className="py-2 px-2 text-right">TICKETS</th>
@@ -719,7 +719,7 @@ function HistoryTabs({ myTickets, history }) {
                   {history.map((d) => (
                     <tr key={d._id} className="border-b border-white/5 hover:bg-white/3">
                       <td className="py-2 px-2">
-                        <span className={`px-2 py-0.5 rounded-full text-[0.5rem] font-orbitron ${
+                        <span className={`px-2 py-0.5 rounded-full text-[0.65rem] font-orbitron ${
                           d.type === 'GOLDEN' ? 'bg-gold/10 text-gold border border-gold/30' : 'bg-white/5 text-white/50 border border-white/20'
                         }`}>{d.type}</span>
                       </td>
@@ -727,13 +727,13 @@ function HistoryTabs({ myTickets, history }) {
                       <td className="py-2 px-2 font-orbitron text-cyan text-right">{d.ticketsSold}</td>
                       <td className="py-2 px-2 font-orbitron text-gold text-right">{fmt(d.totalPool)}</td>
                       <td className="py-2 px-2">
-                        <span className={`px-2 py-0.5 rounded-full text-[0.45rem] font-orbitron border ${
+                        <span className={`px-2 py-0.5 rounded-full text-[0.6rem] font-orbitron border ${
                           d.status === 'RESULTED' ? 'bg-green/5 border-green/30 text-green' :
                           d.status === 'CANCELLED' ? 'bg-pink/5 border-pink/30 text-pink' :
                           'bg-white/5 border-white/20 text-white/40'
                         }`}>{d.status}</span>
                       </td>
-                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.5rem]">
+                      <td className="py-2 px-2 font-orbitron text-white/30 text-[0.65rem]">
                         {d.resultedAt ? new Date(d.resultedAt).toLocaleDateString() : '—'}
                       </td>
                     </tr>
