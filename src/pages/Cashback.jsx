@@ -166,6 +166,9 @@ export default function Cashback() {
                   <div className="text-white/50 text-[0.65rem] space-y-0.5">
                     <div>You'll receive approximately <span className="text-green font-orbitron">{fmt(s.estimatedDailyAmount, 3)} USDT</span> at next payout</div>
                     <div className="text-white/30">Rate: {fmt(num(s.rate) * 100, 2)}% of your effective net loss daily</div>
+                    {num(s.effectiveNetLoss) > maxBase && (
+                      <div className="text-white font-orbitron mt-1">⚠️ Only {fmt(maxBase, 0)} USDT will be counted for cashback (max base)</div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-white/50 text-[0.65rem] space-y-0.5">
@@ -224,7 +227,12 @@ export default function Cashback() {
           {/* Top stats grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <StatCard label="CASHBACK WALLET" value={fmt(s.cashbackWallet, 3)} color="green" highlight />
-            <StatCard label="EFFECTIVE NET LOSS" value={s.effectiveNetLoss} color="pink" />
+            <StatCard
+              label="EFFECTIVE NET LOSS"
+              value={s.effectiveNetLoss}
+              color="pink"
+              footer={num(s.effectiveNetLoss) > maxBase ? `Only ${fmt(maxBase, 0)} USDT will be counted` : null}
+            />
             <StatCard label="DAILY RATE" value={fmt(num(s.rate) * 100, 2)} suffix="%" color="gold" unit="of effective net loss" />
             <StatCard label="EST. DAILY AMOUNT" value={fmt(s.estimatedDailyAmount, 3)} color="purple" />
           </div>
@@ -243,6 +251,11 @@ export default function Cashback() {
                 <BreakdownRow label="Cashback Already Received" value={s.cashbackTotalEarned} sign="-" color="gold" />
                 <div className="border-t border-white/10 pt-3 mt-3" />
                 <BreakdownRow label="Effective Net Loss (today's base)" value={s.effectiveNetLoss} bold color="pink" />
+                {num(s.effectiveNetLoss) > maxBase && (
+                  <div className="mt-2 p-2 rounded-lg bg-white/10 border border-white/20 text-[0.6rem] text-white font-orbitron">
+                    ⚠️ Only {fmt(maxBase, 0)} USDT will be counted for cashback calculation (max base cap)
+                  </div>
+                )}
               </div>
 
               <div className="mt-5 p-3 rounded-lg bg-white/3 text-[0.65rem] text-white/40 leading-relaxed">
@@ -474,7 +487,7 @@ function NetLossRangeBar({ current, min, max }) {
   );
 }
 
-function StatCard({ label, value, suffix = '', color = 'white', highlight = false, unit = 'USDT' }) {
+function StatCard({ label, value, suffix = '', color = 'white', highlight = false, unit = 'USDT', footer = null }) {
   const colorClass = {
     green: 'text-green',
     cyan: 'text-cyan',
@@ -501,6 +514,11 @@ function StatCard({ label, value, suffix = '', color = 'white', highlight = fals
         {suffix}
       </div>
       <div className="text-[0.68rem] text-white/30 mt-1">{unit}</div>
+      {footer && (
+        <div className="text-[0.6rem] text-white font-orbitron mt-2 px-2 py-1 rounded bg-white/10 border border-white/20">
+          ⚠️ {footer}
+        </div>
+      )}
     </div>
   );
 }

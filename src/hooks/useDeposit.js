@@ -77,8 +77,33 @@ export function useDeposit() {
         await publicClient.waitForTransactionReceipt({ hash: depositHash });
 
         // 6. Confirm with backend
+        // If this fails (event listener already processed, tunnel hiccup, etc),
+        // fall back to polling the wallet balance for up to 30s — the deposit
+        // has already landed on-chain, we just need the backend to catch up.
         setStep(STEPS.CONFIRMING);
-        const { data } = await api.post('/api/deposit/confirm', { txHash: depositHash });
+        let data;
+        try {
+          const res = await api.post('/api/deposit/confirm', { txHash: depositHash });
+          data = res.data;
+        } catch (confirmErr) {
+          // Poll backend up to 30 seconds waiting for the event listener to process it
+          const start = Date.now();
+          let found = null;
+          while (Date.now() - start < 30000) {
+            await new Promise((r) => setTimeout(r, 3000));
+            try {
+              const retryRes = await api.post('/api/deposit/confirm', { txHash: depositHash });
+              found = retryRes.data;
+              break;
+            } catch {
+              // keep polling
+            }
+          }
+          if (!found) {
+            throw confirmErr; // give up and show the original error
+          }
+          data = found;
+        }
 
         setResult({ ...data, txHash: depositHash });
         setStep(STEPS.DONE);
