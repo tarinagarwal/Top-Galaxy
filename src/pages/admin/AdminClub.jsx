@@ -10,13 +10,14 @@ export default function AdminClub() {
   const [todayDist, setTodayDist] = useState(null);
   const [yesterdayDist, setYesterdayDist] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [minRank, setMinRank] = useState(1);
+  const [selectedRank, setSelectedRank] = useState('all'); // 'all' | 1..6
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
+      const params = selectedRank === 'all' ? { minRank: 1 } : { rank: selectedRank };
       const [u, t] = await Promise.all([
-        api.get('/api/admin/club/ranked-users', { params: { minRank } }),
+        api.get('/api/admin/club/ranked-users', { params }),
         api.get('/api/admin/club/today'),
       ]);
       setUsers(u.data.users || []);
@@ -24,7 +25,7 @@ export default function AdminClub() {
       setYesterdayDist(t.data.yesterday);
     } catch {}
     setLoading(false);
-  }, [minRank]);
+  }, [selectedRank]);
 
   useEffect(() => {
     refresh();
@@ -122,21 +123,31 @@ export default function AdminClub() {
         </div>
       </div>
 
-      {/* Min rank filter */}
-      <div className="card-glass rounded-2xl p-3 mb-4 border border-white/10 flex items-center gap-3">
-        <span className="font-orbitron text-[0.6rem] text-white/40 tracking-[0.1em]">MIN RANK:</span>
-        <div className="flex gap-1">
+      {/* Rank filter */}
+      <div className="card-glass rounded-2xl p-3 mb-4 border border-white/10 flex items-center gap-3 flex-wrap">
+        <span className="font-orbitron text-[0.6rem] text-white/40 tracking-[0.1em]">FILTER:</span>
+        <div className="flex gap-1 flex-wrap">
+          <button
+            onClick={() => setSelectedRank('all')}
+            className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.68rem] border ${
+              selectedRank === 'all'
+                ? 'bg-gold/10 border-gold/40 text-gold'
+                : 'bg-white/3 border-white/10 text-white/40 hover:border-gold/20 hover:text-gold'
+            }`}
+          >
+            ALL RANKED
+          </button>
           {[1, 2, 3, 4, 5, 6].map((r) => (
             <button
               key={r}
-              onClick={() => setMinRank(r)}
+              onClick={() => setSelectedRank(r)}
               className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.68rem] border ${
-                minRank === r
+                selectedRank === r
                   ? 'bg-gold/10 border-gold/40 text-gold'
                   : 'bg-white/3 border-white/10 text-white/40 hover:border-gold/20 hover:text-gold'
-              }`}
+            }`}
             >
-              {RANK_ICONS[r]} R{r}+
+              {RANK_ICONS[r]} R{r}
             </button>
           ))}
         </div>
@@ -148,7 +159,9 @@ export default function AdminClub() {
           <div className="text-center py-12 text-white/40 font-orbitron text-[0.7rem]">Loading...</div>
         ) : users.length === 0 ? (
           <div className="text-center py-12 text-white/30 font-orbitron text-[0.7rem]">
-            No users at rank {minRank} or above
+            {selectedRank === 'all'
+              ? 'No ranked users yet'
+              : `No users at exactly Rank ${selectedRank}`}
           </div>
         ) : (
           <div className="overflow-x-auto">
