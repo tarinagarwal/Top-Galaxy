@@ -182,28 +182,67 @@ export default function Club() {
                     Achieve Rank 1 to unlock Club Income
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
-                    <span className="text-[0.6rem] text-white/50 font-orbitron">Today's Platform Deposits</span>
-                    <span className="font-orbitron text-cyan text-[0.7rem]">{fmt(r.todayTurnover || 0, 0)} USDT</span>
+              ) : (() => {
+                const turnover = num(r.todayTurnover);
+                const rankPercent = num(ladder[currentRank - 1]?.percent);
+                const rankPool = (turnover * rankPercent) / 100;
+                const qualifiers = num(r.qualifiersByRank?.[currentRank]) || 1;
+                const yourShare = rankPool / qualifiers;
+                return (
+                  <div className="space-y-2.5">
+                    {/* Step 1: Platform deposits */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
+                      <div>
+                        <div className="text-[0.6rem] text-white/50 font-orbitron">Today's Platform Deposits</div>
+                        <div className="text-[0.48rem] text-white/20">Sum of all deposits today</div>
+                      </div>
+                      <span className="font-orbitron text-cyan text-[0.75rem] font-bold">{fmt(turnover, 0)} USDT</span>
+                    </div>
+
+                    {/* Step 2: Your rank share */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
+                      <div>
+                        <div className="text-[0.6rem] text-white/50 font-orbitron">Your Rank Share</div>
+                        <div className="text-[0.48rem] text-white/20">Rank {currentRank} gets {rankPercent}% of deposits</div>
+                      </div>
+                      <span className="font-orbitron text-gold text-[0.75rem] font-bold">×  {rankPercent}%</span>
+                    </div>
+
+                    {/* Step 3: Rank pool */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-gold/5 border border-gold/20">
+                      <div>
+                        <div className="text-[0.6rem] text-gold font-orbitron font-bold">Rank {currentRank} Pool</div>
+                        <div className="text-[0.48rem] text-white/30">{fmt(turnover, 0)} × {rankPercent}% = pool</div>
+                      </div>
+                      <span className="font-orbitron text-gold text-[0.85rem] font-bold">{fmt(rankPool, 3)} USDT</span>
+                    </div>
+
+                    {/* Step 4: Qualifier count */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
+                      <div>
+                        <div className="text-[0.6rem] text-white/50 font-orbitron">Qualifiers at Rank {currentRank}</div>
+                        <div className="text-[0.48rem] text-white/20">Pool split equally among qualifiers</div>
+                      </div>
+                      <span className="font-orbitron text-purple text-[0.75rem] font-bold">÷  {qualifiers} {qualifiers === 1 ? 'user' : 'users'}</span>
+                    </div>
+
+                    {/* Step 5: Your share */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-green/10 border-2 border-green/40">
+                      <div>
+                        <div className="text-[0.6rem] text-green font-orbitron font-bold">✨ Your Share Today</div>
+                        <div className="text-[0.48rem] text-white/40">{fmt(rankPool, 3)} ÷ {qualifiers} = your payout</div>
+                      </div>
+                      <span className="font-orbitron text-green text-[0.95rem] font-bold">{fmt(yourShare, 3)} USDT</span>
+                    </div>
+
+                    {/* Footer: lifetime */}
+                    <div className="flex items-center justify-between p-2 mt-2 text-[0.55rem]">
+                      <span className="text-white/40 font-orbitron">Lifetime Earned</span>
+                      <span className="font-orbitron text-white/60 font-bold">{fmt(r.lifetimeClubIncome || 0, 3)} USDT</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
-                    <span className="text-[0.6rem] text-white/50 font-orbitron">Your Rank Share</span>
-                    <span className="font-orbitron text-gold text-[0.7rem]">{ladder[currentRank - 1]?.percent}%</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/3">
-                    <span className="text-[0.6rem] text-white/50 font-orbitron">Est. Daily (if sole qualifier)</span>
-                    <span className="font-orbitron text-green text-[0.7rem]">
-                      {fmt(((r.todayTurnover || 0) * (ladder[currentRank - 1]?.percent || 0)) / 100, 3)} USDT
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-green/5 border border-green/20">
-                    <span className="text-[0.6rem] text-white/50 font-orbitron">Lifetime Earned</span>
-                    <span className="font-orbitron text-green text-[0.85rem] font-bold">{fmt(r.lifetimeClubIncome || 0, 3)} USDT</span>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
 
