@@ -168,10 +168,10 @@ export default function Referrals() {
               </div>
 
               {/* Commission cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <CommissionCard
                   icon="⭐"
-                  title="STREAM 2 — DIRECT REFERRAL"
+                  title="DIRECT REFERRAL"
                   description="Commissions on all downline deposits. L1=5%, L2=2%, L3-5=1%, L6-15=0.5%."
                   lifetime={stats?.directReferralIncome?.lifetime}
                   today={stats?.directReferralIncome?.today}
@@ -179,11 +179,19 @@ export default function Referrals() {
                 />
                 <CommissionCard
                   icon="🏅"
-                  title="STREAM 3 — WINNERS REFERRAL"
-                  description="Direct percentages on downline bet amount. L1=5%, L2=2%, L3-5=1%, L6-15=0.5% = 15% total across 15 uplines."
+                  title="WINNERS REFERRAL"
+                  description="Direct percentages on downline bet amount. Same split as Direct Referral across 15 uplines."
                   lifetime={stats?.winnersReferralIncome?.lifetime}
                   today={stats?.winnersReferralIncome?.today}
                   color="pink"
+                />
+                <CommissionCard
+                  icon="🎁"
+                  title="PRACTICE REFERRAL"
+                  description="Frozen rewards earned when a downline signs up with practice balance. Unlocks on practice→real conversion."
+                  lifetime={stats?.practiceReferralIncome?.lifetime}
+                  today={stats?.practiceReferralIncome?.today}
+                  color="purple"
                 />
               </div>
 
@@ -594,7 +602,10 @@ function CommissionCard({ icon, title, description, lifetime, today, color }) {
   const colorClass = {
     cyan: 'border-cyan/30 text-cyan',
     pink: 'border-pink/30 text-pink',
-  }[color];
+    purple: 'border-purple/30 text-purple',
+    gold: 'border-gold/30 text-gold',
+    green: 'border-green/30 text-green',
+  }[color] || 'border-white/20 text-white';
 
   return (
     <div className={`card-glass rounded-2xl p-5 border ${colorClass.split(' ')[0]}`}>
