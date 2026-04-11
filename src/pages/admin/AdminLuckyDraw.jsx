@@ -70,14 +70,26 @@ export default function AdminLuckyDraw() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
-          🛡️ ADMIN
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="font-orbitron text-[0.68rem] tracking-[0.3em] text-pink uppercase mb-1">
+            🛡️ ADMIN
+          </div>
+          <h1 className="font-russo text-[2rem] text-gradient-gold">Lucky Draw</h1>
+          <p className="text-white/40 text-[0.7rem] mt-1">
+            Timer controls · Manual winners · Revenue distribution · Draw history
+          </p>
         </div>
-        <h1 className="font-russo text-[2rem] text-gradient-gold">Lucky Draw</h1>
-        <p className="text-white/40 text-[0.7rem] mt-1">
-          Timer controls · Manual winners · Revenue distribution · Draw history
-        </p>
+        <a
+          href="/admin/luckydraw/history"
+          className="group relative inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-purple/40 bg-gradient-to-r from-purple/20 via-purple/10 to-cyan/10 hover:border-purple/70 hover:from-purple/30 hover:to-cyan/20 transition-all duration-300 shadow-lg shadow-purple/10"
+        >
+          <span className="text-lg">📊</span>
+          <span className="font-orbitron text-[0.7rem] tracking-[0.2em] text-purple group-hover:text-white uppercase font-bold">
+            View Full History
+          </span>
+          <span className="text-purple/60 group-hover:text-white text-sm">→</span>
+        </a>
       </div>
 
       {feedback && (
@@ -719,10 +731,15 @@ function ManualWinnersModal({ drawId, onClose }) {
   const [bulkText, setBulkText] = useState('');
   const [mode, setMode] = useState('bulk'); // 'bulk' | 'single'
 
+  const [drawInfo, setDrawInfo] = useState(null); // { type, drawNumber, status }
+
   const refresh = useCallback(async () => {
     try {
       const { data } = await api.get(`/api/admin/luckydraw/manual-winners/${drawId}`);
       setWinners(data.manualWinners || []);
+      // Fetch draw type/number for display
+      const { data: drawData } = await api.get(`/api/admin/luckydraw/timer/${drawId}`);
+      setDrawInfo(drawData);
     } catch {}
     setLoading(false);
   }, [drawId]);
@@ -903,7 +920,18 @@ function ManualWinnersModal({ drawId, onClose }) {
     <div className="fixed inset-0 z-[1100] bg-black/80 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div className="card-glass rounded-2xl border border-purple/30 max-w-[700px] w-full my-8 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
-          <div className="font-orbitron text-white text-[0.85rem] font-bold">🏆 MANUAL WINNERS</div>
+          <div>
+            <div className="font-orbitron text-white text-[0.85rem] font-bold">🏆 MANUAL WINNERS</div>
+            {drawInfo && (
+              <div className="text-[0.6rem] text-white/40 font-orbitron mt-1">
+                Draw: <span className="text-cyan">{drawInfo.type} #{drawInfo.drawNumber}</span>
+                {' · '}
+                <span className={drawInfo.status === 'TRIGGERED' || drawInfo.status === 'RESULTED' || drawInfo.status === 'CANCELLED' ? 'text-pink' : 'text-green'}>
+                  {drawInfo.status}
+                </span>
+              </div>
+            )}
+          </div>
           <button onClick={onClose} className="text-white/40 hover:text-pink font-orbitron text-[0.7rem]">✕</button>
         </div>
 

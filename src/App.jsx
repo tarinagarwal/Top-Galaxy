@@ -23,6 +23,7 @@ import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import AdminPools from './pages/admin/AdminPools';
 import AdminConfig from './pages/admin/AdminConfig';
 import AdminLuckyDraw from './pages/admin/AdminLuckyDraw';
+import AdminLuckyDrawHistory from './pages/admin/AdminLuckyDrawHistory';
 import AdminClub from './pages/admin/AdminClub';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminLogs from './pages/admin/AdminLogs';
@@ -73,6 +74,7 @@ function AppRoutes() {
       <Route path="/admin/pools" element={<AdminRoute><AdminPools /></AdminRoute>} />
       <Route path="/admin/config" element={<AdminRoute><AdminConfig /></AdminRoute>} />
       <Route path="/admin/luckydraw" element={<AdminRoute><AdminLuckyDraw /></AdminRoute>} />
+      <Route path="/admin/luckydraw/history" element={<AdminRoute><AdminLuckyDrawHistory /></AdminRoute>} />
       <Route path="/admin/club" element={<AdminRoute><AdminClub /></AdminRoute>} />
       <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
       <Route path="/admin/logs" element={<AdminRoute><AdminLogs /></AdminRoute>} />
