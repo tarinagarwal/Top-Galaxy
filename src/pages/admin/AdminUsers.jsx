@@ -226,7 +226,7 @@ function UserDetailModal({ userId, onClose, onAction, canEdit = true, canActivat
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
-            <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">USER DETAIL</div>
+            <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">USER DETAIL</div>
             <div className="font-orbitron text-gold text-[0.85rem] mt-1 break-all">
               {u.walletAddress}
             </div>
@@ -462,7 +462,7 @@ function Stat({ label, value, color, type = 'usdt' }) {
   else display = fmt(value);
   return (
     <div className="p-3 rounded-lg bg-white/3 border border-white/5">
-      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.1em]">{label}</div>
+      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.1em]">{label}</div>
       <div className={`font-orbitron font-bold text-[0.85rem] mt-1 ${colorClass}`}>{display}</div>
     </div>
   );

@@ -661,7 +661,7 @@ function MiniStat({ label, value, color, type = 'usdt' }) {
   const c = { cyan: 'text-cyan', green: 'text-green', pink: 'text-pink', gold: 'text-gold', purple: 'text-purple' }[color];
   return (
     <div className="p-2 rounded-lg bg-white/3 border border-white/5">
-      <div className="text-[0.4rem] text-white/30 font-orbitron tracking-[0.08em]">{label}</div>
+      <div className="text-[0.4rem] text-white/60 font-orbitron font-bold tracking-[0.08em]">{label}</div>
       <div className={`font-orbitron font-bold text-[0.85rem] ${c}`}>
         {type === 'count' ? value : fmt(value, 3)}
         {type !== 'count' && <span className="text-[0.4rem] text-white/20 ml-0.5">USDT</span>}
@@ -681,7 +681,7 @@ function StatCard({ label, value, color, type = 'usdt' }) {
   const display = type === 'count' ? value || 0 : fmt(value);
   return (
     <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
-      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">{label}</div>
+      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">{label}</div>
       <div className={`font-orbitron font-bold text-[1.3rem] ${colorClass.split(' ')[0]}`}>
         {display}
         {type !== 'count' && <span className="text-[0.55rem] text-white/30 ml-1">USDT</span>}

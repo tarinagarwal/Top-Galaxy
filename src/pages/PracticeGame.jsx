@@ -150,14 +150,14 @@ export default function PracticeGame() {
           {/* Stats grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="card-glass rounded-2xl p-6">
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">PRACTICE BALANCE</div>
+              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">PRACTICE BALANCE</div>
               <div className="font-orbitron text-cyan text-[1.8rem] font-bold">
                 {fmt(status?.practiceWallet)}
               </div>
               <div className="text-[0.55rem] text-white/30 mt-1">USDT (non-withdrawable)</div>
             </div>
             <div className="card-glass rounded-2xl p-6">
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">DAYS REMAINING</div>
+              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">DAYS REMAINING</div>
               <div className="font-orbitron text-gold text-[1.8rem] font-bold">
                 {status?.daysRemaining ?? '—'}
               </div>
@@ -166,7 +166,7 @@ export default function PracticeGame() {
               </div>
             </div>
             <div className="card-glass rounded-2xl p-6">
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">WIN MULTIPLIER</div>
+              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">WIN MULTIPLIER</div>
               <div className="font-orbitron text-green text-[1.8rem] font-bold">
                 {status?.winMultiplier || 8}×
               </div>
@@ -179,7 +179,7 @@ export default function PracticeGame() {
             <div className="card-glass rounded-2xl p-5 mb-6 border border-cyan/20">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em]">
+                  <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
                     GAME #{currentGame.gameNumber} · {currentGame.date}
                   </div>
                   <div className="font-orbitron text-cyan text-[0.65rem] mt-1">

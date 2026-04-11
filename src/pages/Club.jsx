@@ -101,7 +101,7 @@ export default function Club() {
           {/* Top: Big stat — Total Club Income */}
           <div className="card-glass rounded-2xl p-6 mb-6 border border-green/30 flex items-center justify-between flex-wrap gap-4">
             <div>
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">TOTAL CLUB INCOME</div>
+              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">TOTAL CLUB INCOME</div>
               <div className="font-orbitron text-green text-[2.2rem] font-bold leading-none mt-1">
                 ${fmt(r.lifetimeClubIncome || 0, 3)}
               </div>
@@ -119,22 +119,22 @@ export default function Club() {
           {/* Stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="card-glass rounded-2xl p-4 border border-gold/20">
-              <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">TODAY'S EARNING</div>
+              <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S EARNING</div>
               <div className="font-orbitron text-gold text-[1.2rem] font-bold">{fmt(todayEarning, 3)}</div>
               <div className="text-[0.4rem] text-white/20">USDT</div>
             </div>
             <div className="card-glass rounded-2xl p-4 border border-cyan/20">
-              <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">TODAY'S TURNOVER</div>
+              <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S TURNOVER</div>
               <div className="font-orbitron text-cyan text-[1.2rem] font-bold">{fmt(r.todayTurnover || 0, 0)}</div>
               <div className="text-[0.4rem] text-white/20">USDT platform-wide</div>
             </div>
             <div className="card-glass rounded-2xl p-4 border border-purple/20">
-              <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">TEAM VOLUME</div>
+              <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TEAM VOLUME</div>
               <div className="font-orbitron text-purple text-[1.2rem] font-bold">{fmt(r.teamVolume || 0, 0)}</div>
               <div className="text-[0.4rem] text-white/20">USDT total</div>
             </div>
             <div className="card-glass rounded-2xl p-4 border border-white/10">
-              <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">DIRECT REFERRALS</div>
+              <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">DIRECT REFERRALS</div>
               <div className="font-orbitron text-white text-[1.2rem] font-bold">{r.directReferralCount || 0}</div>
               <div className="text-[0.4rem] text-white/20">active downline</div>
             </div>

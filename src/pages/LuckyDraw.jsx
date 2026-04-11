@@ -388,12 +388,12 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
           <div className={`font-orbitron font-bold text-[1rem] ${accentColors.text}`}>
             {type} DRAW
           </div>
-          <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">
+          <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
             DRAW #{draw.drawNumber}
           </div>
         </div>
         <div className="text-right">
-          <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">PRIZE POOL</div>
+          <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">PRIZE POOL</div>
           <div className={`font-russo text-[1.8rem] ${accentColors.text}`}>
             {fmt(type === 'GOLDEN' ? 70000 : 7000, 0)}
           </div>
@@ -533,7 +533,7 @@ function UserCountdownTimer({ timerEndsAt, accent }) {
 
   return (
     <div className="text-center py-3 mb-3 rounded-xl bg-gold/5 border border-gold/20">
-      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.2em]">DRAW IN</div>
+      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.2em]">DRAW IN</div>
       <div className={`font-russo text-[2rem] ${accent} leading-none mt-1`}>
         {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
       </div>
@@ -768,7 +768,7 @@ function LDStatCard({ label, value, icon, color, isCount = false }) {
       <div className={`font-orbitron font-bold text-[0.9rem] ${colorClass.split(' ')[0]}`}>
         {display}
       </div>
-      <div className="text-[0.4rem] text-white/30 font-orbitron tracking-[0.08em] mt-0.5">
+      <div className="text-[0.4rem] text-white/60 font-orbitron font-bold tracking-[0.08em] mt-0.5">
         {label}
       </div>
     </div>

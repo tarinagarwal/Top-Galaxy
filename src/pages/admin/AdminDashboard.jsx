@@ -332,7 +332,7 @@ function DashStatCard({ label, value, color, suffix = ' USDT' }) {
   const display = isCount ? num(value) : fmt(value);
   return (
     <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
-      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">{label}</div>
+      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">{label}</div>
       <div className={`font-orbitron font-bold text-[1.3rem] ${colorClass.split(' ')[0]}`}>
         {display}
         {!isCount && <span className="text-[0.55rem] text-white/30 ml-1">USDT</span>}
@@ -354,7 +354,7 @@ function KPICard({ label, icon, color, today, total, suffix = ' USDT' }) {
     <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
       <div className="flex items-center gap-1.5 mb-2">
         <span className="text-[1rem]">{icon}</span>
-        <span className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em]">{label}</span>
+        <span className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">{label}</span>
       </div>
       <div className="flex items-baseline gap-3">
         <div>

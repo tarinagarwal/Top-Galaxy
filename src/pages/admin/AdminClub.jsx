@@ -227,7 +227,7 @@ function SummaryCard({ label, value, color, type = 'usdt' }) {
   else display = fmt(value);
   return (
     <div className={`card-glass rounded-2xl p-4 border ${colorClass}`}>
-      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">
+      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
         {label}
       </div>
       <div className={`font-orbitron font-bold text-[1.1rem] ${colorClass.split(' ')[0]}`}>

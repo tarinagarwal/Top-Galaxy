@@ -178,7 +178,7 @@ export default function Cashback() {
                 )}
               </div>
               <div className="text-center md:text-right">
-                <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">NEXT PAYOUT IN</div>
+                <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">NEXT PAYOUT IN</div>
                 <div className={`font-russo text-[1.8rem] leading-none ${s.eligible ? 'text-green' : 'text-white/20'}`}>
                   {nextPayout}
                 </div>
@@ -261,7 +261,7 @@ export default function Cashback() {
               </div>
 
               <div className="text-center mb-4">
-                <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">CURRENT TIER</div>
+                <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">CURRENT TIER</div>
                 <div className="font-russo text-[3rem] text-gold leading-none">
                   {s.capMultiplier || 1}×
                 </div>
@@ -493,7 +493,7 @@ function StatCard({ label, value, suffix = '', color = 'white', highlight = fals
         highlight ? 'border border-green/30' : 'border border-white/10'
       }`}
     >
-      <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">
+      <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
         {label}
       </div>
       <div className={`font-orbitron ${colorClass} text-[1.6rem] font-bold`}>

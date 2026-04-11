@@ -361,7 +361,7 @@ function CountdownTimer({ timerEndsAt }) {
 
   return (
     <div className="text-center py-3 mb-3 rounded-lg bg-gold/5 border border-gold/20">
-      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.2em]">DRAW EXECUTES IN</div>
+      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.2em]">DRAW EXECUTES IN</div>
       <div className="font-russo text-[2.2rem] text-gold leading-none mt-1">
         {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
       </div>
@@ -658,7 +658,7 @@ function WinnersModal({ draw, onClose }) {
       <div className="card-glass rounded-2xl border border-purple/30 max-w-[800px] w-full my-8" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-white/10">
           <div>
-            <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">WINNERS</div>
+            <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">WINNERS</div>
             <div className="font-orbitron text-purple text-[0.85rem] mt-1">{draw.type} #{draw.drawNumber}</div>
           </div>
           <button onClick={onClose} className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.55rem] hover:text-pink">✕ CLOSE</button>
@@ -710,7 +710,7 @@ function StatCard({ label, value, color, suffix = ' USDT' }) {
   const isCount = suffix === '';
   return (
     <div className={`card-glass rounded-xl p-3 border ${cls}`}>
-      <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.1em] mb-1">{label}</div>
+      <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.1em] mb-1">{label}</div>
       <div className={`font-orbitron font-bold text-[1.1rem] ${cls.split(' ')[0]}`}>
         {isCount ? String(value) : fmt(value)}
       </div>

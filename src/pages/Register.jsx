@@ -155,7 +155,7 @@ export default function Register() {
             )}
           </div>
 
-          <div className="mt-6 text-center text-[0.6rem] text-white/30 font-orbitron tracking-[0.1em]">
+          <div className="mt-6 text-center text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.1em]">
             BSC TESTNET ONLY · 18+ ONLY · ONE ACCOUNT POLICY
           </div>
         </div>

@@ -310,7 +310,7 @@ function AggCard({ label, value, color }) {
 
   return (
     <div className="p-3 rounded-lg bg-white/3 border border-white/5">
-      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.1em]">{label}</div>
+      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.1em]">{label}</div>
       <div className={`font-orbitron text-[1rem] font-bold ${colorClass} mt-1`}>{fmt(value)}</div>
       <div className="text-[0.5rem] text-white/30 font-orbitron">USDT</div>
     </div>

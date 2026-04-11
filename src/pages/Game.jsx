@@ -183,7 +183,7 @@ export default function Game() {
             </div>
             {game && (
               <div className="text-right">
-                <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em]">
+                <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">
                   GAME #{game.gameNumber} · {game.date}
                 </div>
                 <div className="font-orbitron text-[0.7rem] text-cyan mt-1">
@@ -199,11 +199,11 @@ export default function Game() {
               {/* Wallet balance card */}
               <div className="card-glass rounded-2xl p-4 border border-gold/20 flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em]">GAME WALLET</div>
+                  <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">GAME WALLET</div>
                   <div className="font-orbitron text-gold text-[1.4rem] font-bold">{fmt(walletData.gameWallet || 0, 3)} <span className="text-[0.55rem] text-white/30">USDT</span></div>
                 </div>
                 <div>
-                  <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em]">WINNINGS</div>
+                  <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em]">WINNINGS</div>
                   <div className="font-orbitron text-green text-[1.4rem] font-bold">{fmt(walletData.winningsWallet || 0, 3)} <span className="text-[0.55rem] text-white/30">USDT</span></div>
                 </div>
               </div>

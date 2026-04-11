@@ -84,7 +84,7 @@ export default function Referrals() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Code */}
                   <div>
-                    <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.1em] mb-1">
+                    <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.1em] mb-1">
                       REFERRAL CODE
                     </div>
                     <div className="flex gap-2">
@@ -102,7 +102,7 @@ export default function Referrals() {
 
                   {/* Link */}
                   <div>
-                    <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.1em] mb-1">
+                    <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.1em] mb-1">
                       REFERRAL LINK
                     </div>
                     <div className="flex gap-2">
@@ -620,7 +620,7 @@ function StatCard({ label, value, color, type = 'usdt' }) {
 
   return (
     <div className={`card-glass rounded-2xl p-4 border ${colorClass.split(' ')[1]}`}>
-      <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">
+      <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
         {label}
       </div>
       <div className={`font-orbitron font-bold text-[1.4rem] ${colorClass.split(' ')[0]}`}>

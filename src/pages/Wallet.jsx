@@ -89,7 +89,7 @@ export default function Wallet() {
           {/* Activation tier banner */}
           <div className="mb-8 card-glass rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
             <div>
-              <div className="text-[0.6rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">
+              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
                 ACTIVATION STATUS
               </div>
               <div className="font-orbitron text-[1.4rem]">
@@ -103,7 +103,7 @@ export default function Wallet() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[0.6rem] text-white/30 font-orbitron tracking-[0.15em] mb-1">
+              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-1">
                 TOTAL DEPOSITED
               </div>
               <div className="font-orbitron text-gold text-[1.4rem]">

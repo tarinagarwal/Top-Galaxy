@@ -353,7 +353,7 @@ function StatCard({ label, value, color, type = 'usdt', signed }) {
   }
   return (
     <div className={`card-glass rounded-2xl p-3 border ${colorClass}`}>
-      <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">{label}</div>
+      <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">{label}</div>
       <div className={`font-orbitron font-bold text-[1rem] ${colorClass.split(' ')[0]}`}>
         {display}
         {type !== 'count' && <span className="text-[0.45rem] text-white/30 ml-1">USDT</span>}

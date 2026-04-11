@@ -186,7 +186,7 @@ function SplitCard({ label, color, icon, value = 0 }) {
       <div className={`font-orbitron font-bold text-[1rem] mb-1 ${colorClass.split(' ')[1]}`}>
         {fmt(value)}
       </div>
-      <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.08em]">
+      <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.08em]">
         {label}
       </div>
     </div>

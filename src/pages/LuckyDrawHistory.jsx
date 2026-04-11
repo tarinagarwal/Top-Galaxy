@@ -80,7 +80,7 @@ export default function LuckyDrawHistory() {
 
           {/* Wallet balances for ticket buying */}
           <div className="card-glass rounded-2xl p-4 mb-4 border border-gold/20">
-            <div className="text-[0.5rem] text-white/30 font-orbitron tracking-[0.12em] mb-3">TICKET BUYING BALANCE</div>
+            <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-3">TICKET BUYING BALANCE</div>
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 rounded-lg bg-white/3 border border-white/5">
                 <div className="text-[0.45rem] text-white/30 font-orbitron">GAME WALLET</div>
@@ -319,7 +319,7 @@ function SC({ label, value, color, type = 'usdt', signed }) {
   else display = fmt(value, 3);
   return (
     <div className={`card-glass rounded-2xl p-3 border ${colorClass}`}>
-      <div className="text-[0.45rem] text-white/30 font-orbitron tracking-[0.12em] mb-1">{label}</div>
+      <div className="text-[0.45rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">{label}</div>
       <div className={`font-orbitron font-bold text-[1rem] ${colorClass.split(' ')[0]}`}>
         {display}
         {type !== 'count' && <span className="text-[0.45rem] text-white/30 ml-1">USDT</span>}

@@ -150,7 +150,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
             {/* Total withdrawable */}
             <div className="lg:col-span-1 card-glass rounded-2xl p-6 border border-green/30">
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-2">
+              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-2">
                 💰 TOTAL WITHDRAWABLE BALANCE
               </div>
               <div className="font-orbitron text-green text-[2.4rem] font-bold leading-none">
@@ -167,7 +167,7 @@ export default function Dashboard() {
 
             {/* Quick actions */}
             <div className="lg:col-span-2 card-glass rounded-2xl p-6 border border-white/10">
-              <div className="text-[0.55rem] text-white/30 font-orbitron tracking-[0.15em] mb-3">
+              <div className="text-[0.55rem] text-white/60 font-orbitron font-bold tracking-[0.15em] mb-3">
                 ⚡ QUICK ACTIONS
               </div>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
