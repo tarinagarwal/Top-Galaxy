@@ -65,9 +65,25 @@ export default function AdminDashboard() {
 
       {/* V2 KPI Cards — TEAM / DEPOSIT / DISTRIBUTION / RECEIVING */}
       {kpi && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <KPICard label="TEAM" icon="👥" color="cyan" today={kpi.team?.today} total={kpi.team?.total} suffix="" />
-          <KPICard label="DEPOSIT" icon="📥" color="green" today={kpi.deposit?.today} total={kpi.deposit?.total} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+          <KPICard
+            label="TEAM"
+            icon="👥"
+            color="cyan"
+            today={kpi.team?.today}
+            total={kpi.team?.total}
+            suffix=""
+            tierBreakdown={{ pro: kpi.team?.pro, basic: kpi.team?.basic, practice: kpi.team?.practice }}
+          />
+          <KPICard
+            label="DEPOSIT"
+            icon="📥"
+            color="green"
+            today={kpi.deposit?.today}
+            total={kpi.deposit?.total}
+            todayCount={kpi.deposit?.todayCount}
+            totalCount={kpi.deposit?.totalCount}
+          />
           <KPICard label="DISTRIBUTION" icon="📤" color="purple" today={kpi.distribution?.today} total={kpi.distribution?.total} />
           <KPICard label="RECEIVING" icon="📨" color="gold" today={kpi.receiving?.today} total={kpi.receiving?.total} />
         </div>
@@ -78,82 +94,115 @@ export default function AdminDashboard() {
         <DashStatCard label="WITHDRAWALS TODAY" value={today.totalWithdrawals} color="pink" />
       </div>
 
-      {/* Income totals row */}
-      <div className="card-glass rounded-2xl p-5 mb-6 border border-white/10">
-        <div className="font-orbitron text-purple text-[0.7rem] font-bold mb-4">
-          💰 LIFETIME INCOME PAYOUTS PER STREAM
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {[
-            { key: 'DIRECT_REFERRAL', label: 'Direct Ref', color: 'cyan' },
-            { key: 'WINNERS_REFERRAL', label: 'Win Ref', color: 'pink' },
-            { key: 'CASHBACK', label: 'Cashback', color: 'green' },
-            { key: 'ROI_ON_ROI', label: 'ROI', color: 'purple' },
-            { key: 'CLUB_INCOME', label: 'Club', color: 'gold' },
-            { key: 'LUCKY_DRAW_WIN', label: 'Lucky', color: 'blue' },
-          ].map((s) => {
-            const data = incomeTotals[s.key] || { total: 0, count: 0 };
-            return (
-              <div key={s.key} className="p-3 rounded-lg bg-white/3 border border-white/5 text-center">
-                <div className={`text-${s.color} font-orbitron text-[0.68rem] tracking-[0.1em]`}>
-                  {s.label}
-                </div>
-                <div className="font-orbitron text-white text-[0.85rem] font-bold mt-1">
-                  {fmt(data.total)}
-                </div>
-                <div className="text-[0.65rem] text-white/30 font-orbitron mt-0.5">
-                  {data.count} payouts
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* Income totals — two groups: WITHDRAWABLE vs NON-WITHDRAWABLE */}
+      {(() => {
+        const gw2x = num(incomeTotals.GAME_WIN_DIRECT?.total);
+        const gw2xCount = incomeTotals.GAME_WIN_DIRECT?.count || 0;
+        const directRef = num(incomeTotals.DIRECT_REFERRAL?.total);
+        const winRef = num(incomeTotals.WINNERS_REFERRAL?.total);
+        const cashback = num(incomeTotals.CASHBACK?.total);
+        const roi = num(incomeTotals.ROI_ON_ROI?.total);
+        const club = num(incomeTotals.CLUB_INCOME?.total);
+        const lucky = num(incomeTotals.LUCKY_DRAW_WIN?.total);
+        const withdrawableTotal = gw2x + directRef + winRef + cashback + roi + club + lucky;
 
-        {/* Game wins breakdown — separate because game wins are in Transaction, not IncomeDistribution */}
-        <div className="mt-5 pt-4 border-t border-white/10">
-          <div className="text-[0.65rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-3">
-            🎯 LIFETIME GAME WINS
+        const gw6x = num(incomeTotals.GAME_WIN_COMPOUND?.total);
+        const pracConv = num(incomeTotals.PRACTICE_TO_REAL_CONVERSION?.total);
+        const liveGW = num(incomeTotals.LIVE_GAME_WALLET?.total);
+        const nonWithdrawableTotal = liveGW + gw6x + pracConv;
+
+        const WRow = ({ label, amount, payouts, color = 'white' }) => (
+          <tr className="border-b border-white/5">
+            <td className={`py-2 px-3 font-orbitron text-${color} text-[0.7rem]`}>{label}</td>
+            <td className="py-2 px-3 font-orbitron text-white text-right text-[0.7rem] font-bold">
+              {fmt(amount, 3)}
+            </td>
+            <td className="py-2 px-3 font-orbitron text-white/40 text-right text-[0.65rem]">
+              {payouts ?? '—'}
+            </td>
+          </tr>
+        );
+
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            {/* WITHDRAWABLE GROUP */}
+            <div className="card-glass rounded-2xl p-5 border border-green/30">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <div>
+                  <div className="font-orbitron text-green text-[0.75rem] font-bold">
+                    ⏳ DISTRIBUTION
+                  </div>
+                  <div className="text-[0.6rem] text-white/50 font-orbitron mt-0.5">
+                    ✅ USERS WITHDRAWAL WALLET · 🤩 Withdrawable Immediately
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[0.5rem] text-white/40 font-orbitron">TOTAL</div>
+                  <div className="font-orbitron text-green text-[1.1rem] font-bold">
+                    {fmt(withdrawableTotal, 3)}
+                  </div>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[0.7rem]">
+                  <thead>
+                    <tr className="text-left text-white/40 font-orbitron text-[0.6rem] tracking-[0.1em] border-b border-white/10">
+                      <th className="py-2 px-3">STREAM</th>
+                      <th className="py-2 px-3 text-right">LIFETIME</th>
+                      <th className="py-2 px-3 text-right">PAYOUTS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <WRow label="🎯 Game Wins 2×" amount={gw2x} payouts={gw2xCount} color="gold" />
+                    <WRow label="⭐ Direct Referrals" amount={directRef} payouts={incomeTotals.DIRECT_REFERRAL?.count || 0} color="cyan" />
+                    <WRow label="🏅 Winners Referral" amount={winRef} payouts={incomeTotals.WINNERS_REFERRAL?.count || 0} color="pink" />
+                    <WRow label="🛡️ Cashback" amount={cashback} payouts={incomeTotals.CASHBACK?.count || 0} color="green" />
+                    <WRow label="🔄 ROI on ROI" amount={roi} payouts={incomeTotals.ROI_ON_ROI?.count || 0} color="purple" />
+                    <WRow label="🏆 Club" amount={club} payouts={incomeTotals.CLUB_INCOME?.count || 0} color="gold" />
+                    <WRow label="🎰 Lucky Draw Win" amount={lucky} payouts={incomeTotals.LUCKY_DRAW_WIN?.count || 0} color="blue" />
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* NON-WITHDRAWABLE GROUP */}
+            <div className="card-glass rounded-2xl p-5 border border-pink/30">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <div>
+                  <div className="font-orbitron text-pink text-[0.75rem] font-bold">
+                    ⏳ DEPOSIT &amp; DISTRIBUTION
+                  </div>
+                  <div className="text-[0.6rem] text-white/50 font-orbitron mt-0.5">
+                    ✅ USERS GAME WALLET · ❌ Can't Withdraw
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[0.5rem] text-white/40 font-orbitron">TOTAL</div>
+                  <div className="font-orbitron text-pink text-[1.1rem] font-bold">
+                    {fmt(nonWithdrawableTotal, 3)}
+                  </div>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[0.7rem]">
+                  <thead>
+                    <tr className="text-left text-white/40 font-orbitron text-[0.6rem] tracking-[0.1em] border-b border-white/10">
+                      <th className="py-2 px-3">STREAM</th>
+                      <th className="py-2 px-3 text-right">LIFETIME</th>
+                      <th className="py-2 px-3 text-right">COUNT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <WRow label="💵 Cash Game Balance" amount={liveGW} payouts={kpi?.deposit?.totalCount || 0} color="green" />
+                    <WRow label="🔒 Compounding Wins 6×" amount={gw6x} payouts={incomeTotals.GAME_WIN_COMPOUND?.count || 0} color="purple" />
+                    <WRow label="🎁 Practice → Real Cash" amount={pracConv} payouts={incomeTotals.PRACTICE_TO_REAL_CONVERSION?.count || 0} color="cyan" />
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Total 8x */}
-            <div className="p-3 rounded-lg bg-gold/5 border border-gold/20 text-center">
-              <div className="text-gold font-orbitron text-[0.68rem] tracking-[0.1em] font-bold">
-                TOTAL PAYOUT (8×)
-              </div>
-              <div className="font-orbitron text-gold text-[1.1rem] font-bold mt-1">
-                {fmt(incomeTotals.GAME_WIN_TOTAL?.total || 0, 2)}
-              </div>
-              <div className="text-[0.6rem] text-white/40 font-orbitron mt-0.5">
-                {incomeTotals.GAME_WIN_DIRECT?.count || 0} winning entries
-              </div>
-            </div>
-            {/* 2x Direct */}
-            <div className="p-3 rounded-lg bg-green/5 border border-green/20 text-center">
-              <div className="text-green font-orbitron text-[0.68rem] tracking-[0.1em]">
-                DIRECT (2×)
-              </div>
-              <div className="font-orbitron text-green text-[1.1rem] font-bold mt-1">
-                {fmt(incomeTotals.GAME_WIN_DIRECT?.total || 0, 2)}
-              </div>
-              <div className="text-[0.6rem] text-white/40 font-orbitron mt-0.5">
-                → winningsWallet (withdrawable)
-              </div>
-            </div>
-            {/* 6x Compound */}
-            <div className="p-3 rounded-lg bg-purple/5 border border-purple/20 text-center">
-              <div className="text-purple font-orbitron text-[0.68rem] tracking-[0.1em]">
-                COMPOUND (6×)
-              </div>
-              <div className="font-orbitron text-purple text-[1.1rem] font-bold mt-1">
-                {fmt(incomeTotals.GAME_WIN_COMPOUND?.total || 0, 2)}
-              </div>
-              <div className="text-[0.6rem] text-white/40 font-orbitron mt-0.5">
-                → compound slot (locked)
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Pool health */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -383,7 +432,7 @@ function DashStatCard({ label, value, color, suffix = ' USDT' }) {
   );
 }
 
-function KPICard({ label, icon, color, today, total, suffix = ' USDT' }) {
+function KPICard({ label, icon, color, today, total, suffix = ' USDT', tierBreakdown, todayCount, totalCount }) {
   const colorClass = {
     cyan: 'text-cyan border-cyan/20',
     green: 'text-green border-green/20',
@@ -404,14 +453,34 @@ function KPICard({ label, icon, color, today, total, suffix = ' USDT' }) {
           <div className={`font-orbitron font-bold text-[1.1rem] ${colorClass.split(' ')[0]}`}>
             {fmtVal(today)}{!isCount && <span className="text-[0.6rem] text-white/20 ml-0.5">USDT</span>}
           </div>
+          {todayCount !== undefined && (
+            <div className="text-[0.5rem] text-white/30 font-orbitron">{todayCount} deposits</div>
+          )}
         </div>
         <div className="border-l border-white/10 pl-3">
           <div className="text-[0.6rem] text-white/30 font-orbitron mb-0.5">TOTAL</div>
           <div className="font-orbitron text-[0.85rem] text-white/60">
             {fmtVal(total)}{!isCount && <span className="text-[0.6rem] text-white/20 ml-0.5">USDT</span>}
           </div>
+          {totalCount !== undefined && (
+            <div className="text-[0.5rem] text-white/30 font-orbitron">{totalCount} deposits</div>
+          )}
         </div>
       </div>
+      {/* Tier breakdown (for TEAM card) */}
+      {tierBreakdown && (
+        <div className="flex items-center gap-1 mt-2 flex-wrap">
+          <span className="px-1.5 py-0.5 rounded-full border font-orbitron text-[0.5rem] bg-green/10 border-green/30 text-green">
+            {tierBreakdown.pro || 0} PRO
+          </span>
+          <span className="px-1.5 py-0.5 rounded-full border font-orbitron text-[0.5rem] bg-gold/10 border-gold/30 text-gold">
+            {tierBreakdown.basic || 0} BASIC
+          </span>
+          <span className="px-1.5 py-0.5 rounded-full border font-orbitron text-[0.5rem] bg-cyan/10 border-cyan/30 text-cyan">
+            {tierBreakdown.practice || 0} PRAC
+          </span>
+        </div>
+      )}
     </div>
   );
 }
