@@ -215,35 +215,38 @@ function WinsTab({ drawType }) {
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}`)
-      .then(({ data }) => {
-        // filter client-side for wins
-        const wins = (data.tickets || []).filter((t) => t.outcome === 'WIN');
-        setData({ ...data, tickets: wins });
-      })
+    // Server-side outcome=WIN filter — returns only winning tickets, correctly
+    // paginated across ALL wins in the filtered pool (not just wins-in-this-page).
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}&outcome=WIN`)
+      .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [page, drawType]);
 
   const wins = data?.tickets || [];
-  const totalPrize = wins.reduce((s, t) => s + (t.prizeAmount || 0), 0);
+  const total = data?.total || 0; // lifetime win count (server-side, post-filter)
+  const lifetimePrize = data?.summary?.outcomeTotals?.totalPrize || 0;
+  const totalPages = Math.max(1, Math.ceil(total / 100));
 
   return (
     <div className="card-glass rounded-2xl p-5 border border-green/20">
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <Stat label="WINS SHOWN" value={wins.length} color="green" type="count" />
-        <Stat label="TOTAL PRIZE" value={totalPrize} color="gold" />
-        <Stat label="AVG PRIZE" value={wins.length > 0 ? totalPrize / wins.length : 0} color="cyan" />
+        <Stat label="TOTAL WINS" value={total} color="green" type="count" />
+        <Stat label="LIFETIME PRIZE PAID" value={lifetimePrize} color="gold" />
+        <Stat label="AVG PRIZE" value={total > 0 ? lifetimePrize / total : 0} color="cyan" />
       </div>
 
       {loading ? (
         <div className="text-center py-8 text-white/40">Loading...</div>
       ) : wins.length === 0 ? (
         <div className="text-center py-8 text-white/30 font-orbitron text-[0.7rem]">
-          No wins yet on this page. More wins may appear on other pages or once draws are resulted.
+          No wins in {drawType} pool yet. Wins appear once a draw is RESULTED.
         </div>
       ) : (
-        <TicketsTable tickets={wins} />
+        <>
+          <TicketsTable tickets={wins} />
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        </>
       )}
     </div>
   );
@@ -261,33 +264,35 @@ function LossesTab({ drawType }) {
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}`)
-      .then(({ data }) => {
-        const losses = (data.tickets || []).filter((t) => t.outcome === 'LOSS');
-        setData({ ...data, tickets: losses });
-      })
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}&outcome=LOSS`)
+      .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [page, drawType]);
 
   const losses = data?.tickets || [];
-  const totalLoss = losses.reduce((s, t) => s + (t.amount || 0), 0);
+  const total = data?.total || 0; // lifetime loss count (server-side, post-filter)
+  const totalLossAmount = data?.summary?.outcomeTotals?.totalLossAmount || 0;
+  const totalPages = Math.max(1, Math.ceil(total / 100));
 
   return (
     <div className="card-glass rounded-2xl p-5 border border-pink/20">
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <Stat label="LOSSES SHOWN" value={losses.length} color="pink" type="count" />
-        <Stat label="TOTAL LOSS AMOUNT" value={totalLoss} color="pink" />
+        <Stat label="TOTAL LOSSES" value={total} color="pink" type="count" />
+        <Stat label="TOTAL LOSS AMOUNT" value={totalLossAmount} color="pink" />
       </div>
 
       {loading ? (
         <div className="text-center py-8 text-white/40">Loading...</div>
       ) : losses.length === 0 ? (
         <div className="text-center py-8 text-white/30 font-orbitron text-[0.7rem]">
-          No losses yet on this page.
+          No losses in {drawType} pool yet.
         </div>
       ) : (
-        <TicketsTable tickets={losses} />
+        <>
+          <TicketsTable tickets={losses} />
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        </>
       )}
     </div>
   );
