@@ -661,7 +661,7 @@ function DrawCard({ draw, type, icon, accent, busy, canOps, isSuperAdmin, onActi
             onClick={() => onAction('Cancel', () => api.post('/api/admin/luckydraw/cancel', { drawId: draw._id }))} />
         )}
         {(isOpen || isActivated || isPaused) && isSuperAdmin && (
-          <CtrlBtn label="🏆 MANUAL WINNERS" sub="Set guaranteed winners (max 50)" color="purple" disabled={busy}
+          <CtrlBtn label="🏆 MANUAL WINNERS" sub="Set guaranteed winners (up to 1000)" color="purple" disabled={busy}
             onClick={() => onManualWinners(draw._id)} />
         )}
       </div>
@@ -699,18 +699,23 @@ function CountdownTimer({ timerEndsAt }) {
 }
 
 // ============================================================================
-// ManualWinnersModal — bulk paste + single add + remove individual
+// ManualWinnersModal — bulk paste ticket numbers OR single add — auto-resolves to wallets
 // ============================================================================
 function ManualWinnersModal({ drawId, onClose }) {
-  const [winners, setWinners] = useState([]);
+  // Each entry: { ticketNumber, walletAddress, rank, status: 'resolving' | 'found' | 'notfound' }
+  // The internal state lets us show live resolution. On submit, we send { walletAddress, rank } to backend.
+  const [winners, setWinners] = useState([]); // existing winners from backend (read-only rank view)
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  // Single add
-  const [wallet, setWallet] = useState('');
+  // Pending (unresolved or preview) entries
+  const [pending, setPending] = useState([]); // { ticketNumber, walletAddress, rank, status }
 
-  // Bulk paste
+  // Single add input
+  const [singleTicket, setSingleTicket] = useState('');
+
+  // Bulk paste input
   const [bulkText, setBulkText] = useState('');
   const [mode, setMode] = useState('bulk'); // 'bulk' | 'single'
 
@@ -724,95 +729,157 @@ function ManualWinnersModal({ drawId, onClose }) {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  // Parse bulk text — one address per line (ignores blank lines, trims whitespace)
-  // Accepts formats: just address, or "rank,address", or "address,rank"
-  const parseBulk = (text) => {
-    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-    const parsed = [];
-    let autoRank = winners.length + 1;
-
-    for (const line of lines) {
-      // Try to extract a 0x address from the line
-      const addrMatch = line.match(/0x[a-fA-F0-9]{40}/);
-      if (!addrMatch) continue;
-      const addr = addrMatch[0].toLowerCase();
-
-      // Check if there's a number (rank) in the line
-      const numMatch = line.replace(addrMatch[0], '').match(/\d+/);
-      const rank = numMatch ? Math.min(50, Math.max(1, parseInt(numMatch[0]))) : autoRank++;
-
-      parsed.push({ walletAddress: addr, rank });
-    }
-
-    // Deduplicate by address (keep first occurrence)
-    const seen = new Set();
-    return parsed.filter((p) => {
-      if (seen.has(p.walletAddress)) return false;
-      seen.add(p.walletAddress);
-      return true;
-    }).slice(0, 50); // max 50
+  // Parse bulk text — one ticket number per line
+  const parseTicketNumbers = (text) => {
+    return text
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((l) => {
+        const m = l.match(/\d+/);
+        return m ? parseInt(m[0], 10) : null;
+      })
+      .filter((n) => Number.isInteger(n) && n > 0);
   };
 
-  const handleBulkSubmit = async () => {
-    const parsed = parseBulk(bulkText);
-    if (parsed.length === 0) {
-      setFeedback({ type: 'error', message: 'No valid wallet addresses found' });
+  // Resolve ticket numbers to wallet addresses via the backend
+  const resolveTickets = async (nums) => {
+    if (nums.length === 0) return [];
+    try {
+      const { data } = await api.post('/api/admin/luckydraw/resolve-tickets', {
+        drawId,
+        ticketNumbers: nums,
+      });
+      return data.resolved || [];
+    } catch (err) {
+      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Lookup failed' });
+      return [];
+    }
+  };
+
+  const handleBulkPreview = async () => {
+    const nums = parseTicketNumbers(bulkText);
+    if (nums.length === 0) {
+      setFeedback({ type: 'error', message: 'No valid ticket numbers found' });
+      return;
+    }
+    if (nums.length > 1000) {
+      setFeedback({ type: 'error', message: `Too many tickets (${nums.length}). Max 1000 per draw.` });
       return;
     }
     setBusy(true);
     setFeedback(null);
-    try {
-      // Merge with existing (new ones get auto-ranked after existing)
-      const existingAddrs = new Set(winners.map((w) => w.walletAddress));
-      let nextRank = Math.max(0, ...winners.map((w) => w.rank)) + 1;
-      const merged = [...winners];
-      for (const p of parsed) {
-        if (existingAddrs.has(p.walletAddress)) continue;
-        merged.push({ walletAddress: p.walletAddress, rank: p.rank || nextRank++ });
-      }
-      // Reassign ranks sequentially to avoid gaps/duplicates
-      merged.sort((a, b) => a.rank - b.rank);
-      merged.forEach((w, i) => { w.rank = i + 1; });
-
-      await api.post('/api/admin/luckydraw/manual-winners', { drawId, winners: merged.slice(0, 50) });
-      setFeedback({ type: 'success', message: `${parsed.length} addresses added (${merged.length} total)` });
-      setBulkText('');
-      await refresh();
-    } catch (err) {
-      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Failed' });
-    }
+    const resolved = await resolveTickets(nums);
+    // Assign ranks starting from winners.length + 1
+    let nextRank = winners.length + 1;
+    const entries = resolved.map((r) => ({
+      ticketNumber: r.ticketNumber,
+      walletAddress: r.walletAddress,
+      rank: nextRank++,
+      status: r.found ? 'found' : 'notfound',
+    }));
+    setPending(entries);
     setBusy(false);
+    const foundCount = entries.filter((e) => e.status === 'found').length;
+    const missCount = entries.length - foundCount;
+    setFeedback({
+      type: foundCount > 0 ? 'success' : 'error',
+      message: `Resolved ${foundCount}/${entries.length} tickets${missCount > 0 ? ` (${missCount} not found)` : ''}`,
+    });
   };
 
   const handleSingleAdd = async () => {
-    if (!wallet.trim()) return;
-    const addr = wallet.trim().toLowerCase();
-    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
-      setFeedback({ type: 'error', message: 'Invalid wallet address format' });
+    if (!singleTicket.trim()) return;
+    const num = parseInt(singleTicket.trim(), 10);
+    if (!Number.isInteger(num) || num < 1) {
+      setFeedback({ type: 'error', message: 'Invalid ticket number' });
+      return;
+    }
+    if (winners.length + pending.length >= 1000) {
+      setFeedback({ type: 'error', message: 'Max 1000 winners reached' });
+      return;
+    }
+    setBusy(true);
+    setFeedback(null);
+    const resolved = await resolveTickets([num]);
+    const r = resolved[0];
+    if (!r || !r.found) {
+      setFeedback({ type: 'error', message: `Ticket #${num} not found in this draw` });
+      setBusy(false);
+      return;
+    }
+    const nextRank = winners.length + pending.length + 1;
+    setPending([
+      ...pending,
+      {
+        ticketNumber: num,
+        walletAddress: r.walletAddress,
+        rank: nextRank,
+        status: 'found',
+      },
+    ]);
+    setSingleTicket('');
+    setBusy(false);
+  };
+
+  const handleRemovePending = (ticketNumber) => {
+    const filtered = pending.filter((p) => p.ticketNumber !== ticketNumber);
+    // Re-rank pending sequentially from where winners end
+    let r = winners.length + 1;
+    filtered.forEach((p) => { p.rank = r++; });
+    setPending(filtered);
+  };
+
+  const handleConfirmPending = async () => {
+    const validEntries = pending.filter((p) => p.status === 'found' && p.walletAddress);
+    if (validEntries.length === 0) {
+      setFeedback({ type: 'error', message: 'No valid tickets to add' });
       return;
     }
     setBusy(true);
     setFeedback(null);
     try {
-      const nextRank = winners.length > 0 ? Math.max(...winners.map((w) => w.rank)) + 1 : 1;
-      const merged = [...winners, { walletAddress: addr, rank: nextRank }];
-      await api.post('/api/admin/luckydraw/manual-winners', { drawId, winners: merged });
-      setFeedback({ type: 'success', message: `Added at rank #${nextRank}` });
-      setWallet('');
+      // Merge with existing winners
+      const merged = [...winners];
+      for (const p of validEntries) {
+        merged.push({ walletAddress: p.walletAddress, rank: p.rank });
+      }
+      // Re-rank sequentially to avoid gaps/duplicates
+      merged.sort((a, b) => a.rank - b.rank);
+      merged.forEach((w, i) => { w.rank = i + 1; });
+
+      if (merged.length > 1000) {
+        setFeedback({ type: 'error', message: `Total would exceed 1000 (${merged.length})` });
+        setBusy(false);
+        return;
+      }
+
+      await api.post('/api/admin/luckydraw/manual-winners', {
+        drawId,
+        winners: merged.map((w) => ({ walletAddress: w.walletAddress, rank: w.rank })),
+      });
+      setFeedback({ type: 'success', message: `✓ ${validEntries.length} ticket(s) added as winners` });
+      setPending([]);
+      setBulkText('');
+      setSingleTicket('');
       await refresh();
     } catch (err) {
-      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Failed' });
+      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Failed to save' });
     }
     setBusy(false);
   };
 
-  const handleRemoveOne = async (addrToRemove) => {
+  const handleRemoveExisting = async (rankToRemove) => {
     setBusy(true);
     try {
-      const filtered = winners.filter((w) => w.walletAddress !== addrToRemove);
+      const filtered = winners.filter((w) => w.rank !== rankToRemove);
       filtered.sort((a, b) => a.rank - b.rank);
-      filtered.forEach((w, i) => { w.rank = i + 1; }); // re-rank sequentially
-      await api.post('/api/admin/luckydraw/manual-winners', { drawId, winners: filtered });
+      filtered.forEach((w, i) => { w.rank = i + 1; });
+      if (filtered.length === 0) {
+        await api.delete(`/api/admin/luckydraw/manual-winners/${drawId}`);
+      } else {
+        await api.post('/api/admin/luckydraw/manual-winners', { drawId, winners: filtered });
+      }
       await refresh();
     } catch {}
     setBusy(false);
@@ -822,18 +889,21 @@ function ManualWinnersModal({ drawId, onClose }) {
     setBusy(true);
     try {
       await api.delete(`/api/admin/luckydraw/manual-winners/${drawId}`);
+      setPending([]);
       await refresh();
     } catch {}
     setBusy(false);
   };
 
-  const bulkPreview = bulkText.trim() ? parseBulk(bulkText) : [];
+  const bulkNumsPreview = bulkText.trim() ? parseTicketNumbers(bulkText) : [];
+  const foundCount = pending.filter((p) => p.status === 'found').length;
+  const totalAfter = winners.length + foundCount;
 
   return (
     <div className="fixed inset-0 z-[1100] bg-black/80 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div className="card-glass rounded-2xl border border-purple/30 max-w-[700px] w-full my-8 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
-          <div className="font-orbitron text-white text-[0.85rem] font-bold">🏆 MANUAL WINNERS (MAX 50)</div>
+          <div className="font-orbitron text-white text-[0.85rem] font-bold">🏆 MANUAL WINNERS</div>
           <button onClick={onClose} className="text-white/40 hover:text-pink font-orbitron text-[0.7rem]">✕</button>
         </div>
 
@@ -857,23 +927,23 @@ function ManualWinnersModal({ drawId, onClose }) {
         {mode === 'bulk' && (
           <div className="mb-4">
             <div className="text-[0.68rem] text-white/40 font-orbitron mb-2">
-              Paste wallet addresses below — one per line. Ranks auto-assigned.
+              Paste <span className="text-cyan">ticket numbers</span> below — one per line. Wallet addresses auto-resolve.
             </div>
             <textarea
               value={bulkText}
               onChange={(e) => setBulkText(e.target.value)}
-              placeholder={"0xAF257e206A984971ffF5c8c54Ae89189D43e5C54\n0x1Fcaabe807D7164b655D1C2D7Cd9121cB1A0f0bd\n0xcd54CDd6646CDB504782B12D51EcAdaEF6249c95\n..."}
+              placeholder={"42\n156\n1023\n5891\n..."}
               rows={6}
-              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.6rem] outline-none focus:border-purple/40 resize-y"
+              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.7rem] outline-none focus:border-purple/40 resize-y"
             />
-            {bulkPreview.length > 0 && (
+            {bulkNumsPreview.length > 0 && (
               <div className="mt-2 text-[0.68rem] text-cyan font-orbitron">
-                {bulkPreview.length} valid address{bulkPreview.length !== 1 ? 'es' : ''} detected
+                {bulkNumsPreview.length} ticket number{bulkNumsPreview.length !== 1 ? 's' : ''} detected
               </div>
             )}
-            <button onClick={handleBulkSubmit} disabled={busy || bulkPreview.length === 0}
+            <button onClick={handleBulkPreview} disabled={busy || bulkNumsPreview.length === 0}
               className="mt-2 w-full py-2.5 rounded-lg bg-purple/10 border border-purple/40 text-purple font-orbitron text-[0.6rem] font-bold hover:bg-purple/20 disabled:opacity-30">
-              {busy ? '...' : `ADD ${bulkPreview.length} ADDRESSES`}
+              {busy ? '⏳ LOOKING UP...' : `🔍 LOOKUP ${bulkNumsPreview.length} TICKET${bulkNumsPreview.length !== 1 ? 'S' : ''}`}
             </button>
           </div>
         )}
@@ -882,15 +952,79 @@ function ManualWinnersModal({ drawId, onClose }) {
         {mode === 'single' && (
           <div className="mb-4">
             <div className="text-[0.68rem] text-white/40 font-orbitron mb-2">
-              Enter one wallet address. Rank auto-assigned to next available slot.
+              Enter a <span className="text-cyan">ticket number</span>. Wallet address auto-resolves from that ticket.
             </div>
             <div className="flex gap-2">
-              <input value={wallet} onChange={(e) => setWallet(e.target.value)} placeholder="0x..."
+              <input
+                type="number"
+                value={singleTicket}
+                onChange={(e) => setSingleTicket(e.target.value)}
+                placeholder="e.g. 42"
                 onKeyDown={(e) => e.key === 'Enter' && handleSingleAdd()}
-                className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] outline-none focus:border-purple/40" />
-              <button onClick={handleSingleAdd} disabled={busy || winners.length >= 50}
+                className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.75rem] outline-none focus:border-purple/40"
+              />
+              <button onClick={handleSingleAdd} disabled={busy || totalAfter >= 1000}
                 className="px-4 py-2 rounded-lg bg-purple/10 border border-purple/40 text-purple font-orbitron text-[0.6rem] hover:bg-purple/20 disabled:opacity-30">
-                + ADD
+                + LOOKUP
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Pending (unconfirmed) winners list — preview before committing */}
+        {pending.length > 0 && (
+          <div className="mb-4 p-3 rounded-lg bg-cyan/5 border border-cyan/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-orbitron text-cyan text-[0.68rem] font-bold">
+                🔍 RESOLVED — REVIEW BEFORE CONFIRMING
+              </div>
+              <div className="text-[0.6rem] text-white/40 font-orbitron">
+                {foundCount} / {pending.length} found
+              </div>
+            </div>
+            <div className="max-h-[200px] overflow-y-auto rounded-lg border border-white/5 mb-3">
+              <table className="w-full text-[0.65rem]">
+                <thead className="sticky top-0 bg-[rgba(3,0,16,0.95)]">
+                  <tr className="text-white/40 font-orbitron text-[0.6rem] border-b border-white/10">
+                    <th className="py-1.5 px-2 text-left w-[50px]">RANK</th>
+                    <th className="py-1.5 px-2 text-left w-[80px]">TICKET</th>
+                    <th className="py-1.5 px-2 text-left">WALLET</th>
+                    <th className="py-1.5 px-2 text-center w-[40px]"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pending.map((p) => (
+                    <tr key={p.ticketNumber} className={`border-b border-white/5 ${p.status === 'notfound' ? 'bg-pink/5' : ''}`}>
+                      <td className="py-1.5 px-2 font-orbitron text-gold">#{p.rank}</td>
+                      <td className="py-1.5 px-2 font-orbitron text-cyan">#{p.ticketNumber}</td>
+                      <td className="py-1.5 px-2 font-mono text-white/60 text-[0.6rem]">
+                        {p.status === 'found' ? (
+                          <span title={p.walletAddress}>
+                            {p.walletAddress.slice(0, 10)}...{p.walletAddress.slice(-6)}
+                          </span>
+                        ) : (
+                          <span className="text-pink">❌ Ticket not found in draw</span>
+                        )}
+                      </td>
+                      <td className="py-1.5 px-2 text-center">
+                        <button onClick={() => handleRemovePending(p.ticketNumber)} disabled={busy}
+                          className="text-pink/40 hover:text-pink text-[0.6rem] disabled:opacity-30" title="Remove">
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setPending([])}
+                className="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.6rem] hover:border-white/30">
+                DISCARD
+              </button>
+              <button onClick={handleConfirmPending} disabled={busy || foundCount === 0}
+                className="flex-1 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.6rem] font-bold hover:bg-green/20 disabled:opacity-30">
+                {busy ? '...' : `✓ CONFIRM ${foundCount} WINNER${foundCount !== 1 ? 'S' : ''}`}
               </button>
             </div>
           </div>
@@ -914,13 +1048,15 @@ function ManualWinnersModal({ drawId, onClose }) {
         ) : (
           <>
             <div className="flex items-center justify-between mb-2">
-              <div className="font-orbitron text-[0.68rem] text-white/40">{winners.length} / 50 SLOTS USED</div>
+              <div className="font-orbitron text-[0.68rem] text-white/40">
+                {winners.length} / 1000 WINNERS SET
+              </div>
               <div className="h-1.5 flex-1 mx-3 rounded-full bg-white/5 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-purple to-gold transition-all" style={{ width: `${(winners.length / 50) * 100}%` }} />
+                <div className="h-full bg-gradient-to-r from-purple to-gold transition-all" style={{ width: `${Math.min(100, (winners.length / 1000) * 100)}%` }} />
               </div>
             </div>
             <div className="max-h-[250px] overflow-y-auto mb-3 rounded-lg border border-white/5">
-              <table className="w-full text-[0.6rem]">
+              <table className="w-full text-[0.65rem]">
                 <thead className="sticky top-0 bg-[rgba(3,0,16,0.95)]">
                   <tr className="text-white/40 font-orbitron text-[0.65rem] border-b border-white/10">
                     <th className="py-1.5 px-2 text-left w-[50px]">RANK</th>
@@ -929,14 +1065,14 @@ function ManualWinnersModal({ drawId, onClose }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {winners.sort((a, b) => a.rank - b.rank).map((w) => (
-                    <tr key={w.walletAddress} className="border-b border-white/5 hover:bg-white/3">
+                  {[...winners].sort((a, b) => a.rank - b.rank).map((w) => (
+                    <tr key={`${w.rank}-${w.walletAddress}`} className="border-b border-white/5 hover:bg-white/3">
                       <td className="py-1.5 px-2 font-orbitron text-gold">#{w.rank}</td>
                       <td className="py-1.5 px-2 font-mono text-white/60 text-[0.68rem]">
                         {w.walletAddress}
                       </td>
                       <td className="py-1.5 px-2 text-center">
-                        <button onClick={() => handleRemoveOne(w.walletAddress)} disabled={busy}
+                        <button onClick={() => handleRemoveExisting(w.rank)} disabled={busy}
                           className="text-pink/40 hover:text-pink text-[0.6rem] disabled:opacity-30" title="Remove">
                           ✕
                         </button>
