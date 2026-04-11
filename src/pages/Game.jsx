@@ -210,15 +210,15 @@ export default function Game() {
 
               {/* Compound slots */}
               {Object.values(compoundSlots).some((v) => v > 0) && (
-                <div className="card-glass rounded-2xl p-4 border border-purple/20">
-                  <div className="text-[0.5rem] text-purple font-orbitron tracking-[0.15em] mb-2">🔒 COMPOUND SLOTS</div>
+                <div className="card-glass rounded-2xl p-4 border border-white/20">
+                  <div className="text-[0.5rem] text-white font-orbitron tracking-[0.15em] mb-2">🔒 COMPOUND SLOTS</div>
                   <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
                     {DIGITS.map((d) => {
                       const val = compoundSlots[String(d)] || 0;
                       return (
-                        <div key={d} className={`text-center p-2 rounded-lg ${val > 0 ? 'bg-purple/10 border border-purple/30' : 'bg-white/3 border border-white/5'}`}>
+                        <div key={d} className={`text-center p-2 rounded-lg ${val > 0 ? 'bg-white/10 border border-white/30' : 'bg-white/3 border border-white/5'}`}>
                           <div className="font-russo text-[1rem] text-white/60">{d}</div>
-                          <div className={`font-orbitron text-[0.5rem] ${val > 0 ? 'text-purple' : 'text-white/20'}`}>{fmt(val, 3)}</div>
+                          <div className={`font-orbitron text-[0.5rem] ${val > 0 ? 'text-white' : 'text-white/20'}`}>{fmt(val, 3)}</div>
                         </div>
                       );
                     })}
@@ -283,13 +283,13 @@ export default function Game() {
                             isSelected
                               ? 'bg-gradient-to-br from-gold to-gold2 text-black shadow-[0_0_30px_rgba(255,215,0,0.6)] scale-105 border-2 border-gold'
                               : hasSlot
-                              ? 'bg-purple/15 border-2 border-purple/40 text-white hover:border-purple hover:bg-purple/25'
+                              ? 'bg-white/15 border-2 border-white/40 text-white hover:border-white hover:bg-white/25'
                               : 'bg-white/3 border border-white/10 text-white hover:border-gold/40 hover:bg-white/5'
                           } ${isWinning ? 'animate-pulse ring-4 ring-green' : ''} disabled:opacity-30 disabled:cursor-not-allowed`}
                         >
                           {d}
                           {hasSlot && (
-                            <div className="absolute bottom-0.5 left-0 right-0 text-[0.5rem] font-orbitron text-purple bg-deep/80 px-1">
+                            <div className="absolute bottom-0.5 left-0 right-0 text-[0.5rem] font-orbitron text-white bg-deep/80 px-1">
                               🔒 {fmt(slotBal, 0)}
                             </div>
                           )}

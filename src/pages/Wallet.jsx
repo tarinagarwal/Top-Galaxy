@@ -233,7 +233,7 @@ export default function Wallet() {
 
           {/* Compound slots */}
           <div className="mt-6 card-glass rounded-2xl p-6">
-            <div className="font-orbitron text-purple text-[0.85rem] font-bold mb-4 flex items-center gap-2">
+            <div className="font-orbitron text-white text-[0.85rem] font-bold mb-4 flex items-center gap-2">
               🪐 COMPOUND SLOTS (Locked to digit)
             </div>
             <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
@@ -244,13 +244,13 @@ export default function Wallet() {
                     key={i}
                     className={`p-3 rounded-lg text-center border ${
                       slotValue > 0
-                        ? 'bg-purple/10 border-purple/40'
+                        ? 'bg-white/10 border-white/40'
                         : 'bg-white/2 border-white/5'
                     }`}
                   >
                     <div className="font-orbitron text-[0.55rem] text-white/40">DIGIT</div>
                     <div className="font-russo text-[1.4rem] text-white">{i}</div>
-                    <div className="font-orbitron text-[0.6rem] text-purple">{fmt(slotValue, 3)}</div>
+                    <div className="font-orbitron text-[0.6rem] text-white">{fmt(slotValue, 3)}</div>
                   </div>
                 );
               })}
