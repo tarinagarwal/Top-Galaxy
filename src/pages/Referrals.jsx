@@ -195,6 +195,29 @@ export default function Referrals() {
                 />
               </div>
 
+              {/* How it works banner */}
+              {levels && (
+                <div className="card-glass rounded-2xl p-5 mb-4 border border-cyan/20 bg-cyan/3">
+                  <div className="font-orbitron text-cyan text-[0.7rem] font-bold mb-2">
+                    💡 HOW LEVELS WORK
+                  </div>
+                  <div className="text-[0.6rem] text-white/50 leading-relaxed space-y-1">
+                    <div>
+                      <span className="text-green font-orbitron">UNLOCKED</span> = you have permission to earn from this level.
+                      <span className="text-yellow-400 font-orbitron"> PRO Active</span> = you have PRO but need more active directs.
+                      <span className="text-pink font-orbitron"> LOCKED</span> = activate PRO first.
+                    </div>
+                    <div className="text-white/40">
+                      An "<span className="text-gold">active direct</span>" is a direct referral who deposited 100+ USDT (PRO).
+                      Each active direct unlocks one more level — 4 directs = L4, 5 = L5, up to 10 directs = L10-L15.
+                    </div>
+                    <div className="text-white/30 text-[0.55rem] italic">
+                      Note: Unlocking a level doesn't automatically put people there. Team depth grows when your downline refers new users.
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Level Breakdown */}
               {levels && (
                 <div className="card-glass rounded-2xl p-6 mb-6 border border-white/10">
@@ -207,10 +230,15 @@ export default function Referrals() {
                         Consolidated view of your network capacity and earnings.
                       </div>
                     </div>
-                    <div className="px-4 py-2 rounded-xl border border-gold/30 bg-gold/10">
-                      <span className="font-orbitron text-gold text-[0.7rem] font-bold">
-                        {levels.activeLevels} Active Levels
-                      </span>
+                    <div className="text-right">
+                      <div className="px-4 py-2 rounded-xl border border-gold/30 bg-gold/10">
+                        <span className="font-orbitron text-gold text-[0.7rem] font-bold">
+                          {levels.activeLevels} Active Levels
+                        </span>
+                      </div>
+                      <div className="text-[0.5rem] text-white/40 font-orbitron mt-1">
+                        {levels.activeDirects || 0} active direct{levels.activeDirects !== 1 ? 's' : ''}
+                      </div>
                     </div>
                   </div>
 
@@ -228,11 +256,6 @@ export default function Referrals() {
                       <span>L1-L3: Basic (10 USDT deposit)</span>
                       <span>L4-L15: PRO (100 USDT) + active directs</span>
                     </div>
-                    {levels.activeDirects !== undefined && (
-                      <div className="text-[0.45rem] text-cyan font-orbitron mt-1">
-                        You have {levels.activeDirects} active direct{levels.activeDirects !== 1 ? 's' : ''} (each deposited 100+ USDT)
-                      </div>
-                    )}
                   </div>
 
                   {/* Header row — desktop */}
@@ -248,10 +271,13 @@ export default function Referrals() {
                     {levels.levels.map((lv) => {
                       const commPct = lv.level === 1 ? '5%' : lv.level === 2 ? '2%' : lv.level <= 5 ? '1%' : '0.5%';
                       const isDirectsOnly = lv.lockCategory === 'directs';
+                      const isEmptyUnlocked = lv.unlocked && lv.teamCount === 0;
                       return (
                         <div key={lv.level} className={`rounded-xl p-3 border ${
                           lv.unlocked
-                            ? 'bg-white/3 border-white/5'
+                            ? isEmptyUnlocked
+                              ? 'bg-cyan/3 border-cyan/15'
+                              : 'bg-white/3 border-white/5'
                             : isDirectsOnly
                             ? 'bg-yellow-400/5 border-yellow-400/15 opacity-80'
                             : 'bg-pink/3 border-pink/10 opacity-60'
@@ -271,7 +297,9 @@ export default function Referrals() {
                               <div>
                                 <div className="font-orbitron text-white/80 text-[0.65rem]">LEVEL {lv.level}</div>
                                 {lv.unlocked ? (
-                                  <div className="text-[0.45rem] text-green font-orbitron">UNLOCKED · {commPct}</div>
+                                  <div className={`text-[0.45rem] font-orbitron ${isEmptyUnlocked ? 'text-cyan' : 'text-green'}`}>
+                                    {isEmptyUnlocked ? `UNLOCKED · EMPTY · ${commPct}` : `UNLOCKED · ${commPct}`}
+                                  </div>
                                 ) : isDirectsOnly ? (
                                   <div className="text-[0.45rem] text-green font-orbitron">
                                     ✅ PRO Active
@@ -285,7 +313,7 @@ export default function Referrals() {
                             </div>
                             {/* Team + Practice always visible */}
                             <div>
-                              <span className="font-orbitron text-white text-[0.85rem] font-bold">{lv.teamCount}</span>
+                              <span className={`font-orbitron text-[0.85rem] font-bold ${isEmptyUnlocked ? 'text-white/30' : 'text-white'}`}>{lv.teamCount}</span>
                               <span className="text-[0.5rem] text-white/30 font-orbitron ml-1">users</span>
                             </div>
                             <div>
@@ -294,18 +322,26 @@ export default function Referrals() {
                             </div>
                             {/* Direct + Winner: show values if unlocked, lock message if not */}
                             {lv.unlocked ? (
-                              <>
-                                <div className="text-center">
-                                  <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-cyan text-[0.7rem]">
-                                    +{fmt(lv.directReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                              isEmptyUnlocked ? (
+                                <div className="col-span-2 text-center">
+                                  <span className="font-orbitron text-cyan/70 text-[0.5rem]">
+                                    💤 No team at this depth yet · Earnings will appear when someone joins here
                                   </span>
                                 </div>
-                                <div className="text-center">
-                                  <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-pink text-[0.7rem]">
-                                    +{fmt(lv.winnersReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
-                                  </span>
-                                </div>
-                              </>
+                              ) : (
+                                <>
+                                  <div className="text-center">
+                                    <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-cyan text-[0.7rem]">
+                                      +{fmt(lv.directReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                                    </span>
+                                  </div>
+                                  <div className="text-center">
+                                    <span className="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/10 font-orbitron text-pink text-[0.7rem]">
+                                      +{fmt(lv.winnersReferral, 3)} <span className="text-[0.45rem] text-white/30">USDT</span>
+                                    </span>
+                                  </div>
+                                </>
+                              )
                             ) : (
                               <div className="col-span-2 text-center">
                                 <span className="font-orbitron text-pink/60 text-[0.55rem]">
