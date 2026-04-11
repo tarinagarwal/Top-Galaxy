@@ -214,6 +214,13 @@ export default function Cashback() {
             )}
           </div>
 
+          {/* Net Loss Range Progress Bar */}
+          <NetLossRangeBar
+            current={num(s.effectiveNetLoss)}
+            min={num(r.minNetLoss || 100)}
+            max={num(maxBase)}
+          />
+
           {/* Top stats grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <StatCard label="CASHBACK WALLET" value={fmt(s.cashbackWallet, 3)} color="green" highlight />
@@ -383,6 +390,86 @@ export default function Cashback() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function NetLossRangeBar({ current, min, max }) {
+  const safe = Math.max(0, current);
+  const belowMin = safe < min;
+  const atMax = safe >= max;
+  const inRange = !belowMin && !atMax;
+
+  // Progress percent: 0% at 0, 100% at max
+  const pct = Math.min(100, (safe / max) * 100);
+  const minPct = (min / max) * 100;
+
+  const fillColor = belowMin
+    ? 'from-yellow-400/60 to-yellow-400'
+    : atMax
+    ? 'from-pink to-pink/80'
+    : 'from-green to-gold';
+
+  const status = belowMin
+    ? `Below minimum — need ${fmt(min - safe, 2)} more net loss to qualify`
+    : atMax
+    ? 'Maxed out — only 2000 USDT counts toward daily cashback'
+    : 'In qualifying range';
+
+  const statusColor = belowMin ? 'text-yellow-400' : atMax ? 'text-pink' : 'text-green';
+
+  return (
+    <div className="card-glass rounded-2xl p-5 mb-6 border border-white/10">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="font-orbitron text-white text-[0.7rem] font-bold">NET LOSS RANGE</div>
+          <div className={`text-[0.55rem] font-orbitron mt-0.5 ${statusColor}`}>{status}</div>
+        </div>
+        <div className="text-right">
+          <div className="text-[0.45rem] text-white/30 font-orbitron">CURRENT</div>
+          <div className="font-orbitron text-[1.1rem] font-bold text-white">{fmt(safe, 2)} <span className="text-[0.5rem] text-white/30">USDT</span></div>
+        </div>
+      </div>
+
+      {/* Bar */}
+      <div className="relative h-4 rounded-full bg-white/5 overflow-hidden">
+        {/* Min threshold marker (visual line) */}
+        <div
+          className="absolute top-0 bottom-0 w-[2px] bg-yellow-400/40 z-10"
+          style={{ left: `${minPct}%` }}
+        />
+        {/* Filled portion */}
+        <div
+          className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${fillColor}`}
+          style={{ width: `${pct}%` }}
+        />
+        {/* Current position marker */}
+        {safe > 0 && (
+          <div
+            className="absolute top-0 bottom-0 w-[3px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] z-20"
+            style={{ left: `${Math.min(100, pct)}%`, transform: 'translateX(-50%)' }}
+          />
+        )}
+      </div>
+
+      {/* Labels under bar */}
+      <div className="flex items-center justify-between mt-2 text-[0.5rem] font-orbitron">
+        <div>
+          <div className="text-white/30">0</div>
+        </div>
+        <div className="text-yellow-400" style={{ marginLeft: `${minPct - 5}%` }}>
+          MIN<br />{fmt(min, 0)}
+        </div>
+        <div className="text-pink text-right">
+          MAX<br />{fmt(max, 0)}
+        </div>
+      </div>
+
+      {inRange && (
+        <div className="mt-3 p-2 rounded-lg bg-green/5 border border-green/20 text-[0.55rem] text-white/50">
+          ✅ You qualify for daily cashback on <span className="text-green font-orbitron">{fmt(safe, 2)} USDT</span> × rate
+        </div>
+      )}
     </div>
   );
 }
