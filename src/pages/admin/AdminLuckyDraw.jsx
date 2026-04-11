@@ -143,6 +143,9 @@ export default function AdminLuckyDraw() {
       {/* Auto-fund history — platform-wide */}
       <AdminAutoFundHistory />
 
+      {/* All tickets history — platform-wide */}
+      <AdminTicketsHistory />
+
       {loading ? (
         <div className="text-center py-12 text-white/40 font-orbitron text-[0.7rem]">Loading...</div>
       ) : (
@@ -375,6 +378,162 @@ function AdminAutoFundHistory() {
                           </td>
                           <td className="py-2 px-3 font-orbitron text-green text-right font-bold">
                             +{fmt(tx.amount, 4)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-3 p-3 mt-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.6rem] disabled:opacity-30"
+                  >
+                    PREV
+                  </button>
+                  <span className="font-orbitron text-[0.65rem] text-white/40">{page} / {totalPages}</span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 font-orbitron text-[0.6rem] disabled:opacity-30"
+                  >
+                    NEXT
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminTicketsHistory() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setLoading(true);
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=50`)
+      .then(({ data }) => setData(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [page]);
+
+  if (loading && !data) return null;
+  const tickets = data?.tickets || [];
+  const summary = data?.summary || { manual: 0, manualAmount: 0, auto: 0, autoAmount: 0 };
+  const total = data?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(total / 50));
+
+  return (
+    <div className="card-glass rounded-2xl p-5 mb-6 border border-white/10">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between font-orbitron text-white text-[0.75rem] font-bold"
+      >
+        <span>🎟️ ALL TICKETS HISTORY (platform-wide)</span>
+        <span className="text-[0.6rem] text-white/40">{expanded ? '▲ HIDE' : '▼ SHOW'}</span>
+      </button>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+        <div className="p-3 rounded-lg bg-cyan/5 border border-cyan/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">TOTAL TICKETS</div>
+          <div className="font-orbitron text-cyan text-[1rem] font-bold mt-1">{total}</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">all draws</div>
+        </div>
+        <div className="p-3 rounded-lg bg-gold/5 border border-gold/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">MANUAL BUYS</div>
+          <div className="font-orbitron text-gold text-[1rem] font-bold mt-1">{summary.manual}</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">{fmt(summary.manualAmount, 2)} USDT</div>
+        </div>
+        <div className="p-3 rounded-lg bg-purple/5 border border-purple/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">AUTO BUYS</div>
+          <div className="font-orbitron text-purple text-[1rem] font-bold mt-1">{summary.auto}</div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">{fmt(summary.autoAmount, 2)} USDT</div>
+        </div>
+        <div className="p-3 rounded-lg bg-green/5 border border-green/20">
+          <div className="text-[0.5rem] text-white/60 font-orbitron font-bold tracking-[0.12em]">TOTAL REVENUE</div>
+          <div className="font-orbitron text-green text-[1rem] font-bold mt-1">
+            {fmt((summary.manualAmount || 0) + (summary.autoAmount || 0), 2)}
+          </div>
+          <div className="text-[0.5rem] text-white/30 font-orbitron">USDT</div>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-4">
+          {tickets.length === 0 ? (
+            <div className="text-center py-6 text-[0.68rem] text-white/30 font-orbitron">
+              No tickets purchased yet.
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[0.65rem]">
+                  <thead className="bg-white/5 border-b border-white/10">
+                    <tr className="text-left text-white/40 font-orbitron text-[0.6rem] tracking-[0.1em]">
+                      <th className="py-2 px-3">DATE/TIME</th>
+                      <th className="py-2 px-3">USER</th>
+                      <th className="py-2 px-3">REF CODE</th>
+                      <th className="py-2 px-3">DRAW</th>
+                      <th className="py-2 px-3 text-center">TICKET #</th>
+                      <th className="py-2 px-3 text-right">AMOUNT</th>
+                      <th className="py-2 px-3">SOURCE</th>
+                      <th className="py-2 px-3 text-center">OUTCOME</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tickets.map((t) => {
+                      const draw = t.drawId || {};
+                      const isGolden = draw.type === 'GOLDEN';
+                      const isAuto = t.purchaseType === 'AUTO_CASHBACK';
+                      const out = t.outcome || 'PENDING';
+                      return (
+                        <tr key={t._id} className="border-b border-white/5 hover:bg-white/3">
+                          <td className="py-2 px-3 font-orbitron text-white/60 text-[0.6rem]">
+                            {new Date(t.purchasedAt).toLocaleString()}
+                          </td>
+                          <td className="py-2 px-3 font-orbitron text-white/70">
+                            {t.userId?.walletAddress
+                              ? `${t.userId.walletAddress.slice(0, 6)}...${t.userId.walletAddress.slice(-4)}`
+                              : '—'}
+                          </td>
+                          <td className="py-2 px-3 font-orbitron text-cyan">{t.userId?.referralCode || '—'}</td>
+                          <td className="py-2 px-3">
+                            <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.55rem] ${
+                              isGolden ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-white/5 border-white/20 text-white/70'
+                            }`}>
+                              {isGolden ? '🏆' : '🥈'} {draw.type} #{draw.drawNumber}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 font-orbitron text-white text-center">#{t.ticketNumber}</td>
+                          <td className="py-2 px-3 font-orbitron text-gold text-right font-bold">
+                            {fmt(t.amount, 2)}
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.55rem] ${
+                              isAuto ? 'bg-purple/10 border-purple/30 text-purple' : 'bg-cyan/10 border-cyan/30 text-cyan'
+                            }`}>
+                              {isAuto ? '⚡ AUTO' : '🖱️ MANUAL'}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-center">
+                            {out === 'WIN' ? (
+                              <span className="px-2 py-0.5 rounded-full bg-green/10 border border-green/30 text-green font-orbitron text-[0.5rem]">🏆 WIN</span>
+                            ) : out === 'LOSS' ? (
+                              <span className="px-2 py-0.5 rounded-full bg-pink/10 border border-pink/30 text-pink font-orbitron text-[0.5rem]">LOSS</span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 font-orbitron text-[0.5rem]">PENDING</span>
+                            )}
                           </td>
                         </tr>
                       );
