@@ -188,6 +188,9 @@ export default function AdminLuckyDraw() {
             />
           </div>
 
+          {/* Triggered draws awaiting result — visible so admin can monitor or force-result */}
+          <TriggeredDrawsPanel refresh={refresh} isSuperAdmin={isSuperAdmin} busy={busy} adminAction={adminAction} />
+
           {/* Past draws history table */}
           <div className="card-glass rounded-2xl border border-white/10 overflow-hidden mb-6">
             <div className="p-4 border-b border-white/10 font-orbitron text-purple text-[0.75rem] font-bold">
@@ -1285,5 +1288,137 @@ function CtrlBtn({ label, sub, color, disabled, onClick }) {
       {label}
       {sub && <div className="text-[0.4rem] font-normal opacity-60 mt-0.5">{sub}</div>}
     </button>
+  );
+}
+
+// ============================================================================
+// TriggeredDrawsPanel — shows any draws stuck/processing in TRIGGERED state
+// on the main admin Lucky Draw page so admin can monitor + force-result
+// without navigating to the full history page.
+// ============================================================================
+function TriggeredDrawsPanel({ isSuperAdmin, busy, adminAction }) {
+  const [draws, setDraws] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [forceResultBusy, setForceResultBusy] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+
+  const load = useCallback(() => {
+    api.get('/api/admin/luckydraw/all-draws?pageSize=50')
+      .then(({ data }) => {
+        // Only show draws in TRIGGERED state (not yet RESULTED)
+        const triggered = (data.draws || []).filter((d) => d.status === 'TRIGGERED');
+        setDraws(triggered);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 15000); // refresh every 15s
+    return () => clearInterval(id);
+  }, [load]);
+
+  if (loading || draws.length === 0) return null; // silently hidden when no triggered draws
+
+  return (
+    <div className="card-glass rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/5 to-transparent overflow-hidden mb-6">
+      <div className="p-4 border-b border-gold/20 flex items-center justify-between flex-wrap gap-2">
+        <div className="font-orbitron text-gold text-[0.75rem] font-bold">
+          ⚡ TRIGGERED DRAWS — AWAITING RESULT
+        </div>
+        <span className="text-[0.6rem] text-white/40 font-orbitron">
+          {draws.length} draw{draws.length !== 1 ? 's' : ''} processing
+        </span>
+      </div>
+
+      {feedback && (
+        <div className={`mx-4 mt-3 rounded-lg p-2 text-[0.68rem] border ${
+          feedback.type === 'success' ? 'border-green/30 bg-green/5 text-green' : 'border-pink/30 bg-pink/5 text-pink'
+        }`}>{feedback.message}</div>
+      )}
+
+      <div className="p-4">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[0.65rem]">
+            <thead className="bg-white/5 border-b border-white/10">
+              <tr className="text-left text-white/40 font-orbitron text-[0.6rem] tracking-[0.1em]">
+                <th className="py-2 px-3">TYPE</th>
+                <th className="py-2 px-3">DRAW #</th>
+                <th className="py-2 px-3 text-right">TICKETS</th>
+                <th className="py-2 px-3 text-right">PRIZE POOL</th>
+                <th className="py-2 px-3 text-right">WINNERS PAID</th>
+                <th className="py-2 px-3">TRIGGERED AT</th>
+                <th className="py-2 px-3 text-center">ACTION</th>
+              </tr>
+            </thead>
+            <tbody>
+              {draws.map((d) => {
+                const isGolden = d.type === 'GOLDEN';
+                const paid = (d.winners || []).filter((w) => w.paidAt).length;
+                const total = (d.winners || []).length;
+                const stuck = total === 0 || paid < total;
+                return (
+                  <tr key={d._id} className={`border-b border-white/5 ${stuck ? 'bg-pink/5' : 'bg-green/5'}`}>
+                    <td className="py-2 px-3">
+                      <span className={`px-2 py-0.5 rounded-full border font-orbitron text-[0.55rem] ${
+                        isGolden ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-white/5 border-white/20 text-white/70'
+                      }`}>
+                        {isGolden ? '🏆 GOLDEN' : '🥈 SILVER'}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 font-orbitron text-white">#{d.drawNumber}</td>
+                    <td className="py-2 px-3 font-orbitron text-cyan text-right">{d.ticketsSold}/{d.totalTickets}</td>
+                    <td className="py-2 px-3 font-orbitron text-gold text-right">{fmt(d.prizePool || 0)}</td>
+                    <td className="py-2 px-3 font-orbitron text-right">
+                      {total > 0 ? (
+                        <span className={paid === total ? 'text-green' : 'text-gold'}>
+                          {paid}/{total} {paid === total ? '✓' : '⏳'}
+                        </span>
+                      ) : (
+                        <span className="text-pink">0 — not started</span>
+                      )}
+                    </td>
+                    <td className="py-2 px-3 font-orbitron text-white/40 text-[0.6rem]">
+                      {d.triggeredAt ? new Date(d.triggeredAt).toLocaleString() : '—'}
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      {stuck && isSuperAdmin ? (
+                        <button
+                          disabled={forceResultBusy === d._id}
+                          onClick={async () => {
+                            if (!window.confirm(`Force-result ${d.type} #${d.drawNumber}?\n\nThis will pick winners, pay prizes, and mark tickets. On-chain calls are fire-and-forget.`)) return;
+                            setForceResultBusy(d._id);
+                            setFeedback(null);
+                            try {
+                              const { data } = await api.post('/api/admin/luckydraw/force-result', { drawId: d._id });
+                              setFeedback({ type: 'success', message: `✓ ${d.type} #${d.drawNumber} resulted: ${data.paidCount}/${data.totalWinners} winners paid.` });
+                              load();
+                            } catch (err) {
+                              setFeedback({ type: 'error', message: err?.response?.data?.error || 'Force result failed' });
+                            }
+                            setForceResultBusy(null);
+                          }}
+                          className="px-2 py-1 rounded-lg bg-pink/10 border border-pink/40 text-pink font-orbitron text-[0.55rem] font-bold hover:bg-pink/20 disabled:opacity-40"
+                        >
+                          {forceResultBusy === d._id ? '...' : '⚡ FORCE RESULT'}
+                        </button>
+                      ) : stuck ? (
+                        <span className="text-[0.55rem] text-white/30 font-orbitron">SUPER ONLY</span>
+                      ) : (
+                        <span className="text-[0.55rem] text-green font-orbitron">✓ COMPLETE</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[0.6rem] text-white/30 font-orbitron mt-3 text-center">
+          Draws appear here after being triggered. They auto-result via background jobs. If a draw is stuck (0 winners paid), use Force Result to rescue it.
+        </p>
+      </div>
+    </div>
   );
 }
