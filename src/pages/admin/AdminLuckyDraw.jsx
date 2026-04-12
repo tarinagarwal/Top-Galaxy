@@ -792,6 +792,11 @@ function ManualWinnersModal({ drawId, onClose }) {
 
   const [drawInfo, setDrawInfo] = useState(null); // { type, drawNumber, status }
 
+  // Replace flow — when admin clicks the action button on an existing winner
+  const [replaceTarget, setReplaceTarget] = useState(null); // { rank, walletAddress, ticketNumber }
+  const [replaceTicket, setReplaceTicket] = useState('');
+  const [replaceConfirmRemove, setReplaceConfirmRemove] = useState(false); // double-confirm removal without replacement
+
   const refresh = useCallback(async () => {
     try {
       const { data } = await api.get(`/api/admin/luckydraw/manual-winners/${drawId}`);
@@ -918,7 +923,7 @@ function ManualWinnersModal({ drawId, onClose }) {
       // Merge with existing winners
       const merged = [...winners];
       for (const p of validEntries) {
-        merged.push({ walletAddress: p.walletAddress, rank: p.rank });
+        merged.push({ walletAddress: p.walletAddress, rank: p.rank, ticketNumber: p.ticketNumber });
       }
       // Re-rank sequentially to avoid gaps/duplicates
       merged.sort((a, b) => a.rank - b.rank);
@@ -932,7 +937,7 @@ function ManualWinnersModal({ drawId, onClose }) {
 
       await api.post('/api/admin/luckydraw/manual-winners', {
         drawId,
-        winners: merged.map((w) => ({ walletAddress: w.walletAddress, rank: w.rank })),
+        winners: merged.map((w) => ({ walletAddress: w.walletAddress, rank: w.rank, ticketNumber: w.ticketNumber || null })),
       });
       setFeedback({ type: 'success', message: `✓ ${validEntries.length} ticket(s) added as winners` });
       setPending([]);
@@ -945,19 +950,75 @@ function ManualWinnersModal({ drawId, onClose }) {
     setBusy(false);
   };
 
-  const handleRemoveExisting = async (rankToRemove) => {
-    setBusy(true);
-    try {
-      const filtered = winners.filter((w) => w.rank !== rankToRemove);
-      filtered.sort((a, b) => a.rank - b.rank);
-      filtered.forEach((w, i) => { w.rank = i + 1; });
-      if (filtered.length === 0) {
-        await api.delete(`/api/admin/luckydraw/manual-winners/${drawId}`);
-      } else {
-        await api.post('/api/admin/luckydraw/manual-winners', { drawId, winners: filtered });
+  // Replace an existing winner at a specific rank with a new ticket number.
+  // If no replacement ticket is provided, it's a pure remove — which causes
+  // decompression (ranks shift up). We require double-confirmation for that.
+  const handleReplace = async () => {
+    if (!replaceTarget) return;
+    const newTicketNum = replaceTicket.trim() ? parseInt(replaceTicket.trim(), 10) : null;
+
+    // Pure remove (no replacement) — require double-confirm
+    if (!newTicketNum) {
+      if (!replaceConfirmRemove) {
+        setReplaceConfirmRemove(true);
+        return; // first click → show warning, don't proceed
       }
+      // Second click → actually remove and decompress
+      setBusy(true);
+      try {
+        const filtered = winners.filter((w) => w.rank !== replaceTarget.rank);
+        filtered.sort((a, b) => a.rank - b.rank);
+        filtered.forEach((w, i) => { w.rank = i + 1; });
+        if (filtered.length === 0) {
+          await api.delete(`/api/admin/luckydraw/manual-winners/${drawId}`);
+        } else {
+          await api.post('/api/admin/luckydraw/manual-winners', {
+            drawId,
+            winners: filtered.map((w) => ({ walletAddress: w.walletAddress, rank: w.rank, ticketNumber: w.ticketNumber || null })),
+          });
+        }
+        setFeedback({ type: 'success', message: `Rank #${replaceTarget.rank} removed. Ranks decompressed.` });
+        setReplaceTarget(null);
+        setReplaceTicket('');
+        setReplaceConfirmRemove(false);
+        await refresh();
+      } catch (err) {
+        setFeedback({ type: 'error', message: err?.response?.data?.error || 'Remove failed' });
+      }
+      setBusy(false);
+      return;
+    }
+
+    // Replace with a new ticket
+    setBusy(true);
+    setFeedback(null);
+    try {
+      // Resolve the new ticket number
+      const resolved = await resolveTickets([newTicketNum]);
+      const r = resolved[0];
+      if (!r || !r.found) {
+        setFeedback({ type: 'error', message: `Ticket #${newTicketNum} not found in this draw` });
+        setBusy(false);
+        return;
+      }
+      // Replace in the winners array — same rank, new address + ticket
+      const updated = winners.map((w) =>
+        w.rank === replaceTarget.rank
+          ? { ...w, walletAddress: r.walletAddress, ticketNumber: newTicketNum }
+          : w
+      );
+      await api.post('/api/admin/luckydraw/manual-winners', {
+        drawId,
+        winners: updated.map((w) => ({ walletAddress: w.walletAddress, rank: w.rank, ticketNumber: w.ticketNumber || null })),
+      });
+      setFeedback({ type: 'success', message: `Rank #${replaceTarget.rank} replaced with ticket #${newTicketNum}` });
+      setReplaceTarget(null);
+      setReplaceTicket('');
+      setReplaceConfirmRemove(false);
       await refresh();
-    } catch {}
+    } catch (err) {
+      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Replace failed' });
+    }
     setBusy(false);
   };
 
@@ -1145,23 +1206,31 @@ function ManualWinnersModal({ drawId, onClose }) {
             <div className="max-h-[250px] overflow-y-auto mb-3 rounded-lg border border-white/5">
               <table className="w-full text-[0.65rem]">
                 <thead className="sticky top-0 bg-[rgba(3,0,16,0.95)]">
-                  <tr className="text-white/40 font-orbitron text-[0.65rem] border-b border-white/10">
+                  <tr className="text-white/40 font-orbitron text-[0.6rem] border-b border-white/10">
                     <th className="py-1.5 px-2 text-left w-[50px]">RANK</th>
+                    <th className="py-1.5 px-2 text-left w-[70px]">TICKET</th>
                     <th className="py-1.5 px-2 text-left">WALLET ADDRESS</th>
-                    <th className="py-1.5 px-2 text-center w-[40px]"></th>
+                    <th className="py-1.5 px-2 text-center w-[70px]">ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[...winners].sort((a, b) => a.rank - b.rank).map((w) => (
                     <tr key={`${w.rank}-${w.walletAddress}`} className="border-b border-white/5 hover:bg-white/3">
                       <td className="py-1.5 px-2 font-orbitron text-gold">#{w.rank}</td>
-                      <td className="py-1.5 px-2 font-mono text-white/60 text-[0.68rem]">
-                        {w.walletAddress}
+                      <td className="py-1.5 px-2 font-orbitron text-cyan">
+                        {w.ticketNumber ? `#${w.ticketNumber}` : '—'}
+                      </td>
+                      <td className="py-1.5 px-2 font-mono text-white/60 text-[0.6rem]">
+                        {w.walletAddress?.slice(0, 10)}...{w.walletAddress?.slice(-6)}
                       </td>
                       <td className="py-1.5 px-2 text-center">
-                        <button onClick={() => handleRemoveExisting(w.rank)} disabled={busy}
-                          className="text-pink/40 hover:text-pink text-[0.6rem] disabled:opacity-30" title="Remove">
-                          ✕
+                        <button
+                          onClick={() => { setReplaceTarget(w); setReplaceTicket(''); setReplaceConfirmRemove(false); }}
+                          disabled={busy}
+                          className="px-1.5 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20 disabled:opacity-30"
+                          title="Replace or remove this winner"
+                        >
+                          🔄
                         </button>
                       </td>
                     </tr>
@@ -1169,6 +1238,59 @@ function ManualWinnersModal({ drawId, onClose }) {
                 </tbody>
               </table>
             </div>
+
+            {/* Replace / Remove modal — inline mini-modal */}
+            {replaceTarget && (
+              <div className="mb-3 p-4 rounded-lg bg-gold/5 border border-gold/20">
+                <div className="font-orbitron text-gold text-[0.7rem] font-bold mb-2">
+                  🔄 REPLACE RANK #{replaceTarget.rank}
+                </div>
+                <div className="text-[0.6rem] text-white/50 mb-3">
+                  Current: Ticket <span className="text-cyan">{replaceTarget.ticketNumber ? `#${replaceTarget.ticketNumber}` : '—'}</span>
+                  {' · '} Wallet <span className="text-white/60 font-mono">{replaceTarget.walletAddress?.slice(0, 10)}...{replaceTarget.walletAddress?.slice(-6)}</span>
+                </div>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="number"
+                    value={replaceTicket}
+                    onChange={(e) => { setReplaceTicket(e.target.value); setReplaceConfirmRemove(false); }}
+                    placeholder="New ticket number (leave empty to remove)"
+                    className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.7rem] outline-none focus:border-gold/40"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setReplaceTarget(null); setReplaceConfirmRemove(false); }}
+                    className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/50 font-orbitron text-[0.6rem]"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    onClick={handleReplace}
+                    disabled={busy}
+                    className={`flex-1 py-2 rounded-lg font-orbitron text-[0.6rem] font-bold border disabled:opacity-30 ${
+                      replaceTicket.trim()
+                        ? 'bg-green/10 border-green/40 text-green hover:bg-green/20'
+                        : replaceConfirmRemove
+                          ? 'bg-pink/20 border-pink text-pink animate-pulse'
+                          : 'bg-pink/10 border-pink/40 text-pink hover:bg-pink/20'
+                    }`}
+                  >
+                    {replaceTicket.trim()
+                      ? `✓ REPLACE WITH TICKET #${replaceTicket.trim()}`
+                      : replaceConfirmRemove
+                        ? '⚠️ CONFIRM REMOVE — RANKS WILL DECOMPRESS'
+                        : '🗑️ REMOVE WITHOUT REPLACING'}
+                  </button>
+                </div>
+                {replaceConfirmRemove && (
+                  <div className="mt-2 text-[0.55rem] text-pink font-orbitron">
+                    ⚠️ Removing without replacement will shift all ranks below #{replaceTarget.rank} up by one.
+                    Click the button again to confirm, or enter a ticket number to replace instead.
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
 
