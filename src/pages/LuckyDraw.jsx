@@ -143,6 +143,7 @@ export default function LuckyDraw() {
               type="GOLDEN"
               icon="🏆"
               accent="gold"
+              myStats={myStats}
               onPurchased={refresh}
             />
             <DrawCard
@@ -150,6 +151,7 @@ export default function LuckyDraw() {
               type="SILVER"
               icon="🥈"
               accent="silver"
+              myStats={myStats}
               onPurchased={refresh}
             />
           </div>
@@ -293,21 +295,23 @@ function AutoFundEstimate({ cashbackStats, myStats }) {
           </div>
           <div className="text-center px-3 py-2 rounded-lg bg-gold/5 border border-gold/20">
             <div className="text-[0.6rem] font-orbitron text-white/30 tracking-[0.1em]">
-              GOLDEN FROM DEPOSITS
+              GOLDEN DRAW WALLET
             </div>
             <div className="font-orbitron text-gold text-[0.85rem] font-bold">
-              {fmt(myStats?.goldenFromDeposits || 0)}
+              {fmt(myStats?.goldenDrawWallet || 0)}
             </div>
-            <div className="text-[0.6rem] text-white/30">1% of your deposits</div>
+            <div className="text-[0.5rem] text-white/25">available balance</div>
+            <div className="text-[0.5rem] text-white/20 mt-1">lifetime: {fmt(myStats?.goldenFromDeposits || 0)}</div>
           </div>
           <div className="text-center px-3 py-2 rounded-lg bg-white/3 border border-white/10">
             <div className="text-[0.6rem] font-orbitron text-white/30 tracking-[0.1em]">
-              SILVER FROM DEPOSITS
+              SILVER DRAW WALLET
             </div>
             <div className="font-orbitron text-white/60 text-[0.85rem] font-bold">
-              {fmt(myStats?.silverFromDeposits || 0)}
+              {fmt(myStats?.silverDrawWallet || 0)}
             </div>
-            <div className="text-[0.6rem] text-white/30">1% of your deposits</div>
+            <div className="text-[0.5rem] text-white/25">available balance</div>
+            <div className="text-[0.5rem] text-white/20 mt-1">lifetime: {fmt(myStats?.silverFromDeposits || 0)}</div>
           </div>
         </div>
       </div>
@@ -442,7 +446,7 @@ function AutoFundHistory() {
   );
 }
 
-function DrawCard({ draw, type, icon, accent, onPurchased }) {
+function DrawCard({ draw, type, icon, accent, myStats, onPurchased }) {
   const [quantity, setQuantity] = useState(1);
   const [walletSource, setWalletSource] = useState('GAME_WALLET');
   const [submitting, setSubmitting] = useState(false);
@@ -608,8 +612,12 @@ function DrawCard({ draw, type, icon, accent, onPurchased }) {
             disabled={submitting}
             className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.7rem] focus:outline-none focus:border-gold/50 disabled:opacity-50"
           >
-            <option value="GAME_WALLET">Game Wallet</option>
-            <option value={drawWalletKey}>{type} Draw Wallet (auto-funded)</option>
+            <option value="GAME_WALLET">
+              Game Wallet — {fmt(myStats?.gameWallet || 0)} USDT
+            </option>
+            <option value={drawWalletKey}>
+              {type} Draw Wallet — {fmt(type === 'GOLDEN' ? (myStats?.goldenDrawWallet || 0) : (myStats?.silverDrawWallet || 0))} USDT
+            </option>
           </select>
         </div>
 

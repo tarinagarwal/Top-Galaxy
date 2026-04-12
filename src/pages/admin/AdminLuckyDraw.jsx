@@ -436,19 +436,22 @@ function AdminTicketsHistory() {
   // 'ALL' | 'GOLDEN' | 'SILVER' — defaults to ALL so the main page still
   // shows mixed history at a glance. Admin can narrow via the pills.
   const [filter, setFilter] = useState('ALL');
+  // 'ALL' | 'MANUAL' | 'AUTO_CASHBACK' — source filter
+  const [source, setSource] = useState('ALL');
 
   // Reset to page 1 when the filter changes so we don't land on a page that
   // doesn't exist in the narrower result set.
-  useEffect(() => { setPage(1); }, [filter]);
+  useEffect(() => { setPage(1); }, [filter, source]);
 
   useEffect(() => {
     setLoading(true);
     const typeParam = filter === 'ALL' ? '' : `&type=${filter}`;
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=50${typeParam}`)
+    const sourceParam = source === 'ALL' ? '' : `&source=${source}`;
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=50${typeParam}${sourceParam}`)
       .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page, filter]);
+  }, [page, filter, source]);
 
   if (loading && !data) return null;
   const tickets = data?.tickets || [];
@@ -517,9 +520,31 @@ function AdminTicketsHistory() {
             {loading && <span className="text-[0.55rem] text-white/30 font-orbitron ml-2">Loading...</span>}
           </div>
 
+          {/* Source filter — Game Wallet vs Auto-Funded */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.15em]">SOURCE:</span>
+            {[
+              { key: 'ALL',           label: '⚪ ALL',           activeCls: 'bg-white/10 border-white/40 text-white' },
+              { key: 'MANUAL',        label: '🖱️ GAME WALLET', activeCls: 'bg-cyan/15 border-cyan/50 text-cyan' },
+              { key: 'AUTO_CASHBACK', label: '⚡ AUTO-FUNDED',  activeCls: 'bg-purple/15 border-purple/50 text-purple' },
+            ].map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setSource(f.key)}
+                className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.6rem] font-bold border transition-all ${
+                  source === f.key
+                    ? f.activeCls
+                    : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
           {tickets.length === 0 ? (
             <div className="text-center py-6 text-[0.68rem] text-white/30 font-orbitron">
-              No tickets purchased {filter !== 'ALL' ? `in ${filter} pool` : 'yet'}.
+              No {source === 'MANUAL' ? 'game wallet' : source === 'AUTO_CASHBACK' ? 'auto-funded' : ''} tickets purchased {filter !== 'ALL' ? `in ${filter} pool` : 'yet'}.
             </div>
           ) : (
             <>

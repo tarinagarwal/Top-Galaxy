@@ -101,18 +101,20 @@ function AllTicketsTab({ drawType }) {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  // Source filter — 'ALL' | 'MANUAL' | 'AUTO_CASHBACK'
+  const [source, setSource] = useState('ALL');
 
-  // Reset to page 1 whenever the pool changes so admin doesn't end up
-  // on a page number that doesn't exist in the new pool
-  useEffect(() => { setPage(1); }, [drawType]);
+  // Reset to page 1 whenever the pool or source filter changes
+  useEffect(() => { setPage(1); }, [drawType, source]);
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}`)
+    const sourceParam = source !== 'ALL' ? `&source=${source}` : '';
+    api.get(`/api/admin/luckydraw/all-tickets?page=${page}&pageSize=100&type=${drawType}${sourceParam}`)
       .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page, drawType]);
+  }, [page, drawType, source]);
 
   const tickets = data?.tickets || [];
   const summary = data?.summary || {};
@@ -128,10 +130,35 @@ function AllTicketsTab({ drawType }) {
         <Stat label="TOTAL REVENUE" value={(summary.manualAmount || 0) + (summary.autoAmount || 0)} color="green" />
       </div>
 
-      {loading ? (
+      {/* Source filter — Game Wallet (MANUAL) vs Auto-Funded (AUTO_CASHBACK) */}
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <span className="text-[0.55rem] text-white/40 font-orbitron tracking-[0.15em]">SOURCE:</span>
+        {[
+          { key: 'ALL',          label: '⚪ ALL',                activeCls: 'bg-white/10 border-white/40 text-white' },
+          { key: 'MANUAL',       label: '🖱️ GAME WALLET',      activeCls: 'bg-cyan/15 border-cyan/50 text-cyan' },
+          { key: 'AUTO_CASHBACK', label: '⚡ AUTO-FUNDED',       activeCls: 'bg-purple/15 border-purple/50 text-purple' },
+        ].map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setSource(f.key)}
+            className={`px-3 py-1.5 rounded-lg font-orbitron text-[0.6rem] font-bold border transition-all ${
+              source === f.key
+                ? f.activeCls
+                : 'bg-white/3 border-white/10 text-white/40 hover:border-white/20'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        {loading && <span className="text-[0.55rem] text-white/30 font-orbitron ml-2">Loading...</span>}
+      </div>
+
+      {!loading && tickets.length === 0 ? (
+        <div className="text-center py-8 text-white/30 font-orbitron text-[0.7rem]">
+          No {source === 'MANUAL' ? 'game wallet' : source === 'AUTO_CASHBACK' ? 'auto-funded' : ''} tickets{source !== 'ALL' ? ` in ${drawType} pool` : ''}
+        </div>
+      ) : loading ? (
         <div className="text-center py-8 text-white/40 font-orbitron text-[0.7rem]">Loading...</div>
-      ) : tickets.length === 0 ? (
-        <div className="text-center py-8 text-white/30 font-orbitron text-[0.7rem]">No tickets</div>
       ) : (
         <>
           <div className="overflow-x-auto">
