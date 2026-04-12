@@ -567,18 +567,25 @@ function ConfigRow({
 // OnChainWallets — reads/writes wallet addresses directly on the DepositV2 contract
 // ============================================================================
 function OnChainWallets() {
-  const [data, setData] = useState(null);
+  const [walletData, setWalletData] = useState(null);
+  const [balanceData, setBalanceData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // { type, index?, current }
+  const [editing, setEditing] = useState(null);
   const [newAddr, setNewAddr] = useState('');
   const [newBps, setNewBps] = useState('');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [withdrawAmt, setWithdrawAmt] = useState('');
+  const [withdrawing, setWithdrawing] = useState(null); // 'withdrawal' | 'treasury'
 
   const refresh = useCallback(async () => {
     try {
-      const { data } = await api.get('/api/admin/contracts/wallets');
-      setData(data);
+      const [wRes, bRes] = await Promise.all([
+        api.get('/api/admin/contracts/wallets'),
+        api.get('/api/admin/contracts/balances').catch(() => null),
+      ]);
+      setWalletData(wRes.data);
+      if (bRes?.data) setBalanceData(bRes.data);
     } catch {}
     setLoading(false);
   }, []);
@@ -592,25 +599,15 @@ function OnChainWallets() {
       return;
     }
     if (!window.confirm(
-      `Update ${editing.type}${editing.index !== undefined ? ` #${editing.index}` : ''} on-chain?\n\n` +
-      `Current: ${editing.current}\n` +
-      `New: ${newAddr.trim()}\n\n` +
-      `This sends a real blockchain transaction. The change is immediate and affects all future deposits.`
+      `Update ${editing.type}${editing.index !== undefined ? ` #${editing.index}` : ''} on-chain?\n\nCurrent: ${editing.current}\nNew: ${newAddr.trim()}\n\nThis sends a blockchain transaction and affects all future deposits.`
     )) return;
-
     setSaving(true);
     setFeedback(null);
     try {
       const body = { address: newAddr.trim() };
-      if (editing.type === 'bd') {
-        body.index = editing.index;
-        body.bps = parseInt(newBps || '25', 10);
-      }
+      if (editing.type === 'bd') { body.index = editing.index; body.bps = parseInt(newBps || '25', 10); }
       const { data } = await api.post(`/api/admin/contracts/wallets/${editing.type}`, body);
-      setFeedback({
-        type: 'success',
-        message: `✓ ${editing.type} updated on-chain · tx: ${data.txHash?.slice(0, 12)}... · block: ${data.blockNumber}`,
-      });
+      setFeedback({ type: 'success', message: `✓ Updated on-chain · tx: ${data.txHash?.slice(0, 14)}...` });
       setEditing(null);
       setNewAddr('');
       setNewBps('');
@@ -621,95 +618,198 @@ function OnChainWallets() {
     setSaving(false);
   };
 
+  const handleWithdraw = async (contract) => {
+    const amt = parseFloat(withdrawAmt);
+    if (!amt || amt <= 0) { setFeedback({ type: 'error', message: 'Enter a valid amount' }); return; }
+    if (!window.confirm(`Withdraw ${amt} USDT from ${contract} contract to admin wallet?\n\nThis sends real USDT on-chain.`)) return;
+    setWithdrawing(contract);
+    setFeedback(null);
+    try {
+      const { data } = await api.post('/api/admin/contracts/withdraw', { contract, amount: amt });
+      setFeedback({ type: 'success', message: `✓ Withdrew ${amt} USDT → ${data.toWallet?.slice(0, 10)}... · tx: ${data.txHash?.slice(0, 14)}...` });
+      setWithdrawAmt('');
+      await refresh();
+    } catch (err) {
+      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Withdraw failed' });
+    }
+    setWithdrawing(null);
+  };
+
   if (loading) return null;
-  if (!data) return null;
+  if (!walletData) return null;
 
-  const w = data.wallets || {};
-  const bds = data.bdWallets || [];
-
-  const WALLET_ROWS = [
-    { type: 'gamePool',      label: 'Game Pool',       icon: '🎮', desc: 'Remainder (~71%) — backs user withdrawals' },
-    { type: 'creator',       label: 'Creator',         icon: '👤', desc: '2% of deposits → platform owner' },
-    { type: 'few',           label: 'FEW',             icon: '🌐', desc: '5% of deposits → ecosystem fund' },
-    { type: 'referralPool',  label: 'Referral Pool',   icon: '🔗', desc: '15% of deposits → referral commissions' },
-    { type: 'luckyDrawPool', label: 'Lucky Draw Pool', icon: '🎰', desc: '1% of deposits → draw prize pool' },
-  ];
+  const w = walletData.wallets || {};
+  const bds = walletData.bdWallets || [];
+  const wb = balanceData?.withdrawal || {};
+  const tb = balanceData?.treasury || {};
+  const fmtBal = (n) => n != null ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
 
   return (
-    <div className="card-glass rounded-2xl border border-cyan/20 mt-6 overflow-hidden">
-      <div className="p-5 border-b border-cyan/10">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <div className="font-orbitron text-cyan text-[0.75rem] font-bold">
-              ⛓ ON-CHAIN CONTRACT WALLETS
-            </div>
-            <div className="text-[0.6rem] text-white/40 mt-1">
-              Live addresses from the Deposit V2 contract on BSC. Changes are sent as on-chain transactions.
-            </div>
-          </div>
-          <div className="text-[0.55rem] text-white/30 font-mono">
-            {data.contractAddress?.slice(0, 10)}...{data.contractAddress?.slice(-6)}
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6 mt-6">
 
       {feedback && (
-        <div className={`mx-5 mt-4 rounded-lg p-2.5 text-[0.68rem] border ${
+        <div className={`rounded-lg p-3 text-[0.68rem] border ${
           feedback.type === 'success' ? 'border-green/30 bg-green/5 text-green' : 'border-pink/30 bg-pink/5 text-pink'
         }`}>{feedback.message}</div>
       )}
 
-      <div className="p-5">
-        {/* Main wallets */}
-        <div className="space-y-2 mb-5">
-          {WALLET_ROWS.map((row) => {
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* GROUP 1: Smart Contracts (Holding Funds) */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <div className="card-glass rounded-2xl border border-green/20 overflow-hidden">
+        <div className="p-5 border-b border-green/10">
+          <div className="font-orbitron text-green text-[0.75rem] font-bold">🏦 SMART CONTRACTS (HOLDING FUNDS)</div>
+          <div className="text-[0.55rem] text-white/40 mt-1">These contracts hold platform USDT on-chain. Admin can withdraw to admin wallet.</div>
+        </div>
+        <div className="p-5 space-y-4">
+          {/* Withdrawal Contract */}
+          <div className="rounded-xl bg-white/3 border border-green/15 p-4">
+            <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
+              <div>
+                <div className="font-orbitron text-green text-[0.7rem] font-bold">🎮 Withdrawal Contract <span className="text-white/30">(Game Pool — {w.gamePool?.pct})</span></div>
+                <div className="font-mono text-[0.55rem] text-cyan/60 mt-1">{wb.address}</div>
+                <div className="text-[0.5rem] text-white/30 mt-1">Receives 71% of every deposit. Pays out user withdrawals. This is the platform's main vault.</div>
+              </div>
+              <div className="text-right">
+                <div className="font-orbitron text-green text-[1.4rem] font-bold">${fmtBal(wb.balance)}</div>
+                <div className="text-[0.5rem] text-white/30 font-orbitron">USDT BALANCE</div>
+              </div>
+            </div>
+            <div className="flex gap-2 items-center flex-wrap">
+              <input type="number" step="0.01" min="0.01" value={withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)}
+                placeholder="Amount to withdraw" disabled={withdrawing === 'withdrawal'}
+                className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-green/50 disabled:opacity-50" />
+              <button onClick={() => setWithdrawAmt(String(wb.balance || 0))} disabled={!wb.balance}
+                className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.6rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
+              <button onClick={() => handleWithdraw('withdrawal')} disabled={withdrawing || !withdrawAmt || parseFloat(withdrawAmt) <= 0}
+                className="px-4 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.6rem] font-bold hover:bg-green/20 disabled:opacity-30">
+                {withdrawing === 'withdrawal' ? '⏳...' : '💸 WITHDRAW TO ADMIN'}
+              </button>
+            </div>
+          </div>
+
+          {/* Treasury Contract */}
+          <div className="rounded-xl bg-white/3 border border-gold/15 p-4">
+            <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
+              <div>
+                <div className="font-orbitron text-gold text-[0.7rem] font-bold">🏛 Treasury Contract <span className="text-white/30">(Fees + Lucky Draw 1%)</span></div>
+                <div className="font-mono text-[0.55rem] text-cyan/60 mt-1">{tb.address}</div>
+                <div className="text-[0.5rem] text-white/30 mt-1">Holds sustainability fees (0.1% of withdrawals) + 1% lucky draw deposit split.</div>
+              </div>
+              <div className="text-right">
+                <div className="font-orbitron text-gold text-[1.4rem] font-bold">${fmtBal(tb.balance)}</div>
+                <div className="text-[0.5rem] text-white/30 font-orbitron">USDT BALANCE</div>
+              </div>
+            </div>
+            {tb.canWithdraw ? (
+              <div className="flex gap-2 items-center flex-wrap">
+                <input type="number" step="0.01" min="0.01" value={withdrawing === 'treasury' ? withdrawAmt : withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)}
+                  placeholder="Amount to withdraw" disabled={withdrawing === 'treasury'}
+                  className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-gold/50 disabled:opacity-50" />
+                <button onClick={() => setWithdrawAmt(String(tb.balance || 0))} disabled={!tb.balance}
+                  className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.6rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
+                <button onClick={() => handleWithdraw('treasury')} disabled={withdrawing || !withdrawAmt || parseFloat(withdrawAmt) <= 0}
+                  className="px-4 py-2 rounded-lg bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.6rem] font-bold hover:bg-gold/20 disabled:opacity-30">
+                  {withdrawing === 'treasury' ? '⏳...' : '💸 WITHDRAW TO ADMIN'}
+                </button>
+              </div>
+            ) : (
+              <div className="text-[0.6rem] text-pink font-orbitron">
+                ⚠️ Cannot withdraw — Treasury contract admin ({tb.admin?.slice(0, 10)}...) does not match your admin wallet. On mainnet deploy, set the correct admin.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* GROUP 2: External Wallets (Money Sent Directly) */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <div className="card-glass rounded-2xl border border-cyan/20 overflow-hidden">
+        <div className="p-5 border-b border-cyan/10">
+          <div className="font-orbitron text-cyan text-[0.75rem] font-bold">📤 EXTERNAL WALLETS (SENT ON DEPOSIT)</div>
+          <div className="text-[0.55rem] text-white/40 mt-1">
+            Money is sent to these addresses on every deposit. The owner already has it — no withdraw needed. You can change where future deposits go.
+          </div>
+        </div>
+        <div className="p-5 space-y-2">
+          {[
+            { type: 'creator',       label: 'Creator',         icon: '👤', desc: '2% of deposits → platform owner', pct: w.creator?.pct },
+            { type: 'few',           label: 'FEW',             icon: '🌐', desc: '5% of deposits → ecosystem fund', pct: w.few?.pct },
+            { type: 'referralPool',  label: 'Referral Pool',   icon: '🔗', desc: '15% of deposits → off-chain referral distribution', pct: w.referralPool?.pct },
+            { type: 'luckyDrawPool', label: 'Lucky Draw Pool', icon: '🎰', desc: '1% of deposits → draw prize contribution', pct: w.luckyDrawPool?.pct },
+          ].map((row) => {
             const wallet = w[row.type] || {};
             const isEditing = editing?.type === row.type && editing?.index === undefined;
+            const isSameAsFew = row.type === 'referralPool' && wallet.address?.toLowerCase() === w.few?.address?.toLowerCase();
             return (
               <div key={row.type} className="flex items-center gap-3 p-3 rounded-lg bg-white/3 border border-white/5 flex-wrap">
                 <div className="w-6 text-center text-lg">{row.icon}</div>
-                <div className="flex-1 min-w-[200px]">
-                  <div className="font-orbitron text-[0.65rem] font-bold text-white/80">{row.label} <span className="text-white/30">({wallet.pct})</span></div>
+                <div className="flex-1 min-w-[180px]">
+                  <div className="font-orbitron text-[0.65rem] font-bold text-white/80">{row.label} <span className="text-white/30">({row.pct})</span></div>
                   <div className="text-[0.5rem] text-white/30">{row.desc}</div>
+                  {isSameAsFew && <div className="text-[0.45rem] text-gold mt-0.5">⚠️ Same address as FEW — both streams go to one wallet</div>}
                 </div>
                 <div className="font-mono text-[0.6rem] text-cyan/80 flex-shrink-0">
                   {wallet.address?.slice(0, 10)}...{wallet.address?.slice(-6)}
                 </div>
                 {!isEditing ? (
-                  <button
-                    onClick={() => { setEditing({ type: row.type, current: wallet.address }); setNewAddr(wallet.address || ''); setFeedback(null); }}
-                    className="px-2 py-1 rounded bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20"
-                  >
-                    ✏️
-                  </button>
+                  <button onClick={() => { setEditing({ type: row.type, current: wallet.address }); setNewAddr(wallet.address || ''); setFeedback(null); }}
+                    className="px-2 py-1 rounded bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20">✏️</button>
                 ) : (
                   <div className="w-full mt-2 flex gap-2">
-                    <input
-                      value={newAddr}
-                      onChange={(e) => setNewAddr(e.target.value)}
-                      placeholder="0x..."
-                      className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.65rem] outline-none focus:border-cyan/40"
-                    />
+                    <input value={newAddr} onChange={(e) => setNewAddr(e.target.value)} placeholder="0x..."
+                      className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.65rem] outline-none focus:border-cyan/40" />
                     <button onClick={handleSave} disabled={saving}
                       className="px-3 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.55rem] font-bold hover:bg-green/20 disabled:opacity-30">
-                      {saving ? '...' : '✓ SAVE'}
-                    </button>
+                      {saving ? '...' : '✓ SAVE'}</button>
                     <button onClick={() => { setEditing(null); setFeedback(null); }}
-                      className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem]">
-                      ✕
-                    </button>
+                      className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem]">✕</button>
                   </div>
                 )}
               </div>
             );
           })}
-        </div>
-
-        {/* BD Wallets */}
-        <div className="border-t border-white/10 pt-4">
-          <div className="font-orbitron text-gold text-[0.65rem] font-bold mb-3">
-            💼 24 BD WALLETS <span className="text-white/30 font-normal">({bds.reduce((s, b) => s + b.bps, 0) / 100}% total)</span>
+          {/* Game Pool address (read-only reference — editing is in Group 1 conceptually, but the setter is here) */}
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-green/5 border border-green/15 flex-wrap">
+            <div className="w-6 text-center text-lg">🎮</div>
+            <div className="flex-1 min-w-[180px]">
+              <div className="font-orbitron text-[0.65rem] font-bold text-green">Game Pool <span className="text-white/30">({w.gamePool?.pct})</span></div>
+              <div className="text-[0.5rem] text-white/30">Points to the Withdrawal Contract above — 71% of deposits fund user withdrawals</div>
+            </div>
+            <div className="font-mono text-[0.6rem] text-green/80 flex-shrink-0">
+              {w.gamePool?.address?.slice(0, 10)}...{w.gamePool?.address?.slice(-6)}
+            </div>
+            {!(editing?.type === 'gamePool') ? (
+              <button onClick={() => { setEditing({ type: 'gamePool', current: w.gamePool?.address }); setNewAddr(w.gamePool?.address || ''); setFeedback(null); }}
+                className="px-2 py-1 rounded bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20">✏️</button>
+            ) : (
+              <div className="w-full mt-2 flex gap-2">
+                <input value={newAddr} onChange={(e) => setNewAddr(e.target.value)} placeholder="0x..."
+                  className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.65rem] outline-none focus:border-green/40" />
+                <button onClick={handleSave} disabled={saving}
+                  className="px-3 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.55rem] font-bold hover:bg-green/20 disabled:opacity-30">
+                  {saving ? '...' : '✓ SAVE'}</button>
+                <button onClick={() => { setEditing(null); setFeedback(null); }}
+                  className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem]">✕</button>
+              </div>
+            )}
           </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* GROUP 3: BD Wallets */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <div className="card-glass rounded-2xl border border-gold/20 overflow-hidden">
+        <div className="p-5 border-b border-gold/10">
+          <div className="font-orbitron text-gold text-[0.75rem] font-bold">
+            💼 BD WALLETS (24 BUSINESS DEVELOPMENT)
+            <span className="text-white/30 font-normal ml-2">{bds.reduce((s, b) => s + b.bps, 0) / 100}% total of deposits</span>
+          </div>
+          <div className="text-[0.55rem] text-white/40 mt-1">Each BD wallet receives 0.25% of every deposit directly. Money is sent on deposit — owners already have it.</div>
+        </div>
+        <div className="p-5">
           <div className="max-h-[350px] overflow-y-auto rounded-lg border border-white/5">
             <table className="w-full text-[0.6rem]">
               <thead className="sticky top-0 bg-[rgba(3,0,16,0.95)]">
@@ -723,43 +823,34 @@ function OnChainWallets() {
               </thead>
               <tbody>
                 {bds.map((bd) => {
-                  const isEditing = editing?.type === 'bd' && editing?.index === bd.index;
+                  const isEd = editing?.type === 'bd' && editing?.index === bd.index;
                   return (
                     <tr key={bd.index} className="border-b border-white/5 hover:bg-white/3">
                       <td className="py-2 px-3 font-orbitron text-gold">#{bd.index}</td>
                       <td className="py-2 px-3 font-mono text-cyan/70">
-                        {isEditing ? (
+                        {isEd ? (
                           <input value={newAddr} onChange={(e) => setNewAddr(e.target.value)} placeholder="0x..."
                             className="w-full px-2 py-1 rounded bg-white/5 border border-white/10 text-white font-mono text-[0.6rem] outline-none focus:border-cyan/40" />
-                        ) : (
-                          <span>{bd.address?.slice(0, 10)}...{bd.address?.slice(-6)}</span>
-                        )}
+                        ) : <span>{bd.address?.slice(0, 10)}...{bd.address?.slice(-6)}</span>}
                       </td>
                       <td className="py-2 px-3 text-right font-orbitron text-white/50">
-                        {isEditing ? (
+                        {isEd ? (
                           <input value={newBps} onChange={(e) => setNewBps(e.target.value)} type="number" placeholder="25"
                             className="w-[50px] px-1 py-1 rounded bg-white/5 border border-white/10 text-white font-orbitron text-[0.6rem] outline-none text-right" />
                         ) : bd.bps}
                       </td>
                       <td className="py-2 px-3 text-right text-white/30">{bd.pct}</td>
                       <td className="py-2 px-3 text-center">
-                        {isEditing ? (
+                        {isEd ? (
                           <div className="flex gap-1 justify-center">
                             <button onClick={handleSave} disabled={saving}
-                              className="px-1.5 py-0.5 rounded bg-green/10 border border-green/30 text-green text-[0.5rem] disabled:opacity-30">
-                              {saving ? '..' : '✓'}
-                            </button>
+                              className="px-1.5 py-0.5 rounded bg-green/10 border border-green/30 text-green text-[0.5rem] disabled:opacity-30">{saving ? '..' : '✓'}</button>
                             <button onClick={() => { setEditing(null); setFeedback(null); }}
-                              className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 text-[0.5rem]">
-                              ✕
-                            </button>
+                              className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 text-[0.5rem]">✕</button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => { setEditing({ type: 'bd', index: bd.index, current: bd.address }); setNewAddr(bd.address || ''); setNewBps(String(bd.bps)); setFeedback(null); }}
-                            className="px-1.5 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold text-[0.5rem] hover:bg-gold/20">
-                            ✏️
-                          </button>
+                          <button onClick={() => { setEditing({ type: 'bd', index: bd.index, current: bd.address }); setNewAddr(bd.address || ''); setNewBps(String(bd.bps)); setFeedback(null); }}
+                            className="px-1.5 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold text-[0.5rem] hover:bg-gold/20">✏️</button>
                         )}
                       </td>
                     </tr>
