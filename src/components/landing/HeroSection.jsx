@@ -1,4 +1,5 @@
 import React from 'react';
+import SocialLinks from '../SocialLinks';
 
 const ringStyles = [
   {
@@ -190,6 +191,11 @@ export default function HeroSection() {
         >
           ↓ EXPLORE FEATURES
         </a>
+      </div>
+
+      {/* Social Links */}
+      <div style={{ animation: 'fadeup 1s ease 0.9s both' }}>
+        <SocialLinks size="lg" className="mt-8" />
       </div>
     </section>
   );

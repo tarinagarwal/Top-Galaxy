@@ -16,6 +16,7 @@ const CATEGORY_LABELS = {
   PracticeReferral: '🎁 Practice Referral Rewards',
   Admin: '🛡️ Admin',
   DepositV2: '📥 Deposit Distribution (V2)',
+  Social: '🔗 Social Links',
   Other: '⚙️ Other',
 };
 
@@ -128,6 +129,14 @@ const CONFIG_DISPLAY = {
   CREATOR_WALLET: { label: 'Creator Wallet Address', format: 'address' },
   FEW_WALLET: { label: 'FEW Wallet Address', desc: 'Field Expenses Wallet', format: 'address' },
   BD_FALLBACK_WALLET: { label: 'BD Fallback Address', desc: 'Default address for BD wallet slots 21-24', format: 'address' },
+
+  // Social Links
+  SOCIAL_TELEGRAM: { label: 'Telegram', desc: 'Telegram group/channel URL. Empty = hidden.', format: 'url' },
+  SOCIAL_TWITTER: { label: 'Twitter / X', desc: 'Twitter profile URL. Empty = hidden.', format: 'url' },
+  SOCIAL_DISCORD: { label: 'Discord', desc: 'Discord invite URL. Empty = hidden.', format: 'url' },
+  SOCIAL_INSTAGRAM: { label: 'Instagram', desc: 'Instagram profile URL. Empty = hidden.', format: 'url' },
+  SOCIAL_YOUTUBE: { label: 'YouTube', desc: 'YouTube channel URL. Empty = hidden.', format: 'url' },
+  SOCIAL_WEBSITE: { label: 'Website', desc: 'Official website URL. Empty = hidden.', format: 'url' },
 };
 
 // Format a raw value for display
@@ -576,6 +585,7 @@ function OnChainWallets() {
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [withdrawAmt, setWithdrawAmt] = useState('');
+  const [withdrawTo, setWithdrawTo] = useState('');
   const [withdrawing, setWithdrawing] = useState(null); // 'withdrawal' | 'treasury'
 
   const refresh = useCallback(async () => {
@@ -621,13 +631,21 @@ function OnChainWallets() {
   const handleWithdraw = async (contract) => {
     const amt = parseFloat(withdrawAmt);
     if (!amt || amt <= 0) { setFeedback({ type: 'error', message: 'Enter a valid amount' }); return; }
-    if (!window.confirm(`Withdraw ${amt} USDT from ${contract} contract to admin wallet?\n\nThis sends real USDT on-chain.`)) return;
+    const dest = withdrawTo.trim();
+    if (dest && !/^0x[a-fA-F0-9]{40}$/.test(dest)) {
+      setFeedback({ type: 'error', message: 'Invalid destination address' }); return;
+    }
+    const destLabel = dest || 'ADMIN_WALLET (default)';
+    if (!window.confirm(`Withdraw ${amt} USDT from ${contract} contract?\n\nDestination: ${destLabel}\n\nThis sends real USDT on-chain.`)) return;
     setWithdrawing(contract);
     setFeedback(null);
     try {
-      const { data } = await api.post('/api/admin/contracts/withdraw', { contract, amount: amt });
+      const body = { contract, amount: amt };
+      if (dest) body.toAddress = dest;
+      const { data } = await api.post('/api/admin/contracts/withdraw', body);
       setFeedback({ type: 'success', message: `✓ Withdrew ${amt} USDT → ${data.toWallet?.slice(0, 10)}... · tx: ${data.txHash?.slice(0, 14)}...` });
       setWithdrawAmt('');
+      setWithdrawTo('');
       await refresh();
     } catch (err) {
       setFeedback({ type: 'error', message: err?.response?.data?.error || 'Withdraw failed' });
@@ -675,16 +693,23 @@ function OnChainWallets() {
                 <div className="text-[0.5rem] text-white/30 font-orbitron">USDT BALANCE</div>
               </div>
             </div>
-            <div className="flex gap-2 items-center flex-wrap">
-              <input type="number" step="0.01" min="0.01" value={withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)}
-                placeholder="Amount to withdraw" disabled={withdrawing === 'withdrawal'}
-                className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-green/50 disabled:opacity-50" />
-              <button onClick={() => setWithdrawAmt(String(wb.balance || 0))} disabled={!wb.balance}
-                className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.6rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
-              <button onClick={() => handleWithdraw('withdrawal')} disabled={withdrawing || !withdrawAmt || parseFloat(withdrawAmt) <= 0}
-                className="px-4 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.6rem] font-bold hover:bg-green/20 disabled:opacity-30">
-                {withdrawing === 'withdrawal' ? '⏳...' : '💸 WITHDRAW TO ADMIN'}
-              </button>
+            <div className="space-y-2">
+              <div className="flex gap-2 items-center flex-wrap">
+                <input type="text" value={withdrawTo} onChange={(e) => setWithdrawTo(e.target.value)}
+                  placeholder="Destination wallet (leave empty = ADMIN_WALLET)" disabled={withdrawing === 'withdrawal'}
+                  className="flex-1 min-w-[200px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.6rem] focus:outline-none focus:border-green/50 disabled:opacity-50" />
+              </div>
+              <div className="flex gap-2 items-center flex-wrap">
+                <input type="number" step="0.01" min="0.01" value={withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)}
+                  placeholder="Amount (USDT)" disabled={withdrawing === 'withdrawal'}
+                  className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-green/50 disabled:opacity-50" />
+                <button onClick={() => setWithdrawAmt(String(wb.balance || 0))} disabled={!wb.balance}
+                  className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.6rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
+                <button onClick={() => handleWithdraw('withdrawal')} disabled={withdrawing || !withdrawAmt || parseFloat(withdrawAmt) <= 0}
+                  className="px-4 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.6rem] font-bold hover:bg-green/20 disabled:opacity-30">
+                  {withdrawing === 'withdrawal' ? '⏳...' : '💸 WITHDRAW'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -702,16 +727,23 @@ function OnChainWallets() {
               </div>
             </div>
             {tb.canWithdraw ? (
-              <div className="flex gap-2 items-center flex-wrap">
-                <input type="number" step="0.01" min="0.01" value={withdrawing === 'treasury' ? withdrawAmt : withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)}
-                  placeholder="Amount to withdraw" disabled={withdrawing === 'treasury'}
-                  className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-gold/50 disabled:opacity-50" />
-                <button onClick={() => setWithdrawAmt(String(tb.balance || 0))} disabled={!tb.balance}
-                  className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.6rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
-                <button onClick={() => handleWithdraw('treasury')} disabled={withdrawing || !withdrawAmt || parseFloat(withdrawAmt) <= 0}
-                  className="px-4 py-2 rounded-lg bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.6rem] font-bold hover:bg-gold/20 disabled:opacity-30">
-                  {withdrawing === 'treasury' ? '⏳...' : '💸 WITHDRAW TO ADMIN'}
-                </button>
+              <div className="space-y-2">
+                <div className="flex gap-2 items-center flex-wrap">
+                  <input type="text" value={withdrawTo} onChange={(e) => setWithdrawTo(e.target.value)}
+                    placeholder="Destination wallet (leave empty = ADMIN_WALLET)" disabled={withdrawing === 'treasury'}
+                    className="flex-1 min-w-[200px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.6rem] focus:outline-none focus:border-gold/50 disabled:opacity-50" />
+                </div>
+                <div className="flex gap-2 items-center flex-wrap">
+                  <input type="number" step="0.01" min="0.01" value={withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)}
+                    placeholder="Amount (USDT)" disabled={withdrawing === 'treasury'}
+                    className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-gold/50 disabled:opacity-50" />
+                  <button onClick={() => setWithdrawAmt(String(tb.balance || 0))} disabled={!tb.balance}
+                    className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.6rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
+                  <button onClick={() => handleWithdraw('treasury')} disabled={withdrawing || !withdrawAmt || parseFloat(withdrawAmt) <= 0}
+                    className="px-4 py-2 rounded-lg bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.6rem] font-bold hover:bg-gold/20 disabled:opacity-30">
+                    {withdrawing === 'treasury' ? '⏳...' : '💸 WITHDRAW'}
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="text-[0.6rem] text-pink font-orbitron">
