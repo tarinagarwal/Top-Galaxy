@@ -330,6 +330,9 @@ export default function AdminConfig() {
         </div>
       )}
 
+      {/* On-chain contract wallet addresses (DepositV2) */}
+      {canEdit && <OnChainWallets />}
+
       {/* Hard-confirmation modal for ADMIN_WALLET */}
       {adminWalletConfirm && (
         <div
@@ -556,6 +559,217 @@ function ConfigRow({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// OnChainWallets — reads/writes wallet addresses directly on the DepositV2 contract
+// ============================================================================
+function OnChainWallets() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null); // { type, index?, current }
+  const [newAddr, setNewAddr] = useState('');
+  const [newBps, setNewBps] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      const { data } = await api.get('/api/admin/contracts/wallets');
+      setData(data);
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const handleSave = async () => {
+    if (!editing) return;
+    if (!newAddr.trim() || !/^0x[a-fA-F0-9]{40}$/.test(newAddr.trim())) {
+      setFeedback({ type: 'error', message: 'Enter a valid 0x address (42 characters)' });
+      return;
+    }
+    if (!window.confirm(
+      `Update ${editing.type}${editing.index !== undefined ? ` #${editing.index}` : ''} on-chain?\n\n` +
+      `Current: ${editing.current}\n` +
+      `New: ${newAddr.trim()}\n\n` +
+      `This sends a real blockchain transaction. The change is immediate and affects all future deposits.`
+    )) return;
+
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const body = { address: newAddr.trim() };
+      if (editing.type === 'bd') {
+        body.index = editing.index;
+        body.bps = parseInt(newBps || '25', 10);
+      }
+      const { data } = await api.post(`/api/admin/contracts/wallets/${editing.type}`, body);
+      setFeedback({
+        type: 'success',
+        message: `✓ ${editing.type} updated on-chain · tx: ${data.txHash?.slice(0, 12)}... · block: ${data.blockNumber}`,
+      });
+      setEditing(null);
+      setNewAddr('');
+      setNewBps('');
+      await refresh();
+    } catch (err) {
+      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Transaction failed' });
+    }
+    setSaving(false);
+  };
+
+  if (loading) return null;
+  if (!data) return null;
+
+  const w = data.wallets || {};
+  const bds = data.bdWallets || [];
+
+  const WALLET_ROWS = [
+    { type: 'gamePool',      label: 'Game Pool',       icon: '🎮', desc: 'Remainder (~71%) — backs user withdrawals' },
+    { type: 'creator',       label: 'Creator',         icon: '👤', desc: '2% of deposits → platform owner' },
+    { type: 'few',           label: 'FEW',             icon: '🌐', desc: '5% of deposits → ecosystem fund' },
+    { type: 'referralPool',  label: 'Referral Pool',   icon: '🔗', desc: '15% of deposits → referral commissions' },
+    { type: 'luckyDrawPool', label: 'Lucky Draw Pool', icon: '🎰', desc: '1% of deposits → draw prize pool' },
+  ];
+
+  return (
+    <div className="card-glass rounded-2xl border border-cyan/20 mt-6 overflow-hidden">
+      <div className="p-5 border-b border-cyan/10">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <div className="font-orbitron text-cyan text-[0.75rem] font-bold">
+              ⛓ ON-CHAIN CONTRACT WALLETS
+            </div>
+            <div className="text-[0.6rem] text-white/40 mt-1">
+              Live addresses from the Deposit V2 contract on BSC. Changes are sent as on-chain transactions.
+            </div>
+          </div>
+          <div className="text-[0.55rem] text-white/30 font-mono">
+            {data.contractAddress?.slice(0, 10)}...{data.contractAddress?.slice(-6)}
+          </div>
+        </div>
+      </div>
+
+      {feedback && (
+        <div className={`mx-5 mt-4 rounded-lg p-2.5 text-[0.68rem] border ${
+          feedback.type === 'success' ? 'border-green/30 bg-green/5 text-green' : 'border-pink/30 bg-pink/5 text-pink'
+        }`}>{feedback.message}</div>
+      )}
+
+      <div className="p-5">
+        {/* Main wallets */}
+        <div className="space-y-2 mb-5">
+          {WALLET_ROWS.map((row) => {
+            const wallet = w[row.type] || {};
+            const isEditing = editing?.type === row.type && editing?.index === undefined;
+            return (
+              <div key={row.type} className="flex items-center gap-3 p-3 rounded-lg bg-white/3 border border-white/5 flex-wrap">
+                <div className="w-6 text-center text-lg">{row.icon}</div>
+                <div className="flex-1 min-w-[200px]">
+                  <div className="font-orbitron text-[0.65rem] font-bold text-white/80">{row.label} <span className="text-white/30">({wallet.pct})</span></div>
+                  <div className="text-[0.5rem] text-white/30">{row.desc}</div>
+                </div>
+                <div className="font-mono text-[0.6rem] text-cyan/80 flex-shrink-0">
+                  {wallet.address?.slice(0, 10)}...{wallet.address?.slice(-6)}
+                </div>
+                {!isEditing ? (
+                  <button
+                    onClick={() => { setEditing({ type: row.type, current: wallet.address }); setNewAddr(wallet.address || ''); setFeedback(null); }}
+                    className="px-2 py-1 rounded bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20"
+                  >
+                    ✏️
+                  </button>
+                ) : (
+                  <div className="w-full mt-2 flex gap-2">
+                    <input
+                      value={newAddr}
+                      onChange={(e) => setNewAddr(e.target.value)}
+                      placeholder="0x..."
+                      className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.65rem] outline-none focus:border-cyan/40"
+                    />
+                    <button onClick={handleSave} disabled={saving}
+                      className="px-3 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.55rem] font-bold hover:bg-green/20 disabled:opacity-30">
+                      {saving ? '...' : '✓ SAVE'}
+                    </button>
+                    <button onClick={() => { setEditing(null); setFeedback(null); }}
+                      className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem]">
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* BD Wallets */}
+        <div className="border-t border-white/10 pt-4">
+          <div className="font-orbitron text-gold text-[0.65rem] font-bold mb-3">
+            💼 24 BD WALLETS <span className="text-white/30 font-normal">({bds.reduce((s, b) => s + b.bps, 0) / 100}% total)</span>
+          </div>
+          <div className="max-h-[350px] overflow-y-auto rounded-lg border border-white/5">
+            <table className="w-full text-[0.6rem]">
+              <thead className="sticky top-0 bg-[rgba(3,0,16,0.95)]">
+                <tr className="text-white/40 font-orbitron text-[0.55rem] border-b border-white/10">
+                  <th className="py-2 px-3 text-left w-[40px]">#</th>
+                  <th className="py-2 px-3 text-left">ADDRESS</th>
+                  <th className="py-2 px-3 text-right w-[60px]">BPS</th>
+                  <th className="py-2 px-3 text-right w-[50px]">%</th>
+                  <th className="py-2 px-3 text-center w-[50px]">EDIT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bds.map((bd) => {
+                  const isEditing = editing?.type === 'bd' && editing?.index === bd.index;
+                  return (
+                    <tr key={bd.index} className="border-b border-white/5 hover:bg-white/3">
+                      <td className="py-2 px-3 font-orbitron text-gold">#{bd.index}</td>
+                      <td className="py-2 px-3 font-mono text-cyan/70">
+                        {isEditing ? (
+                          <input value={newAddr} onChange={(e) => setNewAddr(e.target.value)} placeholder="0x..."
+                            className="w-full px-2 py-1 rounded bg-white/5 border border-white/10 text-white font-mono text-[0.6rem] outline-none focus:border-cyan/40" />
+                        ) : (
+                          <span>{bd.address?.slice(0, 10)}...{bd.address?.slice(-6)}</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-3 text-right font-orbitron text-white/50">
+                        {isEditing ? (
+                          <input value={newBps} onChange={(e) => setNewBps(e.target.value)} type="number" placeholder="25"
+                            className="w-[50px] px-1 py-1 rounded bg-white/5 border border-white/10 text-white font-orbitron text-[0.6rem] outline-none text-right" />
+                        ) : bd.bps}
+                      </td>
+                      <td className="py-2 px-3 text-right text-white/30">{bd.pct}</td>
+                      <td className="py-2 px-3 text-center">
+                        {isEditing ? (
+                          <div className="flex gap-1 justify-center">
+                            <button onClick={handleSave} disabled={saving}
+                              className="px-1.5 py-0.5 rounded bg-green/10 border border-green/30 text-green text-[0.5rem] disabled:opacity-30">
+                              {saving ? '..' : '✓'}
+                            </button>
+                            <button onClick={() => { setEditing(null); setFeedback(null); }}
+                              className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 text-[0.5rem]">
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setEditing({ type: 'bd', index: bd.index, current: bd.address }); setNewAddr(bd.address || ''); setNewBps(String(bd.bps)); setFeedback(null); }}
+                            className="px-1.5 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold text-[0.5rem] hover:bg-gold/20">
+                            ✏️
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
