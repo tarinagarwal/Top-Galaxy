@@ -5,6 +5,26 @@ import api from '../lib/axios';
 import { useSocket } from '../hooks/useSocket';
 import { fmt, num } from '../lib/format';
 
+function useCountdownTo(isoTarget) {
+  const [remaining, setRemaining] = useState('');
+  useEffect(() => {
+    if (!isoTarget) { setRemaining('--'); return; }
+    const target = new Date(isoTarget).getTime();
+    const tick = () => {
+      const diff = target - Date.now();
+      if (diff <= 0) { setRemaining('Processing soon...'); return; }
+      const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+      const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+      const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+      setRemaining(`${h}h ${m}m ${s}s`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [isoTarget]);
+  return remaining;
+}
+
 const RANK_ICONS = {
   0: '⚪',
   1: '⭐',
@@ -52,6 +72,8 @@ export default function Club() {
   useSocket({
     'club:credited': () => refresh(),
   });
+
+  const nextPayout = useCountdownTo(rankData?.nextPayoutAt);
 
   if (loading) {
     return (
@@ -117,7 +139,7 @@ export default function Club() {
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
             <div className="card-glass rounded-2xl p-4 border border-gold/20">
               <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">TODAY'S EARNING</div>
               <div className="font-orbitron text-gold text-[1.2rem] font-bold">{fmt(todayEarning, 3)}</div>
@@ -137,6 +159,11 @@ export default function Club() {
               <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">DIRECT REFERRALS</div>
               <div className="font-orbitron text-white text-[1.2rem] font-bold">{r.directReferralCount || 0}</div>
               <div className="text-[0.4rem] text-white/20">active downline</div>
+            </div>
+            <div className="card-glass rounded-2xl p-4 border border-green/20">
+              <div className="text-[0.6rem] text-white/60 font-orbitron font-bold tracking-[0.12em] mb-1">NEXT PAYOUT IN</div>
+              <div className="font-orbitron text-green text-[1.1rem] font-bold">{nextPayout}</div>
+              <div className="text-[0.4rem] text-white/20">daily at 00:30</div>
             </div>
           </div>
 
