@@ -35,13 +35,22 @@ const ICONS = {
   ),
 };
 
+const PLATFORM_LABELS = {
+  telegram: 'Telegram',
+  twitter: 'Twitter',
+  discord: 'Discord',
+  instagram: 'Instagram',
+  youtube: 'YouTube',
+  website: 'Website',
+};
+
 const PLATFORM_COLORS = {
-  telegram: 'hover:text-[#26A5E4] hover:border-[#26A5E4]/40',
-  twitter: 'hover:text-white hover:border-white/40',
-  discord: 'hover:text-[#5865F2] hover:border-[#5865F2]/40',
-  instagram: 'hover:text-[#E4405F] hover:border-[#E4405F]/40',
-  youtube: 'hover:text-[#FF0000] hover:border-[#FF0000]/40',
-  website: 'hover:text-cyan hover:border-cyan/40',
+  telegram: 'hover:text-[#26A5E4] hover:border-[#26A5E4]/40 hover:bg-[#26A5E4]/10',
+  twitter: 'hover:text-white hover:border-white/40 hover:bg-white/10',
+  discord: 'hover:text-[#5865F2] hover:border-[#5865F2]/40 hover:bg-[#5865F2]/10',
+  instagram: 'hover:text-[#E4405F] hover:border-[#E4405F]/40 hover:bg-[#E4405F]/10',
+  youtube: 'hover:text-[#FF0000] hover:border-[#FF0000]/40 hover:bg-[#FF0000]/10',
+  website: 'hover:text-cyan hover:border-cyan/40 hover:bg-cyan/10',
 };
 
 // Cache the social links at module level so multiple components don't re-fetch
@@ -70,20 +79,22 @@ export default function SocialLinks({ size = 'md', className = '' }) {
   const entries = Object.entries(links).filter(([, url]) => url);
   if (entries.length === 0) return null;
 
-  const sizeClass = size === 'lg' ? 'w-10 h-10 p-2.5' : size === 'sm' ? 'w-7 h-7 p-1.5' : 'w-9 h-9 p-2';
+  const iconSize = size === 'lg' ? 'w-5 h-5' : size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4';
+  const textSize = size === 'lg' ? 'text-[0.8rem]' : size === 'sm' ? 'text-[0.6rem]' : 'text-[0.7rem]';
+  const padding = size === 'lg' ? 'px-5 py-2.5' : size === 'sm' ? 'px-3 py-1.5' : 'px-4 py-2';
 
   return (
-    <div className={`flex items-center justify-center gap-3 ${className}`}>
+    <div className={`flex items-center justify-center gap-3 flex-wrap ${className}`}>
       {entries.map(([platform, url]) => (
         <a
           key={platform}
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${sizeClass} rounded-full border border-white/15 bg-white/5 text-white/50 transition-all duration-300 hover:scale-110 hover:bg-white/10 ${PLATFORM_COLORS[platform] || 'hover:text-gold hover:border-gold/40'}`}
-          title={platform.charAt(0).toUpperCase() + platform.slice(1)}
+          className={`${padding} rounded-xl border border-white/15 bg-white/5 text-white/50 transition-all duration-300 hover:scale-105 hover:-translate-y-[2px] flex items-center gap-2 no-underline ${PLATFORM_COLORS[platform] || 'hover:text-gold hover:border-gold/40 hover:bg-gold/10'}`}
         >
-          {ICONS[platform] || ICONS.website}
+          <span className={`${iconSize} flex-shrink-0`}>{ICONS[platform] || ICONS.website}</span>
+          <span className={`font-orbitron ${textSize} font-bold tracking-[0.1em]`}>{PLATFORM_LABELS[platform] || platform}</span>
         </a>
       ))}
     </div>

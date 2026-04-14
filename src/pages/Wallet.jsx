@@ -8,6 +8,7 @@ import { useAuthStore } from '../store/authStore';
 import { ERC20_ABI, CONTRACT_ADDRESSES } from '../lib/contracts';
 import api from '../lib/axios';
 import { fmt, num } from '../lib/format';
+import { bscscanTx } from '../lib/constants';
 import { useSocket } from '../hooks/useSocket';
 
 const WITHDRAWABLE_WALLETS = [
@@ -181,7 +182,7 @@ export default function Wallet() {
                     ✅ Deposit confirmed: {fmt(result.amount)} USDT
                   </div>
                   <a
-                    href={`https://testnet.bscscan.com/tx/${result.txHash}`}
+                    href={bscscanTx(result.txHash)}
                     target="_blank"
                     rel="noreferrer"
                     className="text-cyan text-[0.6rem] font-orbitron underline break-all"
@@ -583,7 +584,7 @@ function WithdrawalHistory({ history, loading }) {
                   </div>
                   {w.txHash && (
                     <a
-                      href={`https://testnet.bscscan.com/tx/${w.txHash}`}
+                      href={bscscanTx(w.txHash)}
                       target="_blank"
                       rel="noreferrer"
                       className="text-[0.68rem] text-cyan font-orbitron underline hover:text-gold"

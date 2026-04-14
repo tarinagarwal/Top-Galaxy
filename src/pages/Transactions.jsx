@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import StarfieldCanvas from '../components/StarfieldCanvas';
 import api from '../lib/axios';
 import { fmt } from '../lib/format';
+import { bscscanTx } from '../lib/constants';
 
 // All transaction types from the PRD, mapped to display metadata.
 // direction: +1 = credit to user, -1 = debit from user, 0 = neutral/info
@@ -263,7 +264,7 @@ function TransactionRow({ t }) {
       <td className="py-2.5 px-3 text-right">
         {t.txHash ? (
           <a
-            href={`https://testnet.bscscan.com/tx/${t.txHash}`}
+            href={bscscanTx(t.txHash)}
             target="_blank"
             rel="noreferrer"
             className="text-cyan font-orbitron text-[0.68rem] hover:text-gold underline"

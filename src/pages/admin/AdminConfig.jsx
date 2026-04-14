@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuthStore } from '../../store/authStore';
 import api from '../../lib/axios';
+import { CONTRACT_ADDRESSES, DEPOSIT_V2_ADMIN_ABI, TREASURY_ABI, WITHDRAWAL_ABI } from '../../lib/contracts';
+import { bscscanTx } from '../../lib/constants';
 
 const CATEGORY_LABELS = {
   Game: '🎯 Game Settings',
@@ -316,7 +319,7 @@ export default function AdminConfig() {
         <div className="text-center py-12 text-white/40 font-orbitron text-[0.7rem]">Loading...</div>
       ) : (
         <div className="space-y-4">
-          {Object.entries(filteredConfig).map(([category, keys]) => (
+          {Object.entries(filteredConfig).filter(([category]) => category !== 'Other').map(([category, keys]) => (
             <ConfigCategory
               key={category}
               category={category}
@@ -576,6 +579,7 @@ function ConfigRow({
 // OnChainWallets — reads/writes wallet addresses directly on the DepositV2 contract
 // ============================================================================
 function OnChainWallets() {
+  const { address: connectedWallet } = useAccount();
   const [walletData, setWalletData] = useState(null);
   const [balanceData, setBalanceData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -586,7 +590,27 @@ function OnChainWallets() {
   const [feedback, setFeedback] = useState(null);
   const [withdrawAmt, setWithdrawAmt] = useState('');
   const [withdrawTo, setWithdrawTo] = useState('');
-  const [withdrawing, setWithdrawing] = useState(null); // 'withdrawal' | 'treasury'
+  const [withdrawing, setWithdrawing] = useState(null);
+  const [pendingTxHash, setPendingTxHash] = useState(null);
+
+  // wagmi hook for writing to the contract directly from MetaMask
+  const { writeContractAsync } = useWriteContract();
+
+  // Wait for tx confirmation
+  const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: pendingTxHash });
+
+  // When tx confirms, refresh data and clear pending
+  useEffect(() => {
+    if (txConfirmed && pendingTxHash) {
+      setFeedback({ type: 'success', message: `✓ Updated on-chain · tx: ${pendingTxHash.slice(0, 14)}...` });
+      setSaving(false);
+      setEditing(null);
+      setNewAddr('');
+      setNewBps('');
+      setPendingTxHash(null);
+      refresh();
+    }
+  }, [txConfirmed, pendingTxHash]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refresh = useCallback(async () => {
     try {
@@ -602,30 +626,57 @@ function OnChainWallets() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  // Check if connected MetaMask wallet is the contract admin
+  const contractAdmin = walletData?.admin;
+  const isContractOwner = connectedWallet && contractAdmin &&
+    connectedWallet.toLowerCase() === contractAdmin.toLowerCase();
+
+  // Setter function name map
+  const setterMap = {
+    gamePool: 'setGamePoolWallet',
+    creator: 'setCreatorWallet',
+    few: 'setFEWWallet',
+    referralPool: 'setReferralPoolWallet',
+    luckyDrawPool: 'setLuckyDrawPoolWallet',
+  };
+
+  // Save handler — signs directly from MetaMask (no server involved)
   const handleSave = async () => {
-    if (!editing) return;
+    if (!editing || !isContractOwner) return;
     if (!newAddr.trim() || !/^0x[a-fA-F0-9]{40}$/.test(newAddr.trim())) {
       setFeedback({ type: 'error', message: 'Enter a valid 0x address (42 characters)' });
       return;
     }
     if (!window.confirm(
-      `Update ${editing.type}${editing.index !== undefined ? ` #${editing.index}` : ''} on-chain?\n\nCurrent: ${editing.current}\nNew: ${newAddr.trim()}\n\nThis sends a blockchain transaction and affects all future deposits.`
+      `Update ${editing.type}${editing.index !== undefined ? ` #${editing.index}` : ''} on-chain?\n\nCurrent: ${editing.current}\nNew: ${newAddr.trim()}\n\nMetaMask will open to sign this transaction.`
     )) return;
     setSaving(true);
     setFeedback(null);
     try {
-      const body = { address: newAddr.trim() };
-      if (editing.type === 'bd') { body.index = editing.index; body.bps = parseInt(newBps || '25', 10); }
-      const { data } = await api.post(`/api/admin/contracts/wallets/${editing.type}`, body);
-      setFeedback({ type: 'success', message: `✓ Updated on-chain · tx: ${data.txHash?.slice(0, 14)}...` });
-      setEditing(null);
-      setNewAddr('');
-      setNewBps('');
-      await refresh();
+      let hash;
+      if (editing.type === 'bd') {
+        hash = await writeContractAsync({
+          address: CONTRACT_ADDRESSES.deposit,
+          abi: DEPOSIT_V2_ADMIN_ABI,
+          functionName: 'setBDWallet',
+          args: [editing.index, newAddr.trim(), parseInt(newBps || '25', 10)],
+        });
+      } else if (setterMap[editing.type]) {
+        hash = await writeContractAsync({
+          address: CONTRACT_ADDRESSES.deposit,
+          abi: DEPOSIT_V2_ADMIN_ABI,
+          functionName: setterMap[editing.type],
+          args: [newAddr.trim()],
+        });
+      }
+      if (hash) {
+        setPendingTxHash(hash);
+        setFeedback({ type: 'success', message: `⏳ Transaction submitted — waiting for confirmation...` });
+      }
     } catch (err) {
-      setFeedback({ type: 'error', message: err?.response?.data?.error || 'Transaction failed' });
+      setFeedback({ type: 'error', message: err?.shortMessage || err?.message || 'Transaction rejected or failed' });
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleWithdraw = async (contract) => {
@@ -676,37 +727,43 @@ function OnChainWallets() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       <div className="card-glass rounded-2xl border border-green/20 overflow-hidden">
         <div className="p-5 border-b border-green/10">
-          <div className="font-orbitron text-green text-[0.75rem] font-bold">🏦 SMART CONTRACTS (HOLDING FUNDS)</div>
-          <div className="text-[0.55rem] text-white/40 mt-1">These contracts hold platform USDT on-chain. Admin can withdraw to admin wallet.</div>
+          <div className="font-orbitron text-green text-[0.95rem] font-bold">🏦 SMART CONTRACTS (HOLDING FUNDS)</div>
+          <div className="text-[0.7rem] text-white/40 mt-1">These contracts hold platform USDT on-chain.</div>
+          {isContractOwner ? (
+            <div className="mt-2 text-[0.65rem] text-green font-orbitron">✓ Contract owner connected — withdrawals enabled via MetaMask</div>
+          ) : (
+            <div className="mt-2 text-[0.65rem] text-gold font-orbitron">🔒 Connect contract owner wallet ({contractAdmin?.slice(0, 6)}...{contractAdmin?.slice(-4)}) to withdraw</div>
+          )}
         </div>
         <div className="p-5 space-y-4">
           {/* Withdrawal Contract */}
           <div className="rounded-xl bg-white/3 border border-green/15 p-4">
             <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
               <div>
-                <div className="font-orbitron text-green text-[0.7rem] font-bold">🎮 Withdrawal Contract <span className="text-white/30">(Game Pool — {w.gamePool?.pct})</span></div>
-                <div className="font-mono text-[0.55rem] text-cyan/60 mt-1">{wb.address}</div>
-                <div className="text-[0.5rem] text-white/30 mt-1">Receives 71% of every deposit. Pays out user withdrawals. This is the platform's main vault.</div>
+                <div className="font-orbitron text-green text-[0.8rem] font-bold">🎮 Withdrawal Contract <span className="text-white/30">({w.gamePool?.pct})</span></div>
+                <div className="font-mono text-[0.65rem] text-cyan/60 mt-1">{wb.address}</div>
+                <div className="text-[0.65rem] text-white/30 mt-1">Receives 71% of every deposit. Pays out user withdrawals.</div>
               </div>
               <div className="text-right">
-                <div className="font-orbitron text-green text-[1.4rem] font-bold">${fmtBal(wb.balance)}</div>
-                <div className="text-[0.5rem] text-white/30 font-orbitron">USDT BALANCE</div>
+                <div className="font-orbitron text-green text-[1.6rem] font-bold">${fmtBal(wb.balance)}</div>
+                <div className="text-[0.6rem] text-white/30 font-orbitron">USDT BALANCE</div>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex gap-2 items-center flex-wrap">
                 <input type="text" value={withdrawTo} onChange={(e) => setWithdrawTo(e.target.value)}
-                  placeholder="Destination wallet (leave empty = ADMIN_WALLET)" disabled={withdrawing === 'withdrawal'}
-                  className="flex-1 min-w-[200px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.6rem] focus:outline-none focus:border-green/50 disabled:opacity-50" />
+                  placeholder="Destination wallet address" disabled={withdrawing === 'withdrawal'}
+                  className="flex-1 min-w-[200px] px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.7rem] focus:outline-none focus:border-green/50 disabled:opacity-50" />
               </div>
               <div className="flex gap-2 items-center flex-wrap">
                 <input type="number" step="0.01" min="0.01" value={withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)}
                   placeholder="Amount (USDT)" disabled={withdrawing === 'withdrawal'}
-                  className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-green/50 disabled:opacity-50" />
+                  className="flex-1 min-w-[150px] px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.75rem] focus:outline-none focus:border-green/50 disabled:opacity-50" />
                 <button onClick={() => setWithdrawAmt(String(wb.balance || 0))} disabled={!wb.balance}
-                  className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.6rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
+                  className="px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.7rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
+                {/* Server-side withdraw — any SUPER admin, uses worker key */}
                 <button onClick={() => handleWithdraw('withdrawal')} disabled={withdrawing || !withdrawAmt || parseFloat(withdrawAmt) <= 0}
-                  className="px-4 py-2 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.6rem] font-bold hover:bg-green/20 disabled:opacity-30">
+                  className="px-5 py-2.5 rounded-lg bg-green/10 border border-green/40 text-green font-orbitron text-[0.7rem] font-bold hover:bg-green/20 disabled:opacity-30">
                   {withdrawing === 'withdrawal' ? '⏳...' : '💸 WITHDRAW'}
                 </button>
               </div>
@@ -717,37 +774,62 @@ function OnChainWallets() {
           <div className="rounded-xl bg-white/3 border border-gold/15 p-4">
             <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
               <div>
-                <div className="font-orbitron text-gold text-[0.7rem] font-bold">🏛 Treasury Contract <span className="text-white/30">(Fees + Lucky Draw 1%)</span></div>
-                <div className="font-mono text-[0.55rem] text-cyan/60 mt-1">{tb.address}</div>
-                <div className="text-[0.5rem] text-white/30 mt-1">Holds sustainability fees (0.1% of withdrawals) + 1% lucky draw deposit split.</div>
+                <div className="font-orbitron text-gold text-[0.8rem] font-bold">🏛 Treasury Contract <span className="text-white/30">(Fees)</span></div>
+                <div className="font-mono text-[0.65rem] text-cyan/60 mt-1">{tb.address}</div>
+                <div className="text-[0.65rem] text-white/30 mt-1">Holds sustainability fees (10% of withdrawals).</div>
               </div>
               <div className="text-right">
-                <div className="font-orbitron text-gold text-[1.4rem] font-bold">${fmtBal(tb.balance)}</div>
-                <div className="text-[0.5rem] text-white/30 font-orbitron">USDT BALANCE</div>
+                <div className="font-orbitron text-gold text-[1.6rem] font-bold">${fmtBal(tb.balance)}</div>
+                <div className="text-[0.6rem] text-white/30 font-orbitron">USDT BALANCE</div>
               </div>
             </div>
-            {tb.canWithdraw ? (
+            {isContractOwner ? (
               <div className="space-y-2">
                 <div className="flex gap-2 items-center flex-wrap">
                   <input type="text" value={withdrawTo} onChange={(e) => setWithdrawTo(e.target.value)}
-                    placeholder="Destination wallet (leave empty = ADMIN_WALLET)" disabled={withdrawing === 'treasury'}
-                    className="flex-1 min-w-[200px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.6rem] focus:outline-none focus:border-gold/50 disabled:opacity-50" />
+                    placeholder="Destination wallet address" disabled={withdrawing === 'treasury'}
+                    className="flex-1 min-w-[200px] px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.7rem] focus:outline-none focus:border-gold/50 disabled:opacity-50" />
                 </div>
                 <div className="flex gap-2 items-center flex-wrap">
                   <input type="number" step="0.01" min="0.01" value={withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)}
                     placeholder="Amount (USDT)" disabled={withdrawing === 'treasury'}
-                    className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.65rem] focus:outline-none focus:border-gold/50 disabled:opacity-50" />
+                    className="flex-1 min-w-[150px] px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white font-orbitron text-[0.75rem] focus:outline-none focus:border-gold/50 disabled:opacity-50" />
                   <button onClick={() => setWithdrawAmt(String(tb.balance || 0))} disabled={!tb.balance}
-                    className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.6rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
-                  <button onClick={() => handleWithdraw('treasury')} disabled={withdrawing || !withdrawAmt || parseFloat(withdrawAmt) <= 0}
-                    className="px-4 py-2 rounded-lg bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.6rem] font-bold hover:bg-gold/20 disabled:opacity-30">
+                    className="px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-gold font-orbitron text-[0.7rem] hover:border-gold/30 disabled:opacity-30">MAX</button>
+                  <button onClick={async () => {
+                    const amt = parseFloat(withdrawAmt);
+                    const dest = withdrawTo.trim();
+                    if (!amt || amt <= 0) { setFeedback({ type: 'error', message: 'Enter an amount' }); return; }
+                    if (!dest || !/^0x[a-fA-F0-9]{40}$/.test(dest)) { setFeedback({ type: 'error', message: 'Enter a valid destination address' }); return; }
+                    if (!window.confirm(`Withdraw ${amt} USDT from Treasury to ${dest}?\n\nMetaMask will open to sign.`)) return;
+                    setWithdrawing('treasury');
+                    setFeedback(null);
+                    try {
+                      const amtWei = BigInt(Math.floor(amt * 1e18));
+                      const hash = await writeContractAsync({
+                        address: tb.address,
+                        abi: TREASURY_ABI,
+                        functionName: 'transferFunds',
+                        args: [dest, amtWei, 'Admin withdraw via panel'],
+                      });
+                      setFeedback({ type: 'success', message: `✓ Withdrawn · tx: ${hash.slice(0, 14)}...` });
+                      setWithdrawAmt(''); setWithdrawTo('');
+                      refresh();
+                    } catch (err) {
+                      setFeedback({ type: 'error', message: err?.shortMessage || err?.message || 'Failed' });
+                    }
+                    setWithdrawing(null);
+                  }} disabled={withdrawing === 'treasury'}
+                    className="px-5 py-2.5 rounded-lg bg-gold/10 border border-gold/40 text-gold font-orbitron text-[0.7rem] font-bold hover:bg-gold/20 disabled:opacity-30">
                     {withdrawing === 'treasury' ? '⏳...' : '💸 WITHDRAW'}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="text-[0.6rem] text-pink font-orbitron">
-                ⚠️ Cannot withdraw — Treasury contract admin ({tb.admin?.slice(0, 10)}...) does not match your admin wallet. On mainnet deploy, set the correct admin.
+              <div className="text-[0.65rem] text-white/40 font-orbitron">
+                🔒 Connect contract owner wallet to withdraw.
+                <a href={`https://bscscan.com/address/${tb.address}#writeContract`} target="_blank" rel="noreferrer"
+                  className="text-cyan underline ml-2 hover:text-gold">Or use BscScan ↗</a>
               </div>
             )}
           </div>
@@ -759,10 +841,19 @@ function OnChainWallets() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       <div className="card-glass rounded-2xl border border-cyan/20 overflow-hidden">
         <div className="p-5 border-b border-cyan/10">
-          <div className="font-orbitron text-cyan text-[0.75rem] font-bold">📤 EXTERNAL WALLETS (SENT ON DEPOSIT)</div>
+          <div className="font-orbitron text-cyan text-[0.95rem] font-bold">📤 DEPOSIT SPLIT WALLETS (ON-CHAIN)</div>
           <div className="text-[0.55rem] text-white/40 mt-1">
-            Money is sent to these addresses on every deposit. The owner already has it — no withdraw needed. You can change where future deposits go.
+            Money is sent to these addresses on every deposit. Changes require the contract owner wallet to be connected.
           </div>
+          {isContractOwner ? (
+            <div className="mt-2 text-[0.55rem] text-green font-orbitron">
+              ✓ Contract owner connected ({connectedWallet?.slice(0, 6)}...{connectedWallet?.slice(-4)}) — editing enabled
+            </div>
+          ) : contractAdmin ? (
+            <div className="mt-2 text-[0.55rem] text-gold font-orbitron">
+              🔒 Connect contract owner wallet ({contractAdmin?.slice(0, 6)}...{contractAdmin?.slice(-4)}) in MetaMask to edit
+            </div>
+          ) : null}
         </div>
         <div className="p-5 space-y-2">
           {[
@@ -778,17 +869,17 @@ function OnChainWallets() {
               <div key={row.type} className="flex items-center gap-3 p-3 rounded-lg bg-white/3 border border-white/5 flex-wrap">
                 <div className="w-6 text-center text-lg">{row.icon}</div>
                 <div className="flex-1 min-w-[180px]">
-                  <div className="font-orbitron text-[0.65rem] font-bold text-white/80">{row.label} <span className="text-white/30">({row.pct})</span></div>
-                  <div className="text-[0.5rem] text-white/30">{row.desc}</div>
+                  <div className="font-orbitron text-[0.75rem] font-bold text-white/80">{row.label} <span className="text-white/30">({row.pct})</span></div>
+                  <div className="text-[0.6rem] text-white/30">{row.desc}</div>
                   {isSameAsFew && <div className="text-[0.45rem] text-gold mt-0.5">⚠️ Same address as FEW — both streams go to one wallet</div>}
                 </div>
-                <div className="font-mono text-[0.6rem] text-cyan/80 flex-shrink-0">
+                <div className="font-mono text-[0.7rem] text-cyan/80 flex-shrink-0">
                   {wallet.address?.slice(0, 10)}...{wallet.address?.slice(-6)}
                 </div>
-                {!isEditing ? (
+                {!isEditing && isContractOwner ? (
                   <button onClick={() => { setEditing({ type: row.type, current: wallet.address }); setNewAddr(wallet.address || ''); setFeedback(null); }}
                     className="px-2 py-1 rounded bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20">✏️</button>
-                ) : (
+                ) : isEditing ? (
                   <div className="w-full mt-2 flex gap-2">
                     <input value={newAddr} onChange={(e) => setNewAddr(e.target.value)} placeholder="0x..."
                       className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.65rem] outline-none focus:border-cyan/40" />
@@ -798,6 +889,8 @@ function OnChainWallets() {
                     <button onClick={() => { setEditing(null); setFeedback(null); }}
                       className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem]">✕</button>
                   </div>
+                ) : (
+                  <span className="text-white/15 text-[0.5rem]">🔒</span>
                 )}
               </div>
             );
@@ -806,16 +899,16 @@ function OnChainWallets() {
           <div className="flex items-center gap-3 p-3 rounded-lg bg-green/5 border border-green/15 flex-wrap">
             <div className="w-6 text-center text-lg">🎮</div>
             <div className="flex-1 min-w-[180px]">
-              <div className="font-orbitron text-[0.65rem] font-bold text-green">Game Pool <span className="text-white/30">({w.gamePool?.pct})</span></div>
-              <div className="text-[0.5rem] text-white/30">Points to the Withdrawal Contract above — 71% of deposits fund user withdrawals</div>
+              <div className="font-orbitron text-[0.75rem] font-bold text-green">Game Pool <span className="text-white/30">({w.gamePool?.pct})</span></div>
+              <div className="text-[0.6rem] text-white/30">Points to the Withdrawal Contract above — 71% of deposits fund user withdrawals</div>
             </div>
             <div className="font-mono text-[0.6rem] text-green/80 flex-shrink-0">
               {w.gamePool?.address?.slice(0, 10)}...{w.gamePool?.address?.slice(-6)}
             </div>
-            {!(editing?.type === 'gamePool') ? (
+            {!(editing?.type === 'gamePool') && isContractOwner ? (
               <button onClick={() => { setEditing({ type: 'gamePool', current: w.gamePool?.address }); setNewAddr(w.gamePool?.address || ''); setFeedback(null); }}
                 className="px-2 py-1 rounded bg-gold/10 border border-gold/30 text-gold font-orbitron text-[0.5rem] hover:bg-gold/20">✏️</button>
-            ) : (
+            ) : editing?.type === 'gamePool' ? (
               <div className="w-full mt-2 flex gap-2">
                 <input value={newAddr} onChange={(e) => setNewAddr(e.target.value)} placeholder="0x..."
                   className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-mono text-[0.65rem] outline-none focus:border-green/40" />
@@ -825,6 +918,8 @@ function OnChainWallets() {
                 <button onClick={() => { setEditing(null); setFeedback(null); }}
                   className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/40 font-orbitron text-[0.55rem]">✕</button>
               </div>
+            ) : (
+              <span className="text-white/15 text-[0.5rem]">🔒</span>
             )}
           </div>
         </div>
@@ -835,22 +930,22 @@ function OnChainWallets() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       <div className="card-glass rounded-2xl border border-gold/20 overflow-hidden">
         <div className="p-5 border-b border-gold/10">
-          <div className="font-orbitron text-gold text-[0.75rem] font-bold">
+          <div className="font-orbitron text-gold text-[0.95rem] font-bold">
             💼 BD WALLETS (24 BUSINESS DEVELOPMENT)
-            <span className="text-white/30 font-normal ml-2">{bds.reduce((s, b) => s + b.bps, 0) / 100}% total of deposits</span>
+            <span className="text-white/30 font-normal text-[0.7rem] ml-2">{bds.reduce((s, b) => s + b.bps, 0) / 100}% total of deposits</span>
           </div>
-          <div className="text-[0.55rem] text-white/40 mt-1">Each BD wallet receives 0.25% of every deposit directly. Money is sent on deposit — owners already have it.</div>
+          <div className="text-[0.65rem] text-white/40 mt-1">Each BD wallet receives 0.25% of every deposit directly. Money is sent on deposit — owners already have it.</div>
         </div>
         <div className="p-5">
           <div className="max-h-[350px] overflow-y-auto rounded-lg border border-white/5">
-            <table className="w-full text-[0.6rem]">
+            <table className="w-full text-[0.7rem]">
               <thead className="sticky top-0 bg-[rgba(3,0,16,0.95)]">
-                <tr className="text-white/40 font-orbitron text-[0.55rem] border-b border-white/10">
-                  <th className="py-2 px-3 text-left w-[40px]">#</th>
-                  <th className="py-2 px-3 text-left">ADDRESS</th>
-                  <th className="py-2 px-3 text-right w-[60px]">BPS</th>
-                  <th className="py-2 px-3 text-right w-[50px]">%</th>
-                  <th className="py-2 px-3 text-center w-[50px]">EDIT</th>
+                <tr className="text-white/40 font-orbitron text-[0.65rem] border-b border-white/10">
+                  <th className="py-2.5 px-3 text-left w-[50px]">#</th>
+                  <th className="py-2.5 px-3 text-left">ADDRESS</th>
+                  <th className="py-2.5 px-3 text-right w-[70px]">BPS</th>
+                  <th className="py-2.5 px-3 text-right w-[60px]">%</th>
+                  <th className="py-2.5 px-3 text-center w-[60px]">EDIT</th>
                 </tr>
               </thead>
               <tbody>
@@ -880,9 +975,11 @@ function OnChainWallets() {
                             <button onClick={() => { setEditing(null); setFeedback(null); }}
                               className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 text-[0.5rem]">✕</button>
                           </div>
-                        ) : (
+                        ) : isContractOwner ? (
                           <button onClick={() => { setEditing({ type: 'bd', index: bd.index, current: bd.address }); setNewAddr(bd.address || ''); setNewBps(String(bd.bps)); setFeedback(null); }}
                             className="px-1.5 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold text-[0.5rem] hover:bg-gold/20">✏️</button>
+                        ) : (
+                          <span className="text-white/15 text-[0.5rem]">🔒</span>
                         )}
                       </td>
                     </tr>

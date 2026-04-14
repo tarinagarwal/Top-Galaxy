@@ -59,3 +59,23 @@ export const CONTRACT_ADDRESSES = {
   game: import.meta.env.VITE_GAME_CONTRACT,
   luckyDraw: import.meta.env.VITE_LUCKYDRAW_CONTRACT,
 };
+
+// Treasury + Withdrawal ABIs for admin withdraw via MetaMask
+export const TREASURY_ABI = [
+  { name: 'transferFunds', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }, { name: 'reason', type: 'string' }], outputs: [] },
+];
+
+export const WITHDRAWAL_ABI = [
+  { name: 'processWithdrawal', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'user', type: 'address' }, { name: 'netAmount', type: 'uint256' }, { name: 'fee', type: 'uint256' }], outputs: [] },
+];
+
+// DepositV2 admin setter ABIs — used by the admin config page to update
+// on-chain wallet addresses directly from MetaMask (contract owner only).
+export const DEPOSIT_V2_ADMIN_ABI = [
+  { name: 'setCreatorWallet', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: '_wallet', type: 'address' }], outputs: [] },
+  { name: 'setFEWWallet', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: '_wallet', type: 'address' }], outputs: [] },
+  { name: 'setReferralPoolWallet', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: '_wallet', type: 'address' }], outputs: [] },
+  { name: 'setLuckyDrawPoolWallet', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: '_wallet', type: 'address' }], outputs: [] },
+  { name: 'setGamePoolWallet', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: '_wallet', type: 'address' }], outputs: [] },
+  { name: 'setBDWallet', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'index', type: 'uint8' }, { name: 'wallet', type: 'address' }, { name: 'bps', type: 'uint16' }], outputs: [] },
+];

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import api from '../../lib/axios';
+import { bscscanTx } from '../../lib/constants';
 
 const ACTION_TYPES = [
   'ALL',
@@ -12,8 +13,19 @@ const ACTION_TYPES = [
   'COMPRESS_TREE',
   'APPROVE_WITHDRAWAL',
   'REJECT_WITHDRAWAL',
+  'RETRY_WITHDRAWAL',
   'TRIGGER_DRAW',
+  'DRAW_FORCE_RESULT',
+  'DRAW_FORCE_START',
+  'DRAW_FORCE_EXECUTE',
+  'DRAW_SET_MANUAL_WINNERS',
+  'DRAW_CLEAR_MANUAL_WINNERS',
+  'SET_ADMIN_TABS',
+  'ASSIGN_ROLE',
+  'TRANSFER_SUPER',
   'TREASURY_WITHDRAW_FEE',
+  'CONTRACT_WALLET_UPDATE',
+  'CONTRACT_WITHDRAW',
   'ANNOUNCEMENT',
 ];
 
@@ -242,11 +254,31 @@ function ActionBadge({ action }) {
 function formatValue(v) {
   if (v === null || v === undefined) return '—';
   if (typeof v === 'object') {
-    try {
-      return JSON.stringify(v);
-    } catch {
-      return String(v);
+    // Extract txHash if present and render as clickable BSCScan link
+    const txHash = v.txHash || v.newTxHash;
+    const rest = { ...v };
+    if (txHash) { delete rest.txHash; delete rest.newTxHash; }
+    const parts = [];
+    if (txHash) {
+      parts.push(
+        <a key="tx" href={bscscanTx(txHash)} target="_blank" rel="noreferrer"
+          className="text-cyan underline hover:text-gold">
+          tx: {txHash.slice(0, 10)}...{txHash.slice(-6)} ↗
+        </a>
+      );
     }
+    const remaining = Object.keys(rest).length > 0 ? JSON.stringify(rest) : null;
+    if (remaining) parts.push(<span key="rest"> {remaining}</span>);
+    return parts.length > 0 ? <>{parts}</> : '—';
+  }
+  // If the string itself looks like a tx hash
+  if (typeof v === 'string' && v.startsWith('0x') && v.length === 66) {
+    return (
+      <a href={bscscanTx(v)} target="_blank" rel="noreferrer"
+        className="text-cyan underline hover:text-gold">
+        {v.slice(0, 10)}...{v.slice(-6)} ↗
+      </a>
+    );
   }
   return String(v);
 }

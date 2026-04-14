@@ -3,6 +3,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuthStore } from '../../store/authStore';
 import api from '../../lib/axios';
 import { fmt, num } from '../../lib/format';
+import { bscscanTx } from '../../lib/constants';
 
 const STATUS_FILTERS = ['ALL', 'PENDING', 'PROCESSING', 'COMPLETED', 'REJECTED', 'FAILED'];
 
@@ -485,7 +486,7 @@ export default function AdminWithdrawals() {
                         </span>
                         {w.txHash && (
                           <a
-                            href={`https://testnet.bscscan.com/tx/${w.txHash}`}
+                            href={bscscanTx(w.txHash)}
                             target="_blank"
                             rel="noreferrer"
                             className="block text-[0.65rem] text-cyan font-orbitron underline mt-0.5"

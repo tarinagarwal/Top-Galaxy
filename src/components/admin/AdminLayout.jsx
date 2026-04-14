@@ -100,7 +100,8 @@ export default function AdminLayout({ children }) {
       <header className="fixed top-0 left-0 right-0 z-[1000] px-6 py-3 flex items-center justify-between bg-[rgba(3,0,16,0.92)] backdrop-blur-[20px] border-b border-pink/20">
         <div className="flex items-center gap-3">
           <div className="font-orbitron text-[0.85rem] font-black text-gradient-gold tracking-[0.2em]">
-            ⛓ TOP GALAXY <span className="text-pink">ADMIN</span>
+            <img src="/logo.png" alt="Top Galaxy" className="h-7 w-auto inline-block mr-2" />
+            TOP GALAXY <span className="text-pink">ADMIN</span>
           </div>
         </div>
         <div className="flex items-center gap-2">

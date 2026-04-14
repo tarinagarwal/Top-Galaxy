@@ -3,8 +3,9 @@ import SocialLinks from './SocialLinks';
 export default function Footer() {
   return (
     <footer className="py-[42px] px-6 text-center border-t border-white/5">
-      <div className="font-orbitron text-[0.95rem] font-black text-gold mb-[9px] tracking-[0.2em]">
-        ⛓ TOP GALAXY BLOCKCHAIN
+      <div className="flex items-center justify-center gap-3 mb-[9px]">
+        <img src="/logo.png" alt="Top Galaxy" className="h-10 w-auto" />
+        <span className="font-orbitron text-[0.95rem] font-black text-gold tracking-[0.2em]">TOP GALAXY</span>
       </div>
       <SocialLinks size="md" className="mb-4" />
       <div className="text-[0.7rem] text-white/20 tracking-[0.09em] leading-[1.9]">

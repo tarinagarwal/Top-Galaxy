@@ -82,8 +82,9 @@ export default function Navbar() {
             </div>
           </button>
 
-          <Link to="/" className="font-orbitron text-[0.9rem] font-black text-gold tracking-[0.2em] no-underline">
-            ⛓ TOP<span className="text-cyan">GALAXY</span>
+          <Link to="/" className="flex items-center gap-2 no-underline">
+            <img src="/logo.png" alt="Top Galaxy" className="h-8 w-auto" />
+            <span className="font-orbitron text-[0.85rem] font-black text-gold tracking-[0.18em] hidden sm:inline">TOP<span className="text-cyan">GALAXY</span></span>
           </Link>
         </div>
 
